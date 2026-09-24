@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>VPN</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/mantis.svg" alt="" width="22" height="22">
+    <h1>VPN</h1>
+    <span id="endpoint"></span>
+  </header>
+
+  <!-- Pomocník není zaregistrovaný -->
+  <section id="no-host" hidden>
+    <p>VPN pomocník není nainstalovaný.</p>
+    <p class="hint">Ve složce prohlížeče otevřete <b>vpn</b>, na
+      <b>register-vpn.ps1</b> klikněte pravým tlačítkem → <i>Spustit pomocí
+      PowerShellu</i> a restartujte prohlížeč.</p>
+  </section>
+
+  <!-- Přidání / změna profilu -->
+  <section id="profile" hidden>
+    <p>Přidejte profil <b>WireGuard</b> – soubor <code>.conf</code> od vašeho VPN
+      serveru nebo poskytovatele (PiVPN, Mullvad, Proton VPN, vlastní server…).</p>
+    <p class="hint">Podporovaný je jen WireGuard. OpenVPN, IKEv2 ani jiné protokoly
+      zatím nejsou implementované.</p>
+    <textarea id="conf" spellcheck="false"
+      placeholder="Vložte obsah souboru .conf nebo sem soubor přetáhněte&#10;&#10;[Interface]&#10;PrivateKey = …&#10;&#10;[Peer]&#10;Endpoint = …"></textarea>
+    <input id="file" type="file" accept=".conf,text/plain" hidden>
+    <div class="row">
+      <button id="load" type="button" class="link">Načíst ze souboru…</button>
+      <button id="cancel" type="button" class="link" hidden>Zpět</button>
+      <button id="save" type="button" class="primary">Uložit a připojit</button>
+    </div>
+    <p class="hint">Profil se uloží jen v tomto počítači
+      (<code>%APPDATA%\mantis\vpn</code>), ne do prohlížeče.</p>
+  </section>
+
+  <!-- Zapnutí / vypnutí -->
+  <section id="main" hidden>
+    <label class="switch">
+      <input id="toggle" type="checkbox">
+      <span class="track"><span class="thumb"></span></span>
+      <span id="toggle-label">Vypnuto</span>
+    </label>
+    <p id="state" class="hint"></p>
+    <div class="row">
+      <button id="change" type="button" class="link">Změnit profil</button>
+      <button id="routing" type="button" class="link">Co jde přes VPN…</button>
+      <button id="remove" type="button" class="link danger">Odebrat profil</button>
+    </div>
+  </section>
+
+  <p id="error" role="alert" hidden></p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

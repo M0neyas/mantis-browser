@@ -1,0 +1,243 @@
+:root {
+  --bg: #f6f7f6;
+  --fg: #1a2e22;
+  --muted: #5b6b61;
+  --field: #ffffff;
+  --field-border: rgb(0 0 0 / 0.08);
+  --tile: rgb(0 0 0 / 0.04);
+  --tile-hover: rgb(0 0 0 / 0.08);
+  --accent: #22c55e;
+  --accent-soft: rgb(34 197 94 / 0.14);
+  --accent-fg: #166534;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b22;
+    --fg: #ecefed;
+    --muted: #a3ada7;
+    --field: #2b2a33;
+    --field-border: rgb(255 255 255 / 0.08);
+    --tile: rgb(255 255 255 / 0.05);
+    --tile-hover: rgb(255 255 255 / 0.1);
+    --accent-soft: rgb(34 197 94 / 0.18);
+    --accent-fg: #86efac;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.4 system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
+}
+
+main {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 24px 16px 12vh;
+}
+
+/* Jemné zelené pozadí v barvě loga (Nastavení Mantis → Zelené pozadí) */
+body.tinted {
+  background:
+    radial-gradient(1100px 520px at 50% -12%, rgb(34 197 94 / 0.16), transparent 70%),
+    radial-gradient(700px 400px at 100% 110%, rgb(22 101 52 / 0.1), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+.logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+}
+
+main:has(#clock:not([hidden])) .logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  margin-bottom: -16px;
+}
+
+/* ---------- Hodiny ---------- */
+
+#clock {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+#time {
+  font-size: 64px;
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+#date {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* ---------- Nastavení (ozubené kolo) ---------- */
+
+#settings {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+#settings:hover,
+#settings:focus-visible {
+  background: var(--tile-hover);
+  color: var(--fg);
+  outline: none;
+}
+
+#settings svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Vyhledávání ---------- */
+
+#search {
+  position: relative;
+  width: min(580px, 100%);
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  translate: 0 -50%;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+#query {
+  width: 100%;
+  height: 48px;
+  padding: 0 18px 0 44px;
+  border: 1px solid var(--field-border);
+  border-radius: 14px;
+  background: var(--field);
+  color: var(--fg);
+  font: inherit;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  transition: box-shadow 140ms ease, border-color 140ms ease;
+}
+
+#query::placeholder { color: var(--muted); }
+
+#query:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 20px rgb(0 0 0 / 0.08);
+}
+
+/* ---------- Dlaždice ---------- */
+
+#sites {
+  display: grid;
+  grid-template-columns: repeat(4, 96px);
+  gap: 12px;
+}
+
+#sites:empty { display: none; }
+
+@media (max-width: 480px) {
+  #sites { grid-template-columns: repeat(3, 88px); }
+}
+
+.site {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 6px 10px;
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 140ms ease;
+}
+
+.site:hover,
+.site:focus-visible {
+  background: var(--tile-hover);
+  outline: none;
+}
+
+.site-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--tile);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent-fg);
+  overflow: hidden;
+}
+
+.site-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.site-title {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+/* ---------- Upozornění na novou verzi ---------- */
+
+#update {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  translate: -50% 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-fg);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+#update:hover { text-decoration: underline; }

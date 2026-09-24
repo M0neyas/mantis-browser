@@ -1,0 +1,40 @@
+/* Doplňky ke stylům Nastavení Mantis (../settings/settings.css) */
+
+header img { border-radius: 16px; }
+
+a { color: var(--accent-strong); }
+
+.lead { margin: 0 4px 10px; }
+
+.badge {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgb(34 197 94 / 0.15);
+  color: var(--accent-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.addon-icon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: rgb(34 197 94 / 0.12);
+  font-size: 18px;
+}
+
+.option.addon { justify-content: flex-start; }
+.option.addon > span { flex: 1; }
+
+.warn {
+  color: #b45309;
+}
+
+@media (prefers-color-scheme: dark) {
+  a, .badge { color: #4ade80; }
+  .warn { color: #fbbf24; }
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>Vítejte v Mantis Browseru</title>
+  <link rel="icon" href="../icons/mantis.svg">
+  <link rel="stylesheet" href="../settings/settings.css">
+  <link rel="stylesheet" href="welcome.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/mantis.svg" alt="" width="56" height="56">
+    <div>
+      <h1>Vítejte v Mantis Browseru</h1>
+      <p class="hint">Rychlý a soukromý prohlížeč. Nic z níže uvedeného není povinné – vše najdete
+        i později v <a href="../settings/settings.html">Nastavení Mantis</a> (ozubené kolo na nové kartě).</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Už funguje</h2>
+    <div class="option">
+      <span>
+        <b>Blokování reklam a cookie lišt</b>
+        <span class="hint">uBlock Origin je součástí prohlížeče (stejně jako v LibreWolfu, na kterém
+          Mantis stojí). Ochrana proti sledování je zapnutá, telemetrie vypnutá.</span>
+      </span>
+      <span class="badge">Zapnuto</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Šifrované DNS</h2>
+    <label class="option">
+      <span>
+        <b>Zapnout šifrované DNS automaticky</b>
+        <span class="hint">Poskytovatel internetu ani cizí síť (kavárna, hotel) neuvidí, které weby
+          otevíráte. DNS dotazy pak jdou poskytovateli Quad9 (lze změnit v nastavení). Doma
+          s Pi-holem nebo ve firemní síti zůstane DNS sítě.</span>
+      </span>
+      <input id="doh-auto" type="checkbox" class="switch">
+    </label>
+  </section>
+
+  <section>
+    <h2>Doporučená rozšíření</h2>
+    <p class="hint lead">„Přidat“ otevře stránku rozšíření na addons.mozilla.org – tam instalaci potvrdíte.
+      Rozšíření jdou kdykoli odebrat v ☰ → Rozšíření a motivy.</p>
+    <div id="addons"></div>
+  </section>
+
+  <p class="hint note">Zásady ochrany osobních údajů:
+    <a href="https://moneyas.cz/mantis/soukromi" target="_blank" rel="noopener">moneyas.cz/mantis/soukromi</a> ·
+    Zdrojové kódy: <a href="https://github.com/M0neyas/mantis-browser" target="_blank" rel="noopener">GitHub</a></p>
+
+  <script src="welcome.js"></script>
+</body>
+</html>

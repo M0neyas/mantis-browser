@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 60" width="300" height="60">
+  <title>Mantis Browser</title>
+  <!-- Nápis vedle loga v okně „O aplikaci“. context-fill: barvu dosadí Firefox. -->
+  <text x="0" y="44" font-family="Segoe UI Variable Display, Segoe UI, Inter, Arial, sans-serif"
+        font-size="44" font-weight="600" letter-spacing="-0.5"
+        fill="context-fill #14532D">Mantis <tspan font-weight="400" fill-opacity="0.7">Browser</tspan></text>
+</svg>
