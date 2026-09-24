@@ -67,6 +67,9 @@ PUBLISH_HOST=""
 PUBLISH_DIR=""
 PUBLISH_FILE="Mantis-Browser-Setup.exe"
 PUBLISH_URL="https://moneyas.cz/mantis/download"
+# Obecná nápověda (Nastavení → Nápověda / Získat pomoc, Nápověda → Získat pomoc, F1).
+# „Zjistit více“ u jednotlivých voleb vede dál na nápovědu Mozilly (app.support.baseURL).
+HELP_URL="https://moneyas.cz/mantis/napoveda/"
 
 # Pracovní složka – musí být na disku WSL (ext4), ne na /mnt/c
 WORK_DIR="${WORK_DIR:-$HOME/mantis-work}"
