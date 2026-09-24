@@ -18,8 +18,10 @@ Vedle zipu a instalátoru vznikne `mantis-<verze>.x64.msix` (i ve `Stažené sou
 Instalace na **Windows 11** v PowerShellu (bez práv správce):
 
 ```powershell
-Add-AppxPackage -AllowUnsigned "$env:USERPROFILE\Downloads\Mantis\mantis-156.0.1-102.x64.msix"
+Add-AppxPackage -AllowUnsigned "$env:USERPROFILE\Downloads\Mantis\mantis-156.0.1-103.x64.msix"
 ```
+
+(Číslo za pomlčkou = 100 × release LibreWolfu + `MANTIS_RELEASE`, přesný název vypíše `build.sh`.)
 
 Mantis pak najdete v nabídce Start. Běží vedle verze z instalátoru a má vlastní
 profil (Firefox má pro každou instalační složku samostatný profil). Nové soubory
@@ -30,6 +32,8 @@ bude potřeba vložit znovu. Odinstalace: Nastavení → Aplikace, nebo
 **Co ověřit** (hlavně VPN):
 
 - [ ] Spustí se, čeština, ikony a dlaždice v nabídce Start
+- [ ] Nikde v UI „LibreWolf“: sekce v `about:preferences`, okno O aplikaci, nabídka Nápověda
+      („Mantis Browser – nahlásit chybu“)
 - [ ] `about:policies` – aktivní policies (uBlock, vyhledávače…);
       MSIX bere `distribution/policies.json` díky patchi LibreWolfu `msix.patch`
 - [ ] Uvítací stránka, nová karta, Nastavení Mantis (Aktualizace: „Nainstalováno
