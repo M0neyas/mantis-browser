@@ -1,6 +1,8 @@
 // Synchronizace Nastavení Mantis mezi počítači přes účet Firefoxu (storage.sync).
 // Synchronizuje přepínače a seznamy z Nastavení Mantis – NE VPN profil (ten je jen
-// v %APPDATA%\mantis\vpn), stav VPN ani údaje o aktualizacích.
+// v tomto počítači, zašifrovaný), stav VPN, údaje o aktualizacích ani choulostivé
+// stránky (seznam vlastních webů by se jinak objevil na každém počítači se stejným
+// účtem, třeba i na pracovním).
 // Vyžaduje přihlášení k účtu Firefoxu se zapnutou synchronizací „Doplňky“.
 // Přepínač syncSettings (výchozí zapnuto) je jen místní.
 
@@ -8,7 +10,6 @@ const SYNC_KEYS = [
   "newtabClock",
   "newtabBackground",
   "devUpdateCheck",
-  "sensitive", // choulostivé stránky: přepínače, vlastní weby, výjimky
   "doh", // šifrované DNS: režim a poskytovatel
   "vpnRouting", // co jde přes VPN (kontejnery se mezi počítači můžou lišit)
   "vpnKillSwitch",
@@ -89,6 +90,9 @@ browser.storage.onChanged.addListener((changes, area) => {
 // Po spuštění: vzdálené nastavení má přednost (jiný počítač mohl mezitím něco změnit),
 // co ve synchronizaci ještě není, se tam pošle.
 (async () => {
+  // Sestavení 2 choulostivé stránky synchronizovalo – smazat je i z účtu
+  // (smazání se přenese na ostatní počítače; místní nastavení zůstává)
+  await browser.storage.sync.remove("sensitive");
   await pullRemote(SYNC_KEYS);
   await pushLocal(SYNC_KEYS);
 })().catch(logSyncError);
