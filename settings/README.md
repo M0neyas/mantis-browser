@@ -24,7 +24,8 @@
 | Filtry reklam | navíc EasyList Czech and Slovak |
 | Spuštění | obnoví karty z minula |
 | Synchronizace | Firefox Sync zapnutý (LibreWolf ho vypíná) – přihlášení v Nastavení → Synchronizace |
-| DRM (Netflix, Spotify…) | zapnuté, včetně stažení modulu Widevine; policy `EncryptedMediaExtensions` i prefy (jinak policy LibreWolfu DRM vypne) |
+| DRM | zapnuté, včetně stažení modulu Widevine; policy `EncryptedMediaExtensions` i prefy (jinak policy LibreWolfu DRM vypne). Netflix na Windows nejde – licenční server vyžaduje Widevine VMP (podpisy `*.sig`, které má jen Mozilla), PlayReady si Netflix pro Firefox nevybere |
+| WebGL | zapnuté bez dotazu (`librewolf.webgl.prompt` = false – LibreWolf ho jinak potichu blokuje na všech webech) |
 | Kontejnery | zapnuté už v LibreWolfu, správu přidává Multi-Account Containers |
 
 ## Vyzkoušení v obyčejném LibreWolfu (bez buildu)

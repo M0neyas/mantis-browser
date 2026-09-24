@@ -28,7 +28,8 @@ Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](
 - **Soukromá historie** – vybrané weby se neukládají do historie, „Zapomenout web“ jedním klikem.
 - **Připravený k použití** – čeština, doporučená rozšíření jedním kliknutím (Bitwarden,
   kontejnery karet, český slovník, TTV LOL PRO – nic se neinstaluje samo),
-  rychlé hledání `@mapy @heureka @csfd @yt @wiki @seznam`, DRM (Netflix, Spotify),
+  rychlé hledání `@mapy @heureka @csfd @yt @wiki @seznam`, DRM (Widevine; Netflix
+  na Windows nefunguje – vyžaduje podpis Widevine VMP, který vlastní buildy Firefoxu nedostanou),
   synchronizace přes účet Firefoxu (včetně Nastavení Mantis).
 - **Instalátor v češtině** a aktualizace jedním kliknutím (podepsané vydání – Ed25519,
   ověření SHA-256, spuštění).
