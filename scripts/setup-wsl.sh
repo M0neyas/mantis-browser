@@ -13,7 +13,7 @@ esac
 info "Instaluji balíčky (Docker, git, jq, převod SVG → PNG/ICO)…"
 sudo apt-get update
 sudo apt-get install -y docker.io git curl jq perl patch pigz xz-utils zip unzip \
-  librsvg2-bin imagemagick
+  librsvg2-bin imagemagick osslsigncode
 
 info "Spouštím Docker…"
 sudo systemctl enable --now docker 2>/dev/null || sudo service docker start
