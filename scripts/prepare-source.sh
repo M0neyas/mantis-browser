@@ -132,6 +132,22 @@ else
   warn "v textech UI jsem nenašel „LibreWolf“ – změnila se struktura překladů LibreWolfu?"
 fi
 
+# Ikony s logem LibreWolfu / Firefoxu v UI → kudlanka (pravidlo Storu 10.1.1, známka Firefoxu):
+#  - sidebar/librewolf.svg = chrome://browser/skin/sidebar/firefox.svg (jar.inc.mn): Nastavení →
+#    O aplikaci, Vzhled, Jazyky, nabídka postranního panelu; sidebar/firefox.svg pro jistotu taky
+#  - preferences/category-librewolf.svg: sekce Mantis Browser v Nastavení
+#  - icons/window-firefox.svg (okno s logem Firefoxu): Nastavení → Domů, nová karta
+#  - aboutdebugging-firefox-librewolf.svg: about:debugging → „Tento Mantis Browser“
+for f in browser/themes/shared/sidebar/librewolf.svg browser/themes/shared/sidebar/firefox.svg \
+         browser/themes/shared/preferences/category-librewolf.svg; do
+  [ -f "$SRC_DIR/$f" ] || die "chybí $f – změnily se ikony LibreWolfu?"
+  cp "$REPO_DIR/branding/logo-mono.svg" "$SRC_DIR/$f"
+done
+[ -f "$SRC_DIR/browser/themes/shared/icons/window-firefox.svg" ] || die "chybí icons/window-firefox.svg"
+cp "$REPO_DIR/branding/window.svg" "$SRC_DIR/browser/themes/shared/icons/window-firefox.svg"
+[ -f "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg" ] || die "chybí aboutdebugging-firefox-librewolf.svg"
+cp "$REPO_DIR/branding/logo.svg" "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg"
+
 # ---------------------------------------------------------------------------
 info "5/7 Nastavení a policies"
 cfg="$SRC_DIR/lw/librewolf.cfg"

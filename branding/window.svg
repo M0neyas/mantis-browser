@@ -1,0 +1,6 @@
+<!-- Ikona okna (Nastavení → Domů / nová okna) místo window-firefox.svg, které má v rohu
+     logo Firefoxu. Barva podle motivu přes context-fill. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="14" viewBox="0 0 16 14"
+     fill="context-fill" fill-opacity="context-fill-opacity">
+  <path fill-rule="evenodd" d="M2 0h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2zm-.5 5v7a.5.5 0 0 0 .5.5h12a.5.5 0 0 0 .5-.5V5zm0-1.5h13V2a.5.5 0 0 0-.5-.5H2a.5.5 0 0 0-.5.5z"/>
+</svg>
