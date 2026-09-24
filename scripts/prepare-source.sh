@@ -115,6 +115,22 @@ for f in $brand_texts; do
 done
 grep -q "$APP_DISPLAYNAME" "$brand/locales/en-US/brand.ftl" || die "přejmenování v brand.ftl se nepovedlo"
 
+# Texty, které LibreWolf přidává do UI s názvem napevno (sekce „LibreWolf“ v nastavení,
+# okno O aplikaci…) → Mantis Browser. Firefox sám „LibreWolf“ v textech nemá, takže stačí
+# soubory, které to slovo obsahují (ID zpráv jako pane-librewolf-title2 zůstanou – malá
+# písmena). Pravidlo Microsoft Store 10.1.1: nevydávat se za jiný produkt.
+lw_texts=$(grep -rlF --include='*.ftl' --include='*.properties' --include='*.dtd' 'LibreWolf' \
+  "$SRC_DIR/browser/locales/en-US" "$SRC_DIR/toolkit/locales/en-US" "$SRC_DIR/lw/l10n" 2>/dev/null \
+  | grep -v '/branding/' || true)
+if [ -n "$lw_texts" ]; then
+  for f in $lw_texts; do
+    NAME="$APP_DISPLAYNAME" perl -pi -e 's/LibreWolf/$ENV{NAME}/g' "$f"
+  done
+  echo "    „LibreWolf“ → „$APP_DISPLAYNAME“ v $(printf '%s\n' "$lw_texts" | grep -c .) souborech s texty"
+else
+  warn "v textech UI jsem nenašel „LibreWolf“ – změnila se struktura překladů LibreWolfu?"
+fi
+
 # ---------------------------------------------------------------------------
 info "5/7 Nastavení a policies"
 cfg="$SRC_DIR/lw/librewolf.cfg"
