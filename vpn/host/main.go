@@ -145,12 +145,20 @@ func running() bool {
 }
 
 // Tunel odpovídá = přes proxy (se jménem a heslem) jde navázat TCP spojení skrz
-// WireGuard na probeAddr. wireproxy potvrdí CONNECT až po spojení s cílem.
+// WireGuard na DNS server z profilu, případně na 1.1.1.1:443 (některé DNS servery
+// TCP nepřijímají). wireproxy potvrdí CONNECT až po spojení s cílem.
 func connected() bool {
 	if socksUser == "" {
 		return false
 	}
-	host, portStr, err := net.SplitHostPort(probeAddr)
+	if probe(probeAddr) {
+		return true
+	}
+	return probeAddr != fallbackProbe && probe(fallbackProbe)
+}
+
+func probe(target string) bool {
+	host, portStr, err := net.SplitHostPort(target)
 	ip := net.ParseIP(host).To4()
 	port, perr := strconv.Atoi(portStr)
 	if err != nil || ip == nil || perr != nil {
@@ -161,7 +169,7 @@ func connected() bool {
 		return false
 	}
 	defer conn.Close()
-	conn.SetDeadline(time.Now().Add(6 * time.Second))
+	conn.SetDeadline(time.Now().Add(4 * time.Second))
 
 	reply := make([]byte, 2)
 	// pozdrav: SOCKS5, 1 metoda, 0x02 = jméno/heslo (RFC 1928, 1929)
