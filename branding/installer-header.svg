@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 57" width="150" height="57">
+  <title>Mantis Browser – hlavička stránek instalátoru (wizHeader.bmp)</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#166534"/>
+    </linearGradient>
+  </defs>
+  <!-- NSIS kreslí bitmapu vpravo na bílé hlavičce -->
+  <rect width="150" height="57" fill="#fff"/>
+  <g transform="translate(97 6) scale(0.45)">
+    <rect x="4" y="4" width="92" height="92" rx="26" fill="url(#bg)"/>
+    <path d="M42 31C40 23 36 18 30 15M58 31C60 23 64 18 70 15"
+          fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M26 76L30 33M74 76L70 33"
+          fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M30 33H70L50 64Z" fill="#fff" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+    <circle cx="38" cy="37" r="4.5" fill="#166534"/>
+    <circle cx="62" cy="37" r="4.5" fill="#166534"/>
+  </g>
+</svg>

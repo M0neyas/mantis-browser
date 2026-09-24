@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <title>Mantis Browser</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4ADE80"/>
+      <stop offset="1" stop-color="#166534"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="92" height="92" rx="26" fill="url(#bg)"/>
+  <!-- tykadla -->
+  <path d="M42 31C40 23 36 18 30 15M58 31C60 23 64 18 70 15"
+        fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- nohy = krajní tahy M -->
+  <path d="M26 76L30 33M74 76L70 33"
+        fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+  <!-- hlava = střed M -->
+  <path d="M30 33H70L50 64Z" fill="#fff" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+  <!-- oči -->
+  <circle cx="38" cy="37" r="4.5" fill="#166534"/>
+  <circle cx="62" cy="37" r="4.5" fill="#166534"/>
+</svg>

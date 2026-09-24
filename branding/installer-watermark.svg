@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 314" width="164" height="314">
+  <title>Mantis Browser – levý panel instalátoru (wizWatermark.bmp)</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#22C55E"/>
+      <stop offset="1" stop-color="#14532D"/>
+    </linearGradient>
+  </defs>
+  <rect width="164" height="314" fill="url(#bg)"/>
+  <!-- kudlanka z logo.svg bez podkladu, bíle; 100 × 100 → střed nahoře -->
+  <g transform="translate(22 56) scale(1.2)">
+    <path d="M42 31C40 23 36 18 30 15M58 31C60 23 64 18 70 15"
+          fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M26 76L30 33M74 76L70 33"
+          fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+    <path d="M30 33H70L50 64Z" fill="#fff" stroke="#fff" stroke-width="9" stroke-linejoin="round"/>
+    <circle cx="38" cy="37" r="4.5" fill="#15803D"/>
+    <circle cx="62" cy="37" r="4.5" fill="#15803D"/>
+  </g>
+  <text x="82" y="214" text-anchor="middle" fill="#fff"
+        font-family="Segoe UI, Inter, DejaVu Sans, Arial, sans-serif" font-size="26" font-weight="700">Mantis</text>
+  <text x="82" y="238" text-anchor="middle" fill="#fff" fill-opacity="0.8"
+        font-family="Segoe UI, Inter, DejaVu Sans, Arial, sans-serif" font-size="16">Browser</text>
+</svg>

@@ -1,0 +1,254 @@
+/* Mantis Browser – minimalistický vzhled (něco mezi Arc a Safari)
+ *
+ * Rozložení (jako Safari): jeden řádek [navigace + adresa | karty | okno],
+ * pod ním malá lišta [záložky … doplňky]. Na úzkém okně karty nahoře
+ * a adresa pod nimi. Přesun doplňků do lišty záložek viz theme/README.md.
+ * - karty, adresní řádek a záložky tvoří jednu souvislou plochu (bez pruhů)
+ * - stránka přes celou plochu okna, bez okrajů, jen horní rohy zaoblené
+ * Barvy se přebírají z tématu prohlížeče, funguje světlý i tmavý režim.
+ *
+ * Prototyp: zkopírovat do <profil>\chrome\userChrome.css (viz theme/README.md).
+ */
+
+:root {
+  --mb-chrome: var(--toolbar-bgcolor);
+  --mb-radius: 10px;
+  --mb-radius-small: 8px;
+  --mb-gap: 8px;
+  --mb-navbar-width: 40vw; /* šířka levé části s adresou v jednořádkovém režimu */
+  --mb-hover: color-mix(in srgb, currentColor 5%, transparent);
+  --mb-selected: color-mix(in srgb, currentColor 9%, transparent);
+  --mb-field: color-mix(in srgb, currentColor 8%, transparent);
+  --mb-line: color-mix(in srgb, currentColor 10%, transparent);
+  --mb-ease: 140ms ease;
+  --mb-accent: #22c55e; /* zelená z loga */
+
+  /* Zelený akcent místo modré Windows: fokus, zaškrtávátka, přepínače */
+  --focus-outline-color: var(--mb-accent) !important;
+  --color-accent-primary: var(--mb-accent) !important;
+  --toolbarbutton-icon-fill-attention: var(--mb-accent) !important;
+  accent-color: var(--mb-accent);
+
+  --tab-border-radius: var(--mb-radius-small) !important;
+  --tab-min-height: 28px !important;
+  --tab-block-margin: 3px !important;
+  --urlbar-min-height: 28px !important;
+  --toolbarbutton-inner-padding: 6px !important;
+  --toolbarbutton-border-radius: var(--mb-radius-small) !important;
+}
+
+/* ---------- Jedna souvislá plocha nahoře ---------- */
+
+#navigator-toolbox,
+#TabsToolbar,
+#titlebar,
+#nav-bar,
+#PersonalToolbar {
+  background: var(--mb-chrome) !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ---------- Jeden řádek jako v Safari ----------
+ * [← → ⟳ | adresní řádek | ☰] [karty … +] [– □ ×]
+ * Na úzkém okně se vrátí dva řádky (karty nahoře, adresa pod nimi).
+ */
+
+@media (min-width: 900px) {
+  :root:not([customizing]) #navigator-toolbox {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+  }
+
+  :root:not([customizing]) #navigator-toolbox > * {
+    order: 5;
+    flex: 1 0 100%;
+  }
+
+  :root:not([customizing]) #toolbar-menubar {
+    order: 0;
+  }
+
+  :root:not([customizing]) #nav-bar {
+    order: 1;
+    flex: 0 0 var(--mb-navbar-width) !important;
+    min-width: 480px !important;
+    padding-block: 0 !important;
+  }
+
+  :root:not([customizing]) #TabsToolbar {
+    order: 2;
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    padding-inline-start: 0 !important;
+  }
+
+  :root:not([customizing]) #PersonalToolbar {
+    order: 3;
+  }
+
+  /* Mezera pro tažení okna vlevo od karet je tu zbytečná */
+  :root:not([customizing]) #TabsToolbar .titlebar-spacer[type="pre-tabs"] {
+    display: none !important;
+  }
+
+  /* Adresní řádek vyplní celé místo v levé části */
+  :root:not([customizing]) #urlbar-container {
+    max-width: none !important;
+    margin-inline: 4px !important;
+  }
+}
+
+/* ---------- Stránka: přes celou plochu, jen horní rohy zaoblené ---------- */
+
+#browser {
+  background: var(--mb-chrome) !important;
+}
+
+#tabbrowser-tabbox {
+  border-radius: var(--mb-radius) var(--mb-radius) 0 0 !important;
+  overflow: clip !important;
+}
+
+:root[inFullscreen] #tabbrowser-tabbox {
+  border-radius: 0 !important;
+}
+
+/* ---------- Karty: tiché „pilulky“ ---------- */
+
+#TabsToolbar {
+  padding-inline: var(--mb-gap) !important;
+  padding-top: 0 !important;
+}
+
+.tabbrowser-tab::before,
+.tabbrowser-tab::after {
+  display: none !important; /* oddělovače mezi kartami */
+}
+
+.tabbrowser-tab {
+  padding-inline: 2px !important;
+}
+
+.tab-background {
+  border-radius: var(--mb-radius-small) !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: background-color var(--mb-ease);
+}
+
+.tabbrowser-tab:hover .tab-background {
+  background-color: var(--mb-hover) !important;
+}
+
+.tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background {
+  background-color: color-mix(in srgb, var(--mb-accent) 14%, var(--mb-selected)) !important;
+}
+
+.tab-label {
+  font-size: 12px !important;
+}
+
+/* Křížek zavření jen při najetí myší na kartu */
+.tab-close-button {
+  border-radius: 6px !important;
+  transition: opacity var(--mb-ease);
+}
+.tabbrowser-tab:not(:hover) .tab-close-button {
+  opacity: 0 !important;
+}
+
+/* ---------- Adresní řádek ---------- */
+
+#nav-bar {
+  padding: 0 var(--mb-gap) 2px !important;
+}
+
+#urlbar-container {
+  max-width: 640px !important;
+  margin-inline: auto !important;
+}
+
+#urlbar-background {
+  border: none !important;
+  border-radius: var(--mb-radius) !important;
+  background: var(--mb-field) !important;
+  box-shadow: none !important;
+  transition: background-color var(--mb-ease);
+}
+
+#urlbar:not([focused], [open]):hover > #urlbar-background {
+  background: var(--mb-selected) !important;
+}
+
+#urlbar:is([focused], [open]) > #urlbar-background {
+  background: var(--toolbar-field-focus-background-color) !important;
+  outline: 2px solid color-mix(in srgb, var(--mb-accent) 65%, transparent) !important;
+  outline-offset: -1px !important;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25) !important;
+}
+
+/* Jako Safari: adresa uprostřed, dokud do řádku nekliknete */
+#urlbar:not([focused]) #urlbar-input {
+  text-align: center !important;
+}
+
+/* Tlačítka v adresním řádku splývají s pozadím */
+#urlbar-searchmode-switcher,
+#identity-box > box,
+#tracking-protection-icon-container {
+  background: transparent !important;
+}
+
+/* ---------- Tlačítka na liště ---------- */
+
+.toolbarbutton-1 {
+  transition: background-color var(--mb-ease);
+}
+
+/* Tlačítko rozšíření (🧩) schované – Firefox ho nedovolí přesunout z horního
+ * řádku a rozšíření jsou připnutá ve spodní liště. Správa rozšíření:
+ * ☰ → Rozšíření a motivy. */
+#unified-extensions-button {
+  display: none !important;
+}
+
+/* ---------- Druhý řádek: záložky vlevo, doplňky vpravo ----------
+ * Tlačítka (stahování, rozšíření, uBlock…) jsou přesunutá do lišty záložek
+ * v rozložení lišt (browser.uiCustomization.state), CSS je jen zmenšuje.
+ */
+
+#PersonalToolbar {
+  padding: 0 var(--mb-gap) 4px !important;
+  min-height: 0 !important;
+  --toolbarbutton-inner-padding: 4px !important;
+}
+
+/* Bez nápovědy „Chcete-li mít ke svým záložkám rychlý přístup…“ */
+#personal-toolbar-empty-description {
+  display: none !important;
+}
+
+#PersonalToolbar .toolbarbutton-1 {
+  margin-block: 0 !important;
+}
+
+#PersonalToolbar .bookmark-item {
+  font-size: 11.5px !important;
+  padding: 2px 7px !important;
+  margin-inline: 1px !important;
+  border-radius: 6px !important;
+}
+
+#PersonalToolbar .bookmark-item .toolbarbutton-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+#PersonalToolbar .bookmark-item:hover {
+  background-color: var(--mb-hover) !important;
+}

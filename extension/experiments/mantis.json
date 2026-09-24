@@ -1,0 +1,63 @@
+[
+  {
+    "namespace": "mantisPrefs",
+    "description": "Čtení a změna vybraných nastavení prohlížeče pro stránku Nastavení Mantis, zapomenutí webu a spuštění ověřeného instalátoru aktualizace.",
+    "functions": [
+      {
+        "name": "get",
+        "type": "function",
+        "async": true,
+        "description": "Vrátí hodnotu povoleného nastavení.",
+        "parameters": [{ "name": "name", "type": "string" }]
+      },
+      {
+        "name": "set",
+        "type": "function",
+        "async": true,
+        "description": "Nastaví hodnotu povoleného nastavení.",
+        "parameters": [
+          { "name": "name", "type": "string" },
+          { "name": "value", "type": "any" }
+        ]
+      },
+      {
+        "name": "forgetSite",
+        "type": "function",
+        "async": true,
+        "description": "Zapomene web (historie, cookies, cache, data, oprávnění) jako „Zapomenout tuto stránku“. Vrátí základní doménu.",
+        "parameters": [{ "name": "url", "type": "string" }]
+      },
+      {
+        "name": "isPackaged",
+        "type": "function",
+        "async": true,
+        "description": "Vrátí true, když Mantis běží z balíčku MSIX (Microsoft Store).",
+        "parameters": []
+      },
+      {
+        "name": "addonsInstalled",
+        "type": "function",
+        "async": true,
+        "description": "Vrátí pro každé zadané ID doplňku true/false podle toho, jestli je nainstalovaný (max. 20 ID).",
+        "parameters": [{ "name": "ids", "type": "array", "items": { "type": "string" } }]
+      },
+      {
+        "name": "ensureVpnHost",
+        "type": "function",
+        "async": true,
+        "description": "Zaregistruje přibaleného VPN pomocníka pro native messaging v HKCU (přenosná verze, MSIX).",
+        "parameters": []
+      },
+      {
+        "name": "launchInstaller",
+        "type": "function",
+        "async": true,
+        "description": "Spustí stažený instalátor Mantis Browseru ze složky pro stahování, pokud sedí jeho SHA-256.",
+        "parameters": [
+          { "name": "path", "type": "string" },
+          { "name": "sha256", "type": "string" }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+# Stažené zdrojáky a výstupy buildu
+/work/
+/build/
+/dist/
+*.tar.gz
+*.tar.zst
+*.zip
+*.exe
+*.msi
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Lokální nastavení Claude
+.claude/settings.local.json
+
+# WireGuard / VPN konfigurace obsahují soukromé klíče – nikdy necommitovat
+*.conf
+!/vpn/wireproxy.conf.template
+
+# Instrukce a poznámky pro Claude Code (soukromé, jen lokálně)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+
+# Soukromá nastavení skriptů (server pro zveřejnění apod.)
+scripts/config.local.sh

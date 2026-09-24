@@ -1,0 +1,85 @@
+{
+  "policies": {
+    "EncryptedMediaExtensions": {
+      "Enabled": true
+    },
+    "SearchEngines": {
+      "Add": [
+        {
+          "Name": "Mapy.cz",
+          "Alias": "@mapy",
+          "URLTemplate": "https://mapy.cz/?q={searchTerms}",
+          "IconURL": "https://mapy.cz/favicon.ico"
+        },
+        {
+          "Name": "Heureka",
+          "Alias": "@heureka",
+          "URLTemplate": "https://www.heureka.cz/?h%5Bfraze%5D={searchTerms}",
+          "IconURL": "https://www.heureka.cz/favicon.ico"
+        },
+        {
+          "Name": "Wikipedie (cs)",
+          "Alias": "@wiki",
+          "URLTemplate": "https://cs.wikipedia.org/w/index.php?search={searchTerms}",
+          "IconURL": "https://cs.wikipedia.org/static/favicon/wikipedia.ico"
+        },
+        {
+          "Name": "ČSFD",
+          "Alias": "@csfd",
+          "URLTemplate": "https://www.csfd.cz/hledat/?q={searchTerms}",
+          "IconURL": "https://www.csfd.cz/favicon.ico"
+        },
+        {
+          "Name": "YouTube",
+          "Alias": "@yt",
+          "URLTemplate": "https://www.youtube.com/results?search_query={searchTerms}",
+          "IconURL": "https://www.youtube.com/favicon.ico"
+        },
+        {
+          "Name": "Seznam",
+          "Alias": "@seznam",
+          "URLTemplate": "https://search.seznam.cz/?q={searchTerms}",
+          "IconURL": "https://www.seznam.cz/favicon.ico"
+        }
+      ]
+    },
+    "ExtensionSettings": {
+      "mantis@mantis.browser": {
+        "private_browsing": true
+      },
+      "*": {
+        "blocked_install_message": "Mantis Browser neumožňuje instalovat jazykové balíčky – čeština a angličtina jsou už součástí prohlížeče."
+      }
+    },
+    "3rdparty": {
+      "Extensions": {
+        "uBlock0@raymondhill.net": {
+          "toOverwrite": {
+            "filterLists": [
+              "user-filters",
+              "ublock-filters",
+              "ublock-badware",
+              "ublock-privacy",
+              "ublock-unbreak",
+              "ublock-quick-fixes",
+              "easylist",
+              "easyprivacy",
+              "urlhaus-1",
+              "plowe-0",
+              "fanboy-cookiemonster",
+              "ublock-cookies-easylist",
+              "adguard-cookies",
+              "ublock-cookies-adguard",
+              "CZE-0"
+            ]
+          }
+        }
+      }
+    },
+    "SupportMenu": {
+      "Title": "Mantis Browser – nahlásit chybu",
+      "URL": "https://github.com/M0neyas/mantis-browser/issues",
+      "AccessKey": "M"
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "manifest_version": 2,
+  "name": "Mantis",
+  "description": "Vestavěné funkce Mantis Browseru: nová karta, nastavení, zapomenutí webu, aktualizace jedním kliknutím, VPN (WireGuard) se směrováním, šifrované DNS, synchronizace nastavení, choulostivé stránky mimo historii.",
+  "version": "1.0.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "mantis@mantis.browser"
+    }
+  },
+  "permissions": [
+    "alarms",
+    "notifications",
+    "search",
+    "storage",
+    "topSites",
+    "nativeMessaging",
+    "proxy",
+    "tabs",
+    "menus",
+    "history",
+    "sessions",
+    "dns",
+    "networkStatus",
+    "downloads",
+    "contextualIdentities",
+    "<all_urls>"
+  ],
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
+  "background": {
+    "scripts": [
+      "version.js",
+      "background.js",
+      "vpn.js",
+      "forget.js",
+      "sensitive.js",
+      "doh.js",
+      "sync.js"
+    ],
+    "persistent": true
+  },
+  "icons": {
+    "48": "icons/mantis.svg",
+    "96": "icons/mantis.svg"
+  },
+  "browser_action": {
+    "default_title": "VPN",
+    "default_icon": "icons/vpn-off.svg",
+    "default_popup": "vpn/popup.html",
+    "default_area": "navbar"
+  },
+  "options_ui": {
+    "page": "settings/settings.html",
+    "open_in_tab": true
+  },
+  "experiment_apis": {
+    "mantisPrefs": {
+      "schema": "experiments/mantis.json",
+      "parent": {
+        "scopes": [
+          "addon_parent"
+        ],
+        "script": "experiments/mantis.js",
+        "paths": [
+          [
+            "mantisPrefs"
+          ]
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+# Vše textové s LF – skripty a patche běží ve WSL (Linux)
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.jpg binary
+*.svg text eol=lf

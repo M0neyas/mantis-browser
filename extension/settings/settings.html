@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>Nastavení Mantis</title>
+  <link rel="icon" href="../icons/mantis.svg">
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/mantis.svg" alt="" width="40" height="40">
+    <div>
+      <h1>Nastavení Mantis</h1>
+      <p id="version" class="hint"></p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Prohlížení</h2>
+
+    <label class="option">
+      <span>
+        <b>Obraz v obraze při přepnutí karty</b>
+        <span class="hint">Když od videa přepnete na jinou kartu, video se odpojí do malého okna.</span>
+      </span>
+      <input type="checkbox" class="switch" data-pref="media.videocontrols.picture-in-picture.enable-when-switching-tabs.enabled">
+    </label>
+
+    <label class="option">
+      <span>
+        <b>Automatické přehrávání</b>
+        <span class="hint">Výjimky pro jednotlivé weby: ikona vlevo v adresním řádku.</span>
+      </span>
+      <select data-pref="media.autoplay.default">
+        <option value="1">Blokovat jen se zvukem</option>
+        <option value="5">Blokovat vše</option>
+        <option value="0">Povolit</option>
+      </select>
+    </label>
+
+    <label class="option">
+      <span>
+        <b>Plynulé rolování</b>
+        <span class="hint">Měkčí rolování kolečkem myši, podobné Chromu a Edge.</span>
+      </span>
+      <input type="checkbox" class="switch" data-pref="general.smoothScroll.msdPhysics.enabled">
+    </label>
+  </section>
+
+  <section>
+    <h2>Nová karta</h2>
+
+    <label class="option">
+      <span><b>Hodiny a datum</b></span>
+      <input type="checkbox" class="switch" data-store="newtabClock">
+    </label>
+
+    <label class="option">
+      <span><b>Zelené pozadí</b>
+        <span class="hint">Jemný přechod v barvě loga.</span></span>
+      <input type="checkbox" class="switch" data-store="newtabBackground">
+    </label>
+  </section>
+
+  <section>
+    <h2>Soukromí</h2>
+
+    <div class="option column">
+      <span>
+        <b>Zapomenout web</b>
+        <span class="hint">Smaže historii, cookies, cache, uložená data a oprávnění webu
+          (včetně subdomén). Rychleji: pravý klik na stránku nebo kartu →
+          <i>Zapomenout web</i>.</span>
+      </span>
+      <form id="forget" class="inline">
+        <input id="forget-site" type="text" placeholder="např. example.com" aria-label="Web k zapomenutí">
+        <button type="submit">Zapomenout</button>
+      </form>
+      <p id="forget-result" class="hint" role="status"></p>
+    </div>
+  </section>
+
+  <section id="doh">
+    <h2>Šifrované DNS</h2>
+
+    <label class="option">
+      <span>
+        <b>Šifrované DNS (DNS over HTTPS)</b>
+        <span class="hint">Poskytovatel internetu ani síť (kavárna, hotel) neuvidí, které weby otevíráte.
+          Ve výchozím stavu vypnuté. <i>Automaticky</i> se zapne jen v sítích, které to dovolují – doma s Pi-holem nebo ve firemní
+          síti zůstane DNS sítě. Se zapnutou VPN jde DNS tunelem.</span>
+      </span>
+      <select data-doh="mode">
+        <option value="off">Vypnuto</option>
+        <option value="auto">Automaticky (doporučeno)</option>
+        <option value="on">Vždy zapnuto</option>
+      </select>
+    </label>
+
+    <label class="option">
+      <span>
+        <b>Poskytovatel</b>
+        <span class="hint">Quad9 navíc blokuje weby s malwarem; Mullvad s blokováním i reklamy.</span>
+      </span>
+      <select data-doh="provider">
+        <option value="quad9">Quad9</option>
+        <option value="mullvad">Mullvad</option>
+        <option value="mullvad-adblock">Mullvad (blokuje reklamy)</option>
+        <option value="cloudflare">Cloudflare</option>
+      </select>
+    </label>
+
+    <div class="option">
+      <span>
+        <b>Stav</b>
+        <span class="hint" id="doh-state" role="status">Zjišťuji…</span>
+      </span>
+      <button id="doh-check" type="button">Zkontrolovat teď</button>
+    </div>
+  </section>
+
+  <section id="sensitive">
+    <h2>Choulostivé stránky</h2>
+
+    <label class="option">
+      <span>
+        <b>Neukládat choulostivé stránky do historie</b>
+        <span class="hint">Po návštěvě se stránka hned smaže z historie, z našeptávání adresního
+          řádku i z nedávno zavřených karet. Rychle přidat web: pravý klik na stránku nebo kartu →
+          <i>Neukládat web do historie</i>.</span>
+      </span>
+      <input type="checkbox" class="switch" data-sensitive="enabled">
+    </label>
+
+    <label class="option">
+      <span>
+        <b>Pro dospělé</b>
+        <span class="hint">Asi 13 000 známých webů a adresy se slovy jako <i>porn</i>, <i>xxx</i>, <i>hentai</i>.</span>
+      </span>
+      <input type="checkbox" class="switch" data-sensitive="adult">
+    </label>
+
+    <div class="option column">
+      <label for="sensitive-custom">
+        <b>Vlastní weby</b>
+        <span class="hint">Jeden na řádek, např. <i>example.com</i> – platí i pro subdomény.</span>
+      </label>
+      <textarea id="sensitive-custom" data-sensitive-list="custom" rows="4" spellcheck="false"></textarea>
+    </div>
+
+    <div class="option column">
+      <label for="sensitive-exceptions">
+        <b>Výjimky</b>
+        <span class="hint">Weby, které se do historie ukládají vždy (třeba když je seznam označí omylem).</span>
+      </label>
+      <textarea id="sensitive-exceptions" data-sensitive-list="exceptions" rows="3" spellcheck="false"></textarea>
+    </div>
+
+    <div class="option">
+      <span>
+        <b>Vymazat z dosavadní historie</b>
+        <span class="hint" id="sensitive-result" role="status">Smaže z historie choulostivé stránky navštívené dřív.</span>
+      </span>
+      <button id="sensitive-clean" type="button">Vymazat</button>
+    </div>
+
+    <p class="hint note">Pozor: otevřené karty se po restartu obnoví i s historií tlačítka Zpět
+      a cookies (přihlášení) se ukládají dál. Pro úplné soukromí použijte anonymní okno
+      nebo pravý klik → <i>Zapomenout web</i>.</p>
+  </section>
+
+  <section>
+    <h2>Rozšíření</h2>
+    <div class="option">
+      <span>
+        <b>Doporučená rozšíření</b>
+        <span class="hint">Bitwarden, kontejnery karet, český slovník a TTV LOL PRO – nic se neinstaluje
+          samo, stránka je nabídne k přidání jedním kliknutím.</span>
+      </span>
+      <a class="button" href="../welcome/welcome.html">Otevřít</a>
+    </div>
+  </section>
+
+  <section>
+    <h2>Aktualizace</h2>
+
+    <div class="option">
+      <span>
+        <b>Nové verze Mantis Browseru</b>
+        <span class="hint" id="update-status">Jednou denně se podívá na moneyas.cz; když vyjde nová verze,
+          ukáže upozornění a odkaz ke stažení na nové kartě.</span>
+      </span>
+      <button id="update-install" type="button" hidden>Nainstalovat</button>
+      <a class="button" href="https://moneyas.cz/mantis/" target="_blank" rel="noopener">Stránka</a>
+    </div>
+
+    <label class="option">
+      <span>
+        <b>Hlídat i nové verze LibreWolfu</b>
+        <span class="hint">Pro toho, kdo Mantis sestavuje: upozorní, že je potřeba nový build.</span>
+      </span>
+      <input type="checkbox" class="switch" data-store="devUpdateCheck">
+    </label>
+  </section>
+
+  <section id="vpn">
+    <h2>VPN</h2>
+    <div class="option">
+      <span><b>WireGuard VPN</b>
+        <span class="hint">Profil, zapnutí a stav – stejné jako tlačítko se štítem ve spodní liště.</span></span>
+      <button id="open-vpn" type="button">Otevřít</button>
+    </div>
+
+    <label class="option">
+      <span>
+        <b>Co jde přes VPN</b>
+        <span class="hint">Týká se jen prohlížeče – zbytek počítače VPN nepoužívá.</span>
+      </span>
+      <select data-routing="mode">
+        <option value="all">Všechno</option>
+        <option value="only">Jen vybrané weby a kontejnery</option>
+        <option value="except">Všechno kromě vybraných</option>
+      </select>
+    </label>
+
+    <div class="option column" data-routing-detail>
+      <label for="routing-sites">
+        <b>Vybrané weby</b>
+        <span class="hint">Jeden na řádek: doména (platí i pro subdomény, např. <i>moneyas.cz</i>),
+          IP adresa nebo rozsah (např. <i>192.168.1.0/24</i> pro domácí síť).</span>
+      </label>
+      <textarea id="routing-sites" rows="4" spellcheck="false"></textarea>
+    </div>
+
+    <div class="option column" data-routing-detail>
+      <span>
+        <b>Vybrané kontejnery</b>
+        <span class="hint">Všechny karty v zaškrtnutém kontejneru se řídí stejně jako vybrané weby.</span>
+      </span>
+      <div id="routing-containers" class="checklist"></div>
+    </div>
+  </section>
+
+  <section id="sync">
+    <h2>Synchronizace</h2>
+    <label class="option">
+      <span>
+        <b>Synchronizovat Nastavení Mantis</b>
+        <span class="hint">Přes účet Firefoxu (Nastavení → Synchronizace, zapnout <i>Doplňky</i>) mezi
+          všemi počítači: přepínače, choulostivé stránky, šifrované DNS a směrování VPN.
+          VPN profil se nesynchronizuje – zůstává jen v tomto počítači.</span>
+      </span>
+      <input type="checkbox" class="switch" data-local="syncSettings">
+    </label>
+  </section>
+
+  <script src="../version.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>
