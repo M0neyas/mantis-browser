@@ -1,7 +1,7 @@
 [
   {
     "namespace": "mantisPrefs",
-    "description": "Čtení a změna vybraných nastavení prohlížeče pro stránku Nastavení Mantis, zapomenutí webu a spuštění ověřeného instalátoru aktualizace.",
+    "description": "Čtení a změna vybraných nastavení prohlížeče pro stránku Nastavení Mantis, zapomenutí webu, spuštění ověřeného instalátoru aktualizace a otevření webu v jiném prohlížeči.",
     "functions": [
       {
         "name": "get",
@@ -56,6 +56,23 @@
         "parameters": [
           { "name": "path", "type": "string" },
           { "name": "sha256", "type": "string" }
+        ]
+      },
+      {
+        "name": "listBrowsers",
+        "type": "function",
+        "async": true,
+        "description": "Vrátí nainstalované prohlížeče kromě Mantisu ({id, name, isDefault}); výchozí prohlížeč Windows první.",
+        "parameters": []
+      },
+      {
+        "name": "openInBrowser",
+        "type": "function",
+        "async": true,
+        "description": "Otevře webovou adresu (http/https) v prohlížeči se zadaným id z listBrowsers. Vrátí jeho název.",
+        "parameters": [
+          { "name": "id", "type": "string" },
+          { "name": "url", "type": "string" }
         ]
       }
     ]

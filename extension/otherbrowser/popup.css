@@ -1,0 +1,26 @@
+.browsers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 0 4px;
+}
+
+.browsers button {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  color: var(--fg);
+  text-align: start;
+}
+
+.browsers button:hover { border-color: var(--accent); }
+
+.browsers button.primary {
+  margin-left: 0;
+  border-color: transparent;
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.browsers button.primary:hover { background: #15803d; }
