@@ -146,6 +146,50 @@ document.getElementById("routing-sites").addEventListener("change", event => {
   saveRouting({ sites: entries });
 });
 
+// ---------- Jiný prohlížeč (logika v ../otherbrowser.js) ----------
+
+const OTHER_DEFAULTS = { browser: "auto", notify: true };
+const OTHER_SITES_DEFAULT = ["netflix.com"];
+
+async function saveOther(changes) {
+  const { otherBrowser } = await browser.storage.local.get("otherBrowser");
+  await browser.storage.local.set({ otherBrowser: { ...OTHER_DEFAULTS, ...otherBrowser, ...changes } });
+}
+
+// refresh: znovu projít registr (nově nainstalovaný prohlížeč) – při otevření stránky
+async function showOther(refresh = false) {
+  const { otherBrowser, otherBrowserSites } = await browser.storage.local.get(["otherBrowser", "otherBrowserSites"]);
+  const config = { ...OTHER_DEFAULTS, ...otherBrowser };
+  const { browsers } = await browser.runtime.sendMessage({ otherBrowsers: true, refresh });
+  const select = document.getElementById("other-browser-select");
+  const fallback = browsers.find(b => b.isDefault) || browsers[0];
+  const auto = new Option(fallback
+    ? `Automaticky (${fallback.isDefault ? "výchozí prohlížeč Windows – " : ""}${fallback.name})`
+    : "Žádný jiný prohlížeč nenalezen", "auto");
+  select.replaceChildren(auto, ...browsers.map(b => new Option(b.name, b.id)));
+  select.value = browsers.some(b => b.id === config.browser) ? config.browser : "auto";
+  select.disabled = !browsers.length;
+  document.getElementById("other-browser-notify").checked = config.notify;
+  const sites = document.getElementById("other-browser-sites");
+  if (document.activeElement !== sites) {
+    sites.value = (otherBrowserSites ?? OTHER_SITES_DEFAULT).join("\n");
+  }
+}
+
+document.getElementById("other-browser-select").addEventListener("change", event => {
+  saveOther({ browser: event.currentTarget.value });
+});
+
+document.getElementById("other-browser-notify").addEventListener("change", event => {
+  saveOther({ notify: event.currentTarget.checked });
+});
+
+document.getElementById("other-browser-sites").addEventListener("change", event => {
+  const sites = [...new Set(event.currentTarget.value.split(/[\n,]/).map(normalizeSite).filter(Boolean))];
+  event.currentTarget.value = sites.join("\n");
+  browser.storage.local.set({ otherBrowserSites: sites });
+});
+
 // ---------- Nová karta ----------
 
 browser.storage.local.get(STORE_DEFAULTS).then(values => {
@@ -248,10 +292,14 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (changes.vpnRouting) {
     showRouting();
   }
+  if (changes.otherBrowser || changes.otherBrowserSites) {
+    showOther();
+  }
 });
 showSensitive();
 showDoh();
 showRouting();
+showOther(true);
 
 // ---------- VPN a verze ----------
 

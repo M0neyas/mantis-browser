@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Mantis",
-  "description": "Vestavěné funkce Mantis Browseru: nová karta, nastavení, zapomenutí webu, aktualizace jedním kliknutím, VPN (WireGuard) se směrováním, šifrované DNS, synchronizace nastavení, choulostivé stránky mimo historii.",
+  "description": "Vestavěné funkce Mantis Browseru: nová karta, nastavení, zapomenutí webu, aktualizace jedním kliknutím, VPN (WireGuard) se směrováním, šifrované DNS, synchronizace nastavení, choulostivé stránky mimo historii, otevření webu v jiném prohlížeči.",
   "version": "1.0.0",
   "browser_specific_settings": {
     "gecko": {
@@ -37,7 +37,8 @@
       "forget.js",
       "sensitive.js",
       "doh.js",
-      "sync.js"
+      "sync.js",
+      "otherbrowser.js"
     ],
     "persistent": true
   },
@@ -50,6 +51,11 @@
     "default_icon": "icons/vpn-off.svg",
     "default_popup": "vpn/popup.html",
     "default_area": "navbar"
+  },
+  "page_action": {
+    "default_title": "Otevřít v jiném prohlížeči",
+    "default_icon": "icons/other-browser.svg",
+    "default_popup": "otherbrowser/popup.html"
   },
   "options_ui": {
     "page": "settings/settings.html",

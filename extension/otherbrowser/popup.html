@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>Otevřít v jiném prohlížeči</title>
+  <link rel="stylesheet" href="../vpn/popup.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/mantis.svg" alt="" width="22" height="22">
+    <h1>Otevřít v jiném prohlížeči</h1>
+  </header>
+
+  <p id="reason" class="hint" hidden>Netflix v Mantisu videa nepřehraje – vyžaduje podpis DRM
+    (Widevine VMP), který mají jen oficiální prohlížeče jako Firefox, Chrome nebo Edge.</p>
+
+  <div id="browsers" class="browsers"></div>
+  <p id="none" class="hint" hidden>Nenašel jsem žádný jiný nainstalovaný prohlížeč.</p>
+
+  <div class="row">
+    <button id="settings" type="button" class="link">Nastavení…</button>
+  </div>
+
+  <p id="error" role="alert" hidden></p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

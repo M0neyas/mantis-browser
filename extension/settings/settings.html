@@ -95,6 +95,37 @@
     </div>
   </section>
 
+  <section id="other-browser">
+    <h2>Jiný prohlížeč</h2>
+
+    <label class="option">
+      <span>
+        <b>Otevírat v prohlížeči</b>
+        <span class="hint">Pro weby, které v Mantisu nefungují – třeba Netflix, který vyžaduje podpis DRM
+          (Widevine VMP), jaký mají jen oficiální prohlížeče. Jakýkoli web otevřete v jiném prohlížeči
+          i přes pravý klik na stránku, kartu nebo odkaz.</span>
+      </span>
+      <select id="other-browser-select"></select>
+    </label>
+
+    <div class="option column">
+      <label for="other-browser-sites">
+        <b>Weby s tlačítkem v adresním řádku</b>
+        <span class="hint">Jeden na řádek, platí i pro subdomény. Na těchto webech se v adresním řádku
+          objeví tlačítko pro otevření v jiném prohlížeči.</span>
+      </label>
+      <textarea id="other-browser-sites" rows="3" spellcheck="false"></textarea>
+    </div>
+
+    <label class="option">
+      <span>
+        <b>Upozornit při otevření takového webu</b>
+        <span class="hint">Jednou za spuštění Mantisu; kliknutím na upozornění se web otevře v jiném prohlížeči.</span>
+      </span>
+      <input type="checkbox" class="switch" id="other-browser-notify">
+    </label>
+  </section>
+
   <section id="doh">
     <h2>Šifrované DNS</h2>
 

@@ -29,6 +29,77 @@ const INSTALLER_NAME = /^Mantis-Browser-Setup[\w.-]*\.exe$/i;
 // Registrace VPN pomocníka pro native messaging (klíč hledá NativeManifests.sys.mjs)
 const VPN_HOST_KEY = "Software\\Mozilla\\NativeMessagingHosts\\cz.mantis.vpn";
 
+// Jiné prohlížeče (otherbrowser.js): registr, kam se prohlížeče zapisují pro
+// dialog Výchozí aplikace. Vynechá se Mantis sám a Internet Explorer (Windows 11
+// ho stejně přesměrují do Edge).
+const BROWSERS_KEY = "Software\\Clients\\StartMenuInternet";
+const SKIP_BROWSERS = /^iexplore\.exe$/i;
+const DEFAULT_HTTPS_KEYS = [
+  "Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoiceLatest",
+  "Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\https\\UserChoice",
+];
+
+function readRegString(root, path, name = "", view = 0) {
+  const key = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
+  try {
+    key.open(root, path, Ci.nsIWindowsRegKey.ACCESS_READ | view);
+    return key.readStringValue(name);
+  } catch (e) {
+    return "";
+  } finally {
+    key.close();
+  }
+}
+
+// "C:\…\brave.exe" --arg  /  C:\Program Files\…\x.exe  /  %ProgramFiles%\…
+function exeFromCommand(command) {
+  const cmd = command.trim().replace(/%([^%]+)%/g, (m, name) => Services.env.get(name) || m);
+  const match = cmd.startsWith('"') ? cmd.match(/^"([^"]+)"/) : cmd.match(/^(.+?\.exe)(?=\s|$)/i);
+  return match ? match[1] : "";
+}
+
+// [{ id, name, exe, isDefault }] – výchozí prohlížeč Windows první, pak podle názvu
+function findBrowsers() {
+  const R = Ci.nsIWindowsRegKey;
+  const own = Services.dirsvc.get("XREExeF", Ci.nsIFile).path.toLowerCase();
+  const found = new Map();
+  for (const [root, view] of [
+    [R.ROOT_KEY_CURRENT_USER, 0],
+    [R.ROOT_KEY_LOCAL_MACHINE, R.WOW64_64],
+    [R.ROOT_KEY_LOCAL_MACHINE, R.WOW64_32],
+  ]) {
+    const key = Cc["@mozilla.org/windows-registry-key;1"].createInstance(R);
+    try {
+      key.open(root, BROWSERS_KEY, R.ACCESS_READ | view);
+    } catch (e) {
+      continue;
+    }
+    for (let i = 0; i < key.childCount; i++) {
+      const id = key.getChildName(i);
+      if (found.has(id) || SKIP_BROWSERS.test(id)) {
+        continue;
+      }
+      const exe = exeFromCommand(readRegString(root, `${BROWSERS_KEY}\\${id}\\shell\\open\\command`, "", view));
+      if (!/\.exe$/i.test(exe) || exe.toLowerCase() === own || !fileExists(exe)) {
+        continue;
+      }
+      found.set(id, { id, name: readRegString(root, `${BROWSERS_KEY}\\${id}`, "", view) || id, exe });
+    }
+    key.close();
+  }
+
+  let defaultExe = "";
+  for (const path of DEFAULT_HTTPS_KEYS) {
+    const progId = readRegString(R.ROOT_KEY_CURRENT_USER, path, "ProgId");
+    if (progId) {
+      defaultExe = exeFromCommand(readRegString(R.ROOT_KEY_CLASSES_ROOT, `${progId}\\shell\\open\\command`)).toLowerCase();
+      break;
+    }
+  }
+  const list = [...found.values()].map(b => ({ ...b, isDefault: b.exe.toLowerCase() === defaultExe }));
+  return list.sort((a, b) => b.isDefault - a.isDefault || a.name.localeCompare(b.name, "cs"));
+}
+
 // Běží z balíčku MSIX (Microsoft Store)? Stejná kontrola jako ShellService.sys.mjs.
 function isPackaged() {
   try {
@@ -188,6 +259,29 @@ this.mantisPrefs = class extends ExtensionAPI {
             throw new ExtensionError("Kontrolní součet instalátoru nesedí – stáhněte ho ručně z moneyas.cz/mantis");
           }
           file.launch();
+        },
+
+        // Nainstalované prohlížeče kromě Mantisu (bez cest k programům)
+        async listBrowsers() {
+          return findBrowsers().map(({ id, name, isDefault }) => ({ id, name, isDefault }));
+        },
+
+        // Otevře http(s) adresu v prohlížeči ze seznamu listBrowsers – jen jako
+        // jediný argument programu, nic dalšího se mu nepředá.
+        async openInBrowser(id, url) {
+          if (!/^https?:\/\/[^\s]+$/i.test(url)) {
+            throw new ExtensionError("V jiném prohlížeči jde otevřít jen webová adresa");
+          }
+          const target = findBrowsers().find(b => b.id === id);
+          if (!target) {
+            throw new ExtensionError("Prohlížeč nebyl nalezen");
+          }
+          const exe = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+          exe.initWithPath(target.exe);
+          const process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+          process.init(exe);
+          process.runwAsync([url], 1);
+          return target.name;
         },
       },
     };

@@ -14,6 +14,7 @@ const SYNC_KEYS = [
   "vpnRouting", // co jde přes VPN (kontejnery se mezi počítači můžou lišit)
   "vpnKillSwitch",
   "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
+  "otherBrowserSites", // weby s tlačítkem „Otevřít v jiném prohlížeči“ (volba prohlížeče je místní)
 ];
 
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
