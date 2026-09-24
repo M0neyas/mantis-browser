@@ -17,7 +17,10 @@ Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](
   na Twitchi navíc TTV LOL PRO.
 - **VPN jedním klikem** – WireGuard jen pro prohlížeč (libovolný `.conf` profil),
   přes [wireproxy](https://github.com/windtf/wireproxy) a malého pomocníka v Go.
-  Přes VPN může jít všechno, nebo jen vybrané weby a kontejnery.
+  Přes VPN může jít všechno, nebo jen vybrané weby a kontejnery. Kill switch: když VPN
+  spadne, provoz se zablokuje místo toho, aby šel napřímo.
+- **Ochrana před podvodnými weby** – seznamy škodlivých a phishingových adres v uBlock
+  Origin; WebGL jde v Nastavení Mantis jedním přepínačem vypnout.
 - **Šifrované DNS, když dává smysl** – po zapnutí režimu *Automaticky* se na cizích sítích
   zapne samo, doma s Pi-holem nebo ve firemní síti zůstane DNS sítě.
 - **Vzhled** – kompaktní dvouřádková lišta, stránka přes celou plochu, zelený akcent,
@@ -27,7 +30,8 @@ Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](
   kontejnery karet, český slovník, TTV LOL PRO – nic se neinstaluje samo),
   rychlé hledání `@mapy @heureka @csfd @yt @wiki @seznam`, DRM (Netflix, Spotify),
   synchronizace přes účet Firefoxu (včetně Nastavení Mantis).
-- **Instalátor v češtině** a aktualizace jedním kliknutím (stažení, ověření SHA-256, spuštění).
+- **Instalátor v češtině** a aktualizace jedním kliknutím (podepsané vydání – Ed25519,
+  ověření SHA-256, spuštění).
 
 ## Jak je to postavené
 

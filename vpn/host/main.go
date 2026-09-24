@@ -7,22 +7,32 @@
 //   - uloží WireGuard profil z okna VPN do %APPDATA%\mantis\vpn\wg.conf
 //   - spustí/zastaví wireproxy (WireGuard → SOCKS5 proxy na 127.0.0.1:25344)
 //   - hlásí stav (profil, běží, tunel odpovídá)
-// Klíče z profilu nikdy neposílá zpět do prohlížeče.
+//
+// Bezpečnost:
+//   - Klíče z profilu nikdy neposílá zpět do prohlížeče.
+//   - SOCKS5 proxy chrání náhodné jméno a heslo vygenerované při každém spuštění
+//     (dostane je jen rozšíření Mantis) – tunel nemůže použít jiný program.
+//   - Informační HTTP rozhraní wireproxy (-i) se nespouští (prozrazovalo by
+//     adresu serveru a statistiky; bez kontroly Host by šlo číst přes DNS rebinding).
+//     Stav tunelu se zjišťuje spojením přes proxy skrz tunel.
 //
 // Protokol: zprávy JSON s 4bajtovou délkou (little-endian) na stdin/stdout.
 package main
 
 import (
 	"bufio"
+	"crypto/rand"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
-	"net/http"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -30,9 +40,8 @@ import (
 )
 
 const (
-	socksAddr  = "127.0.0.1:25344"
-	healthAddr = "127.0.0.1:25345"
-	checkAlive = "1.1.1.1"
+	socksAddr      = "127.0.0.1:25344"
+	fallbackProbe  = "1.1.1.1:443" // když profil nemá DNS server
 	createNoWindow = 0x08000000
 )
 
@@ -49,20 +58,27 @@ type status struct {
 	Running    bool   `json:"running"`
 	Connected  bool   `json:"connected"`
 	Proxy      string `json:"proxy"`
+	SocksUser  string `json:"socksUser,omitempty"`
+	SocksPass  string `json:"socksPass,omitempty"`
 }
 
 var (
-	mu      sync.Mutex
-	proc    *exec.Cmd
-	exited  chan struct{}
-	dataDir = filepath.Join(os.Getenv("APPDATA"), "mantis", "vpn")
-	wgPath  = filepath.Join(dataDir, "wg.conf")
-	runPath = filepath.Join(dataDir, "wireproxy.conf")
+	mu        sync.Mutex
+	proc      *exec.Cmd
+	exited    chan struct{}
+	socksUser string
+	socksPass string
+	probeAddr = fallbackProbe
+	dataDir   = filepath.Join(os.Getenv("APPDATA"), "mantis", "vpn")
+	wgPath    = filepath.Join(dataDir, "wg.conf")
+	runPath   = filepath.Join(dataDir, "wireproxy.conf")
 )
 
-// Řádky wg-quick, kterým wireproxy nerozumí (skripty, směrování systému)
-var unsupported = regexp.MustCompile(`(?i)^\s*(PostUp|PostDown|PreUp|PreDown|Table|SaveConfig|FwMark)\s*=`)
+// Řádky wg-quick, kterým wireproxy nerozumí (skripty, směrování systému),
+// a CheckAlive (stav tunelu zjišťujeme sami)
+var unsupported = regexp.MustCompile(`(?i)^\s*(PostUp|PostDown|PreUp|PreDown|Table|SaveConfig|FwMark|CheckAlive|CheckAliveInterval)\s*=`)
 var endpointRe = regexp.MustCompile(`(?im)^\s*Endpoint\s*=\s*(\S+)`)
+var dnsRe = regexp.MustCompile(`(?im)^\s*DNS\s*=\s*(.+)$`)
 
 func validate(conf string) error {
 	lower := strings.ToLower(conf)
@@ -81,20 +97,38 @@ func endpoint(conf string) string {
 	return ""
 }
 
-// Konfigurace pro wireproxy: profil bez nepodporovaných řádků,
-// CheckAlive v [Interface] a SOCKS5 proxy.
-func runConfig(conf string) string {
-	var out []string
-	for _, line := range strings.Split(strings.ReplaceAll(conf, "\r\n", "\n"), "\n") {
-		if unsupported.MatchString(line) || strings.HasPrefix(strings.ToLower(strings.TrimSpace(line)), "checkalive") {
-			continue
-		}
-		out = append(out, line)
-		if strings.EqualFold(strings.TrimSpace(line), "[Interface]") {
-			out = append(out, "CheckAlive = "+checkAlive)
+// Cíl kontroly tunelu: první IPv4 DNS server z profilu (TCP 53 – odpovídá i přes
+// tunel jen do domácí sítě), jinak 1.1.1.1:443
+func probeTarget(conf string) string {
+	if m := dnsRe.FindStringSubmatch(conf); m != nil {
+		for _, part := range strings.Split(m[1], ",") {
+			if ip := net.ParseIP(strings.TrimSpace(part)); ip != nil && ip.To4() != nil {
+				return net.JoinHostPort(ip.String(), "53")
+			}
 		}
 	}
-	out = append(out, "", "[Socks5]", "BindAddress = "+socksAddr, "")
+	return fallbackProbe
+}
+
+func randomToken() (string, error) {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b), nil
+}
+
+// Konfigurace pro wireproxy: profil bez nepodporovaných řádků
+// a SOCKS5 proxy s jednorázovým jménem a heslem.
+func runConfig(conf, user, pass string) string {
+	var out []string
+	for _, line := range strings.Split(strings.ReplaceAll(conf, "\r\n", "\n"), "\n") {
+		if !unsupported.MatchString(line) {
+			out = append(out, line)
+		}
+	}
+	out = append(out, "", "[Socks5]", "BindAddress = "+socksAddr,
+		"Username = "+user, "Password = "+pass, "")
 	return strings.Join(out, "\n")
 }
 
@@ -110,14 +144,52 @@ func running() bool {
 	}
 }
 
+// Tunel odpovídá = přes proxy (se jménem a heslem) jde navázat TCP spojení skrz
+// WireGuard na probeAddr. wireproxy potvrdí CONNECT až po spojení s cílem.
 func connected() bool {
-	client := http.Client{Timeout: 2 * time.Second}
-	resp, err := client.Get("http://" + healthAddr + "/readyz")
+	if socksUser == "" {
+		return false
+	}
+	host, portStr, err := net.SplitHostPort(probeAddr)
+	ip := net.ParseIP(host).To4()
+	port, perr := strconv.Atoi(portStr)
+	if err != nil || ip == nil || perr != nil {
+		return false
+	}
+	conn, err := net.DialTimeout("tcp", socksAddr, 2*time.Second)
 	if err != nil {
 		return false
 	}
-	resp.Body.Close()
-	return resp.StatusCode == http.StatusOK
+	defer conn.Close()
+	conn.SetDeadline(time.Now().Add(6 * time.Second))
+
+	reply := make([]byte, 2)
+	// pozdrav: SOCKS5, 1 metoda, 0x02 = jméno/heslo (RFC 1928, 1929)
+	if _, err := conn.Write([]byte{5, 1, 2}); err != nil {
+		return false
+	}
+	if _, err := io.ReadFull(conn, reply); err != nil || reply[0] != 5 || reply[1] != 2 {
+		return false
+	}
+	auth := []byte{1, byte(len(socksUser))}
+	auth = append(auth, socksUser...)
+	auth = append(auth, byte(len(socksPass)))
+	auth = append(auth, socksPass...)
+	if _, err := conn.Write(auth); err != nil {
+		return false
+	}
+	if _, err := io.ReadFull(conn, reply); err != nil || reply[1] != 0 {
+		return false
+	}
+	req := []byte{5, 1, 0, 1, ip[0], ip[1], ip[2], ip[3], byte(port >> 8), byte(port)}
+	if _, err := conn.Write(req); err != nil {
+		return false
+	}
+	head := make([]byte, 4)
+	if _, err := io.ReadFull(conn, head); err != nil {
+		return false
+	}
+	return head[0] == 5 && head[1] == 0
 }
 
 func current() status {
@@ -129,6 +201,8 @@ func current() status {
 	s.Running = running()
 	if s.Running {
 		s.Connected = connected()
+		s.SocksUser = socksUser
+		s.SocksPass = socksPass
 	}
 	return s
 }
@@ -141,32 +215,44 @@ func start() error {
 	if err != nil {
 		return errors.New("není uložený žádný VPN profil")
 	}
-	if err := os.WriteFile(runPath, []byte(runConfig(string(data))), 0o600); err != nil {
-		return err
-	}
 	exe, _ := os.Executable()
 	wireproxy := filepath.Join(filepath.Dir(exe), "wireproxy.exe")
 	if _, err := os.Stat(wireproxy); err != nil {
 		return errors.New("chybí wireproxy.exe vedle mantis-vpn.exe")
 	}
-	cmd := exec.Command(wireproxy, "-s", "-c", runPath, "-i", healthAddr)
+	user, err := randomToken()
+	if err != nil {
+		return err
+	}
+	pass, err := randomToken()
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(runPath, []byte(runConfig(string(data), user, pass)), 0o600); err != nil {
+		return err
+	}
+	cmd := exec.Command(wireproxy, "-s", "-c", runPath)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: createNoWindow}
 	if err := cmd.Start(); err != nil {
 		return err
 	}
 	proc = cmd
 	exited = make(chan struct{})
+	socksUser, socksPass = user, pass
+	probeAddr = probeTarget(string(data))
 	go func(c *exec.Cmd, done chan struct{}) { c.Wait(); close(done) }(cmd, exited)
 
-	// počkat, až tunel odpoví (max. 15 s); když ne, wireproxy necháme běžet
+	// počkat, až tunel odpoví (max. ~15 s); když ne, wireproxy necháme běžet
 	// a prohlížeč uvidí Connected=false
-	for i := 0; i < 30 && running(); i++ {
+	deadline := time.Now().Add(15 * time.Second)
+	for time.Now().Before(deadline) && running() {
 		if connected() {
 			return nil
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
 	if !running() {
+		socksUser, socksPass = "", ""
 		return errors.New("wireproxy se nepodařilo spustit – zkontrolujte profil")
 	}
 	return nil
@@ -178,6 +264,7 @@ func stop() {
 		<-exited
 	}
 	proc = nil
+	socksUser, socksPass = "", ""
 }
 
 func handle(req request) status {

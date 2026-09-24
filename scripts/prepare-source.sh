@@ -24,10 +24,11 @@ if [ ! -f "$tarball" ]; then
   curl -fL --retry 3 -o "$tarball.part" "$LW_SOURCE_URL"
   mv "$tarball.part" "$tarball"
 fi
-curl -fsSL -o "$tarball.sha256sum" "$LW_SOURCE_URL.sha256sum"
-expected=$(awk '{print $1}' "$tarball.sha256sum")
+[[ "$LW_SOURCE_SHA256" =~ ^[0-9a-f]{64}$ ]] \
+  || die "v config.sh chybí LW_SOURCE_SHA256 (scripts/check-update.sh --apply ho doplní)"
 actual=$(sha256sum "$tarball" | awk '{print $1}')
-[ "$expected" = "$actual" ] || die "kontrolní součet nesedí – smažte $tarball a zkuste znovu"
+[ "$LW_SOURCE_SHA256" = "$actual" ] \
+  || die "SHA-256 balíku nesedí s LW_SOURCE_SHA256 v config.sh – smažte $tarball a zkuste znovu; když se to opakuje, balík na serveru se změnil – nepokračujte"
 
 info "2/7 Rozbaluji do $SRC_DIR"
 if [ -e "$WORK_DIR/src" ] && [ ! -w "$WORK_DIR/src" ]; then
@@ -172,8 +173,15 @@ replace browser/components/extensions/parent/ext-browserAction.js \
 ext="$SRC_DIR/browser/extensions/$APP_NAME"
 mkdir -p "$ext"
 cp -a "$REPO_DIR/extension" "$ext/extension"
-LW="$LW_VERSION" REL="$MANTIS_RELEASE" perl -pi -e 's/\@LW_VERSION\@/$ENV{LW}/g; s/\@MANTIS_RELEASE\@/$ENV{REL}/g' "$ext/extension/version.js"
+[ -z "$MANTIS_RELEASE_PUBKEY" ] || [[ "$MANTIS_RELEASE_PUBKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] \
+  || die "MANTIS_RELEASE_PUBKEY v config.sh není veřejný klíč Ed25519 v base64 (scripts/release-key.sh)"
+[ -n "$MANTIS_RELEASE_PUBKEY" ] \
+  || warn "MANTIS_RELEASE_PUBKEY je prázdný – build nebude ověřovat podpis vydání (bez instalace jedním kliknutím)"
+LW="$LW_VERSION" REL="$MANTIS_RELEASE" KEY="$MANTIS_RELEASE_PUBKEY" perl -pi -e \
+  's/\@LW_VERSION\@/$ENV{LW}/g; s/\@MANTIS_RELEASE\@/$ENV{REL}/g; s/\@RELEASE_PUBKEY\@/$ENV{KEY}/g' \
+  "$ext/extension/version.js"
 grep -q "\"$LW_VERSION\"" "$ext/extension/version.js" && grep -q "\"$MANTIS_RELEASE\"" "$ext/extension/version.js" \
+  && ! grep -q "@RELEASE_PUBKEY@" "$ext/extension/version.js" \
   || die "nepodařilo se dosadit verzi do extension/version.js"
 cat > "$ext/moz.build" <<'EOF'
 # This Source Code Form is subject to the terms of the Mozilla Public

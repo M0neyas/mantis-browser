@@ -17,14 +17,25 @@ mantis-vpn.exe (vpn/host)  ── uloží profil do %APPDATA%\mantis\vpn\wg.conf
   │  spustí / zastaví
   ▼
 wireproxy.exe  ── WireGuard tunel → SOCKS5 proxy 127.0.0.1:25344
-                  (DNS přes tunel, stav tunelu na 127.0.0.1:25345/readyz)
+                  (se jménem a heslem, DNS přes tunel)
 ```
 
 - Pomocník se spustí s prvním použitím VPN a skončí se zavřením prohlížeče
   (i s wireproxy). Žádná služba ani úloha na pozadí.
 - **Klíče z profilu zůstávají jen v `%APPDATA%\mantis\vpn`** – neposílají se
   zpět do prohlížeče, nejsou v repozitáři ani v buildu.
-- Stav „připojeno“ = wireproxy dostává odpověď z `1.1.1.1` přes tunel.
+- **Proxy je chráněná jménem a heslem**, které pomocník náhodně vygeneruje při
+  každém spuštění a dá jen rozšíření Mantis – jiné programy v počítači tunel
+  použít nemůžou.
+- Informační HTTP rozhraní wireproxy (`-i`) se nespouští. Stav „připojeno“ =
+  přes proxy jde navázat spojení skrz tunel (na první DNS server z profilu, TCP 53,
+  jinak `1.1.1.1:443`).
+- **Kill switch** (výchozí zapnuto, Nastavení Mantis → VPN): když je VPN zapnutá
+  a pomocník nebo wireproxy spadne, provoz, který má jít přes VPN, se zablokuje
+  (místo aby šel napřímo) a přijde upozornění. Mantis zkouší VPN každou minutu
+  obnovit; napřímo provoz pustí až vypnutí VPN. Blokuje se i po spuštění prohlížeče,
+  než se VPN připojí. `network.proxy.failover_direct` = false (`settings/mantis.cfg`)
+  zabrání Firefoxu pouštět při výpadku proxy systémové požadavky napřímo.
 
 ## Použití
 
@@ -38,7 +49,7 @@ wireproxy.exe  ── WireGuard tunel → SOCKS5 proxy 127.0.0.1:25344
 4. Dál už jen přepínač Zapnuto / Vypnuto. Stav si prohlížeč pamatuje.
 
 Ikona: šedý obrys = vypnuto, zelený štít = připojeno, oranžový = zapnuto,
-ale tunel neodpovídá.
+ale tunel neodpovídá, nebo VPN spadla a provoz je zablokovaný (kill switch).
 
 ## Soubory
 

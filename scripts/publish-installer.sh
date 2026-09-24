@@ -39,9 +39,32 @@ built_release=$(unzip -p "$(ls "$OUT_DIR"/*.win64.zip | head -1)" "$APP_NAME/bro
 [ -n "$built_release" ] && [ "$built_release" != "$MANTIS_RELEASE" ] \
   && die "build je ze sestavení $built_release, config.sh má MANTIS_RELEASE=$MANTIS_RELEASE – udělejte nový build"
 
+# Podpis vydání (Ed25519, klíč z release-key.sh). Prohlížeče s MANTIS_RELEASE_PUBKEY
+# bez platného podpisu latest.json ignorují. Formát zprávy musí sedět s background.js.
+key=${MANTIS_RELEASE_KEY:-$HOME/.config/mantis/release-key.pem}
+signature=""
+if [ -n "$MANTIS_RELEASE_PUBKEY" ]; then
+  [ -f "$key" ] || die "chybí soukromý klíč $key (scripts/release-key.sh) – bez podpisu by vydání prohlížeče ignorovaly"
+  pub=$(openssl pkey -in "$key" -pubout -outform DER | tail -c 32 | base64 -w0)
+  [ "$pub" = "$MANTIS_RELEASE_PUBKEY" ] \
+    || die "klíč $key nepatří k MANTIS_RELEASE_PUBKEY v config.sh"
+  msg=$(mktemp)
+  printf 'mantis-release:v1\n%s\n%s\n%s\n%s\n' "$LW_VERSION" "$MANTIS_RELEASE" "$PUBLISH_FILE" "$sha" > "$msg"
+  signature=$(openssl pkeyutl -sign -inkey "$key" -rawin -in "$msg" | base64 -w0)
+  sig=$(mktemp)
+  printf '%s' "$signature" | base64 -d > "$sig"
+  openssl pkey -in "$key" -pubout -out "$msg.pub"
+  openssl pkeyutl -verify -pubin -inkey "$msg.pub" -rawin -in "$msg" -sigfile "$sig" >/dev/null \
+    || die "podpis se nepodařilo ověřit"
+  rm -f "$msg" "$msg.pub" "$sig"
+else
+  warn "MANTIS_RELEASE_PUBKEY je prázdný – latest.json bude bez podpisu"
+fi
+
 json=$(jq -n --arg v "$LW_VERSION" --argjson rel "$MANTIS_RELEASE" --arg ff "$ff_version" --arg f "$PUBLISH_FILE" \
-  --argjson size "$size" --arg sha "$sha" --arg date "$(date -u +%Y-%m-%d)" \
-  '{version: $v, release: $rel, firefox: $ff, file: $f, size: $size, sha256: $sha, date: $date}')
+  --argjson size "$size" --arg sha "$sha" --arg date "$(date -u +%Y-%m-%d)" --arg sig "$signature" \
+  '{version: $v, release: $rel, firefox: $ff, file: $f, size: $size, sha256: $sha, date: $date}
+   + (if $sig != "" then {signature: $sig} else {} end)')
 
 info "Nahrávám $(basename "$inst") ($((size / 1048576)) MB) na $PUBLISH_HOST:$PUBLISH_DIR"
 "${SSH[@]}" "$PUBLISH_HOST" "test -w '$PUBLISH_DIR'" \

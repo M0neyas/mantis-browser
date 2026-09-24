@@ -39,7 +39,9 @@ bude potřeba vložit znovu. Odinstalace: Nastavení → Aplikace, nebo
 - [ ] Uvítací stránka, nová karta, Nastavení Mantis (Aktualizace: „Nainstalováno
       z Microsoft Store…“)
 - [ ] **VPN**: tlačítko najde pomocníka (registruje se sám při startu), vložit profil,
-      zapnout, ověřit IP, vypnout, restart prohlížeče
+      zapnout, ověřit IP, vypnout, restart prohlížeče; kill switch: se zapnutou VPN
+      ukončit `wireproxy.exe` ve Správci úloh → weby se nenačtou, přijde upozornění,
+      do minuty se VPN obnoví
 - [ ] Šifrované DNS: stav v Nastavení Mantis
 - [ ] Výchozí prohlížeč: Nastavení Windows → Aplikace → Výchozí aplikace
 

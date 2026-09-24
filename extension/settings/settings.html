@@ -48,6 +48,20 @@
     </label>
   </section>
 
+  <section id="security">
+    <h2>Zabezpečení</h2>
+
+    <label class="option">
+      <span>
+        <b>WebGL (3D grafika)</b>
+        <span class="hint">Potřebují ho mapy, 3D weby a některé hry. Vypnutím se zmenší plocha pro útoky
+          přes grafický ovladač a weby hůř rozpoznají váš počítač podle grafické karty.
+          Projeví se na nově otevřených stránkách.</span>
+      </span>
+      <input type="checkbox" class="switch" data-pref="webgl.disabled" data-pref-invert>
+    </label>
+  </section>
+
   <section>
     <h2>Nová karta</h2>
 
@@ -211,6 +225,16 @@
         <span class="hint">Profil, zapnutí a stav – stejné jako tlačítko se štítem ve spodní liště.</span></span>
       <button id="open-vpn" type="button">Otevřít</button>
     </div>
+
+    <label class="option">
+      <span>
+        <b>Kill switch</b>
+        <span class="hint">Když je VPN zapnutá a spojení spadne (nebo se po spuštění prohlížeče ještě
+          nepřipojilo), provoz, který má jít přes VPN, se zablokuje místo toho, aby šel napřímo.
+          Mantis zkouší VPN každou minutu obnovit; napřímo provoz pustíte vypnutím VPN.</span>
+      </span>
+      <input type="checkbox" class="switch" data-store="vpnKillSwitch">
+    </label>
 
     <label class="option">
       <span>

@@ -11,7 +11,9 @@
 | Oblast | Nastavení |
 |---|---|
 | Tmavý režim webů | vypnuté `resistFingerprinting` (vynucovalo světlý režim a UTC), místo něj mírnější `fingerprintingProtection` |
-| Mapy, 3D weby | zapnutý WebGL |
+| Mapy, 3D weby | zapnutý WebGL (vypnout jde v Nastavení Mantis → Zabezpečení) |
+| Škodlivé weby | uBlock Origin: uBlock Badware risks, Online Malicious URL Blocklist (`urlhaus-1`) a Phishing URL Blocklist (`curben-phishing`). Google Safe Browsing nejde – vyžaduje API klíč, který mají jen oficiální buildy Mozilly |
+| VPN kill switch | `network.proxy.failover_direct` = false – při výpadku proxy VPN nejdou napřímo ani systémové požadavky |
 | Zavření prohlížeče | maže jen cache; cookies (přihlášení), historie a nastavení webů zůstávají |
 | Cookie lišty | filtry uBlock Origin (EasyList/AdGuard Cookie Notices) – nastavené přes `toOverwrite.filterLists`, takže se výběr seznamů v uBlocku při každém spuštění vrátí na tento (ruční změny seznamů nevydrží restart; vlastní filtry v „Moje filtry“ ano). Firefox 156 vestavěné odmítání cookie lišt už nemá |
 | Vyhledávač | DuckDuckGo (výchozí v LibreWolfu, „No-AI“ varianta) |

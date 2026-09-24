@@ -1,4 +1,4 @@
-/* global MANTIS_LW_VERSION, MANTIS_RELEASE */
+/* global MANTIS_LW_VERSION, MANTIS_RELEASE, MANTIS_RELEASE_PUBKEY */
 // Kontrola nových verzí, jednou denně:
 //  - vydání Mantis Browseru na moneyas.cz (latest.json od scripts/publish-installer.sh):
 //    upozornění Windows (jednou pro každou verzi) + proužek na nové kartě s odkazem ke stažení
@@ -48,6 +48,33 @@ async function fetchJson(url) {
   }
 }
 
+// ---------- Podpis vydání ----------
+// scripts/publish-installer.sh podepíše klíčem Ed25519 vydavatele zprávu
+//   "mantis-release:v1\n<version>\n<release>\n<file>\n<sha256>\n"
+// a podpis (base64) uloží do latest.json jako "signature". Veřejný klíč je v buildu
+// (version.js). Podvržený server ani útočník mezi serverem a prohlížečem tak nepřiměje
+// prohlížeč nainstalovat cizí instalátor – nezná soukromý klíč.
+
+const RELEASE_KEY = /^[A-Za-z0-9+/]{43}=$/.test(MANTIS_RELEASE_PUBKEY) ? MANTIS_RELEASE_PUBKEY : "";
+
+function fromBase64(text) {
+  return Uint8Array.from(atob(text), c => c.charCodeAt(0));
+}
+
+async function signatureValid(latest) {
+  if (!RELEASE_KEY || typeof latest.signature !== "string") {
+    return false;
+  }
+  try {
+    const key = await crypto.subtle.importKey("raw", fromBase64(RELEASE_KEY), { name: "Ed25519" }, false, ["verify"]);
+    const message = `mantis-release:v1\n${latest.version}\n${latest.release}\n${latest.file}\n${latest.sha256}\n`;
+    return await crypto.subtle.verify({ name: "Ed25519" }, key, fromBase64(latest.signature), new TextEncoder().encode(message));
+  } catch (e) {
+    console.error("Mantis – ověření podpisu vydání:", e);
+    return false;
+  }
+}
+
 async function notifyOnce(key, id, title, message) {
   const { [key]: notified } = await browser.storage.local.get(key);
   if (notified !== title) {
@@ -77,6 +104,12 @@ async function checkMantisRelease() {
   if (!latestVersion) {
     return;
   }
+  const signed = await signatureValid(latest);
+  if (RELEASE_KEY && !signed) {
+    // Build zná klíč vydavatele, ale latest.json podpis nemá / nesedí → nevěřit mu
+    console.warn("Mantis – latest.json nemá platný podpis, ignoruji ho");
+    return;
+  }
   const newer = isNewer(
     [...latestVersion, releaseNumber(latest.release)],
     [...current, releaseNumber(MANTIS_RELEASE)]
@@ -86,8 +119,9 @@ async function checkMantisRelease() {
     return;
   }
   const label = mantisLabel(latest.version, latest.release);
-  // Jednoklikovou instalaci nabídnout jen s názvem souboru a SHA-256 z latest.json
-  const installable = /^[\w.-]+\.exe$/.test(latest.file || "") && /^[0-9a-f]{64}$/i.test(latest.sha256 || "");
+  // Jednoklikovou instalaci nabídnout jen u podepsaného vydání s názvem souboru a SHA-256
+  const installable =
+    signed && /^[\w.-]+\.exe$/.test(latest.file || "") && /^[0-9a-f]{64}$/i.test(latest.sha256 || "");
   await browser.storage.local.set({
     update: {
       latest: label,
