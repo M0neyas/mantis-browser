@@ -6,7 +6,7 @@ LW_VERSION="156.0.1-1"
 # Pořadí sestavení Mantisu nad touto verzí LibreWolfu. Zvýšit při každém zveřejnění
 # buildu se stejnou LW_VERSION (jinak ho nainstalované prohlížeče nepoznají jako nový),
 # při změně LW_VERSION vrátit na 1. (1 = první build 2026-09-23, bez kontroly moneyas.cz)
-MANTIS_RELEASE=2
+MANTIS_RELEASE=3
 LW_FORGE="https://librewolf.dev"
 LW_SOURCE_URL="$LW_FORGE/api/packages/librewolf/generic/librewolf-source/$LW_VERSION/librewolf-$LW_VERSION.source.tar.gz"
 # SHA-256 zdrojového balíku, zapsaný v repozitáři (check-update.sh --apply ho aktualizuje).

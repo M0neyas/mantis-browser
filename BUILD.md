@@ -178,10 +178,10 @@ SHA-256, spuštění instalátoru). Pro vlastní vydání změňte v `extension/
 **Podpis vydání (Ed25519):** instalaci jedním kliknutím prohlížeč nabídne jen tehdy,
 když je `latest.json` podepsaný klíčem vydavatele. Jednorázově:
 ```bash
-./scripts/release-key.sh   # vytvoří ~/.config/mantis/release-key.pem a vypíše veřejný klíč
+./scripts/release-key.sh --apply   # vytvoří ~/.config/mantis/release-key.pem a zapíše veřejný klíč do config.sh
 ```
-Veřejný klíč zapište do `config.sh` jako `MANTIS_RELEASE_PUBKEY` (commit) – dostane se
-do buildu. Soukromý klíč nikam nenahrávejte a zazálohujte si ho. `publish-installer.sh`
+Veřejný klíč se zapíše do `config.sh` jako `MANTIS_RELEASE_PUBKEY` (commitněte ho) –
+dostane se do buildu, proto **klíč vytvořte před buildem**. Soukromý klíč nikam nenahrávejte a zazálohujte si ho. `publish-installer.sh`
 pak každé vydání podepíše; build s klíčem nepodepsaný nebo špatně podepsaný
 `latest.json` ignoruje. S prázdným `MANTIS_RELEASE_PUBKEY` se podpis neověřuje a nové
 verze se nabízejí jen odkazem na stránku ke stažení. **Pro vlastní vydání si vytvořte
