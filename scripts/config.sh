@@ -47,10 +47,12 @@ INSTALLER_LOCALE="cs"
 
 # Microsoft Store (MSIX): ./scripts/build.sh --msix
 # Identita z Partner Center → Mantis Browser → Product identity (opsaná 2026-09-24).
-# MSIX_STORE=false: testovací balíček pro místní instalaci na Windows 11
-# (Add-AppxPackage -AllowUnsigned – k vydavateli se přidá OID pro nepodepsané balíčky).
-# MSIX_STORE=true: balíček k nahrání do Storu (Store ho podepíše).
-MSIX_STORE=false
+# MSIX_STORE=true (výchozí): balíček k nahrání do Storu (Store ho podepíše). Pro místní
+#   test ho podepište testovacím certifikátem: scripts/sign-msix-test.sh.
+# MSIX_STORE=false: nepodepsaný balíček (k vydavateli OID pro Add-AppxPackage -AllowUnsigned).
+#   Prohlížeč ho NEJDE nainstalovat – nepodepsaný balíček nesmí mít „Executable activations“
+#   (COM server, upozornění, startovní úloha…), které Firefox v manifestu má (0x80073D2B).
+MSIX_STORE=${MSIX_STORE:-true}
 MSIX_IDENTITY_NAME="Moneyas.MantisBrowser"
 MSIX_PUBLISHER="CN=C7B646C8-A659-496B-ABF8-666877012789"
 MSIX_PUBLISHER_DISPLAY_NAME="Moneyas"

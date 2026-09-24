@@ -6,8 +6,8 @@
 # $OUT_DIR/mantis-*.win64.installer.exe (instalátor) a kopie do složky
 # Stažené soubory ve Windows. Celý výpis: $OUT_DIR/build.log
 #
-# --msix: navíc balíček MSIX pro Microsoft Store (viz STORE.md). S MSIX_STORE=false
-#         testovací (nepodepsaný, Add-AppxPackage -AllowUnsigned na Windows 11).
+# --msix: navíc balíček MSIX pro Microsoft Store (viz STORE.md). Pro místní test ho
+#         podepište testovacím certifikátem: scripts/sign-msix-test.sh.
 set -euo pipefail
 source "$(dirname "$0")/config.sh"
 
@@ -132,8 +132,12 @@ printf '    %s\n' "${outputs[@]}"
 $vpn_ok || warn "zip je bez VPN – viz chyba z package-vpn.sh výše"
 [ -f "$OUT_DIR/installer-failed" ] && warn "instalátor se nepodařilo sestavit (zip je v pořádku) – chyba v $log"
 [ -f "$OUT_DIR/msix-failed" ] && warn "MSIX se nepodařilo sestavit (zip a instalátor jsou v pořádku) – chyba v $log"
-if $build_msix && [ ${#msix_files[@]} -gt 0 ] && ! $MSIX_STORE; then
-  info "Testovací MSIX (Windows 11, PowerShell): Add-AppxPackage -AllowUnsigned <cesta k .msix>"
+if $build_msix && [ ${#msix_files[@]} -gt 0 ]; then
+  if $MSIX_STORE; then
+    info "MSIX pro Store; pro místní test: scripts/sign-msix-test.sh (viz STORE.md)"
+  else
+    warn "nepodepsaný MSIX (MSIX_STORE=false) Windows nenainstaluje – manifest má Executable activations"
+  fi
 fi
 
 # Kopie do Windows (Stažené soubory\Mantis)

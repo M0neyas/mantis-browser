@@ -6,22 +6,29 @@ i LibreWolf). Postup: nejdřív balíček vyzkoušet místně, pak ho odeslat.
 
 ## Krok 1: vyzkoušet MSIX místně (bez Storu)
 
-V `scripts/config.sh` nechte `MSIX_STORE=false` – balíček dostane doplněk pro
-instalaci bez podpisu.
+Nepodepsaný prohlížeč Windows nainstalovat nedovolí (manifest Firefoxu má „Executable
+activations“ – COM server pro upozornění, startovní úlohu, alias – a ty nepodepsaný balíček
+mít nesmí, chyba 0x80073D2B). Pro místní test se proto kopie balíčku podepíše vlastním
+testovacím certifikátem se stejným vydavatelem jako ve Storu:
 
 ```bash
 ./scripts/prepare-source.sh
-./scripts/build.sh --msix
+./scripts/build.sh --msix          # balíček pro Store (MSIX_STORE=true, výchozí)
+./scripts/sign-msix-test.sh        # podepsaná kopie + certifikát (potřebuje osslsigncode)
 ```
 
-Vedle zipu a instalátoru vznikne `mantis-<verze>.x64.msix` (i ve `Stažené soubory\Mantis`).
-Instalace na **Windows 11** v PowerShellu (bez práv správce):
+Ve `Stažené soubory\Mantis` pak je `mantis-<verze>.x64.msix` (pro Store),
+`…-test-signed.msix` a `mantis-msix-test.cer`. Na **Windows** jednou přidat certifikát
+mezi důvěryhodné osoby (PowerShell **jako správce**) a nainstalovat:
 
 ```powershell
-Add-AppxPackage -AllowUnsigned "$env:USERPROFILE\Downloads\Mantis\mantis-156.0.1-103.x64.msix"
+Import-Certificate -FilePath "$env:USERPROFILE\Downloads\Mantis\mantis-msix-test.cer" -CertStoreLocation Cert:\LocalMachine\TrustedPeople
+Add-AppxPackage "$env:USERPROFILE\Downloads\Mantis\mantis-156.1.10300.0.x64-test-signed.msix"
 ```
 
-(Číslo za pomlčkou = 100 × release LibreWolfu + `MANTIS_RELEASE`, přesný název vypíše `build.sh`.)
+(Verze A.B.C.D = X.(100Y+Z).(100R).0 pro LibreWolf X.Y.Z-rel, R = 100 × rel + `MANTIS_RELEASE`;
+přesný název vypíše `build.sh`.) Po testu certifikát odebrat:
+`Get-ChildItem Cert:\LocalMachine\TrustedPeople | Where-Object Subject -eq '<MSIX_PUBLISHER>' | Remove-Item`.
 
 Mantis pak najdete v nabídce Start. Běží vedle verze z instalátoru a má vlastní
 profil (Firefox má pro každou instalační složku samostatný profil). Nové soubory
@@ -56,8 +63,8 @@ profil (zašifrovaný v `%LOCALAPPDATA%\mantis\vpn`) proto bude potřeba vložit
    (Package/Identity/Name), `MSIX_PUBLISHER` (Package/Identity/Publisher, `CN=…`),
    `MSIX_PUBLISHER_DISPLAY_NAME`; `MSIX_DISPLAYNAME` musí odpovídat rezervovanému
    názvu. V repozitáři je identita oficiálního vydání Mantisu – pro vlastní účet ji
-   nahraďte. Pak `MSIX_STORE=true` a build `--msix` vyrobí balíček pro Store
-   (nepodepsaný, Store ho podepíše).
+   nahraďte. Build `--msix` pak vyrobí balíček pro Store (nepodepsaný, Store ho podepíše;
+   do Storu se nahrává tento, ne `…-test-signed.msix`).
 4. **Žádost v Partner Center:**
    - *Pricing and availability* – viditelnost podle potřeby: veřejně, „Available but
      not discoverable“ (jen přes přímý odkaz), nebo soukromé publikum (vybrané účty
