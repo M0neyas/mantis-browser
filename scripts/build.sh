@@ -19,10 +19,15 @@ for arg in "$@"; do
   esac
 done
 
-# Verze MSIX: msix.patch LibreWolfu převádí „X.Y.Z-R“ na X.(100Y+Z).(100R).0, Store chce
-# rostoucí čísla ≤ 65535 → R = 100 × release LibreWolfu + MANTIS_RELEASE
+# Verze MSIX ve tvaru A.B.C.D (čísla ≤ 65535, poslední 0). Stejně jako get_embedded_version
+# v msix.py: X.Y.Z-R → X.(100Y+Z).(100R).0 – ten převod ale mach dělá, jen když --version
+# nedostane, takže ho počítáme sami. R = 100 × release LibreWolfu + MANTIS_RELEASE,
+# aby sestavení nad stejným LibreWolfem rostla (156.0.1-1, sestavení 3 → 156.1.10300.0).
 lw_rel=${LW_VERSION##*-}
-msix_version="${LW_VERSION%-*}-$(( lw_rel * 100 + MANTIS_RELEASE ))"
+IFS=. read -r v_major v_minor v_patch <<< "${LW_VERSION%-*}"
+msix_version="$v_major.$(( 100 * v_minor + ${v_patch:-0} )).$(( (lw_rel * 100 + MANTIS_RELEASE) * 100 )).0"
+[[ "$msix_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.0$ ]] && (( (lw_rel * 100 + MANTIS_RELEASE) * 100 <= 65535 )) \
+  || die "verze MSIX $msix_version není platná (čísla ≤ 65535)"
 msix_unsigned=""
 $MSIX_STORE || msix_unsigned="--unsigned"
 
