@@ -1,0 +1,18 @@
+<!-- Mantis Browser – jednobarevné logo pro ikony v UI (Nastavení → O aplikaci, sekce
+     Mantis v Nastavení). Barva podle motivu přes context-fill. Tvar jako logo.svg bez pozadí,
+     oči vyříznuté maskou. prepare-source.sh ho kopíruje místo loga LibreWolfu. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 10 72 72" width="16" height="16"
+     fill="context-fill" fill-opacity="context-fill-opacity">
+  <defs>
+    <mask id="eyes" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/>
+      <circle cx="38" cy="37" r="4.5" fill="#000"/>
+      <circle cx="62" cy="37" r="4.5" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#eyes)" stroke="context-fill" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M42 31C40 23 36 18 30 15M58 31C60 23 64 18 70 15" fill="none" stroke-width="3.5"/>
+    <path d="M26 76L30 33M74 76L70 33" fill="none" stroke-width="9"/>
+    <path d="M30 33H70L50 64Z" stroke-width="9"/>
+  </g>
+</svg>
