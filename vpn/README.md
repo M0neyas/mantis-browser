@@ -13,7 +13,7 @@ komerční poskytovatelé (Mullvad, Proton VPN, …), vlastní server.
 tlačítko VPN (rozšíření Mantis, extension/vpn.js)
   │  native messaging (cz.mantis.vpn)
   ▼
-mantis-vpn.exe (vpn/host)  ── uloží profil do %APPDATA%\mantis\vpn\wg.conf
+mantis-vpn.exe (vpn/host)  ── uloží profil zašifrovaný do %LOCALAPPDATA%\mantis\vpn
   │  spustí / zastaví
   ▼
 wireproxy.exe  ── WireGuard tunel → SOCKS5 proxy 127.0.0.1:25344
@@ -22,8 +22,17 @@ wireproxy.exe  ── WireGuard tunel → SOCKS5 proxy 127.0.0.1:25344
 
 - Pomocník se spustí s prvním použitím VPN a skončí se zavřením prohlížeče
   (i s wireproxy). Žádná služba ani úloha na pozadí.
-- **Klíče z profilu zůstávají jen v `%APPDATA%\mantis\vpn`** – neposílají se
-  zpět do prohlížeče, nejsou v repozitáři ani v buildu.
+- **Klíče z profilu zůstávají jen v `%LOCALAPPDATA%\mantis\vpn\wg.conf.dpapi`** –
+  neposílají se zpět do prohlížeče, nejsou v repozitáři ani v buildu.
+- **Profil je zašifrovaný přes Windows DPAPI**: rozšifrovat ho jde jen pod stejným
+  účtem Windows na stejném počítači – zkopírovaný soubor (záloha, jiný disk) je
+  k ničemu. Leží v `Local`, ne v `Roaming`, který se na firemních počítačích kopíruje
+  na server. (Program spuštěný pod vaším účtem by ho rozšifrovat uměl – proti malwaru
+  v počítači nepomůže nic.)
+- wireproxy potřebuje konfiguraci jako soubor: vznikne jen na dobu spuštění
+  (`wireproxy.conf`) a hned potom se smaže.
+- Starší verze (sestavení 1–2) měly profil nešifrovaně v `%APPDATA%\mantis\vpn\wg.conf`;
+  pomocník ho při prvním spuštění zašifruje do nového místa a starý soubor smaže.
 - **Proxy je chráněná jménem a heslem**, které pomocník náhodně vygeneruje při
   každém spuštění a dá jen rozšíření Mantis – jiné programy v počítači tunel
   použít nemůžou.

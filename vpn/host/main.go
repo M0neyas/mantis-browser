@@ -4,12 +4,16 @@
 //
 // Prohlížeč ho spustí, když rozšíření Mantis otevře spojení, a ukončí ho
 // se zavřením prohlížeče. Pomocník:
-//   - uloží WireGuard profil z okna VPN do %APPDATA%\mantis\vpn\wg.conf
+//   - uloží WireGuard profil z okna VPN do %LOCALAPPDATA%\mantis\vpn\wg.conf.dpapi
 //   - spustí/zastaví wireproxy (WireGuard → SOCKS5 proxy na 127.0.0.1:25344)
 //   - hlásí stav (profil, běží, tunel odpovídá)
 //
 // Bezpečnost:
 //   - Klíče z profilu nikdy neposílá zpět do prohlížeče.
+//   - Profil je zašifrovaný přes Windows DPAPI (rozšifruje ho jen stejný uživatel na
+//     stejném počítači) a leží v Local, ne v Roaming – ten se na firemních počítačích
+//     kopíruje na server a berou ho zálohy. wireproxy potřebuje konfiguraci jako soubor:
+//     ten vzniká jen na dobu spuštění a hned potom se smaže.
 //   - SOCKS5 proxy chrání náhodné jméno a heslo vygenerované při každém spuštění
 //     (dostane je jen rozšíření Mantis) – tunel nemůže použít jiný program.
 //   - Informační HTTP rozhraní wireproxy (-i) se nespouští (prozrazovalo by
@@ -37,6 +41,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -69,10 +74,98 @@ var (
 	socksUser string
 	socksPass string
 	probeAddr = fallbackProbe
-	dataDir   = filepath.Join(os.Getenv("APPDATA"), "mantis", "vpn")
-	wgPath    = filepath.Join(dataDir, "wg.conf")
+	dataDir   = filepath.Join(os.Getenv("LOCALAPPDATA"), "mantis", "vpn")
+	wgPath    = filepath.Join(dataDir, "wg.conf.dpapi")
 	runPath   = filepath.Join(dataDir, "wireproxy.conf")
+	// sestavení 1–2 ukládala profil nešifrovaně do Roaming
+	legacyDir = filepath.Join(os.Getenv("APPDATA"), "mantis", "vpn")
 )
+
+// ---------- Šifrování profilu (Windows DPAPI) ----------
+
+var (
+	crypt32           = syscall.NewLazyDLL("crypt32.dll")
+	kernel32          = syscall.NewLazyDLL("kernel32.dll")
+	procProtectData   = crypt32.NewProc("CryptProtectData")
+	procUnprotectData = crypt32.NewProc("CryptUnprotectData")
+	procLocalFree     = kernel32.NewProc("LocalFree")
+	dpapiEntropy      = []byte("cz.mantis.vpn")
+)
+
+const cryptprotectUIForbidden = 0x1
+
+type dataBlob struct {
+	size uint32
+	data *byte
+}
+
+func newBlob(b []byte) *dataBlob {
+	if len(b) == 0 {
+		return &dataBlob{}
+	}
+	return &dataBlob{size: uint32(len(b)), data: &b[0]}
+}
+
+// CryptProtectData i CryptUnprotectData mají stejné parametry:
+// (vstup, popis, entropie, rezervováno, výzva, příznaky, výstup)
+func dpapi(proc *syscall.LazyProc, in []byte) ([]byte, error) {
+	if len(in) == 0 {
+		return nil, errors.New("prázdná data")
+	}
+	var out dataBlob
+	r, _, err := proc.Call(
+		uintptr(unsafe.Pointer(newBlob(in))), 0,
+		uintptr(unsafe.Pointer(newBlob(dpapiEntropy))), 0, 0,
+		cryptprotectUIForbidden, uintptr(unsafe.Pointer(&out)))
+	if r == 0 {
+		return nil, err
+	}
+	defer procLocalFree.Call(uintptr(unsafe.Pointer(out.data)))
+	return append([]byte(nil), unsafe.Slice(out.data, out.size)...), nil
+}
+
+func loadProfile() (string, error) {
+	enc, err := os.ReadFile(wgPath)
+	if err != nil {
+		return "", errors.New("není uložený žádný VPN profil")
+	}
+	plain, err := dpapi(procUnprotectData, enc)
+	if err != nil {
+		return "", errors.New("VPN profil nejde rozšifrovat (jiný uživatel nebo počítač?) – vložte ho znovu")
+	}
+	return string(plain), nil
+}
+
+func saveProfile(conf string) error {
+	enc, err := dpapi(procProtectData, []byte(conf))
+	if err != nil {
+		return errors.New("VPN profil se nepodařilo zašifrovat: " + err.Error())
+	}
+	if err := os.MkdirAll(dataDir, 0o700); err != nil {
+		return err
+	}
+	tmp := wgPath + ".part"
+	if err := os.WriteFile(tmp, enc, 0o600); err != nil {
+		return err
+	}
+	return os.Rename(tmp, wgPath)
+}
+
+// Nešifrovaný profil ze starší verze → zašifrovat do nového místa, starý smazat.
+// Když zašifrování selže, starý soubor zůstane a zkusí se to příště.
+func migrate() {
+	old := filepath.Join(legacyDir, "wg.conf")
+	if data, err := os.ReadFile(old); err == nil {
+		if _, e := os.Stat(wgPath); os.IsNotExist(e) {
+			if saveProfile(string(data)) != nil {
+				return
+			}
+		}
+		os.Remove(old)
+	}
+	os.Remove(filepath.Join(legacyDir, "wireproxy.conf"))
+	os.Remove(legacyDir) // jen složka vpn, a jen když je prázdná (profil prohlížeče je o úroveň výš)
+}
 
 // Řádky wg-quick, kterým wireproxy nerozumí (skripty, směrování systému),
 // a CheckAlive (stav tunelu zjišťujeme sami)
@@ -202,9 +295,11 @@ func probe(target string) bool {
 
 func current() status {
 	s := status{OK: true, Proxy: socksAddr}
-	if data, err := os.ReadFile(wgPath); err == nil {
+	if _, err := os.Stat(wgPath); err == nil {
 		s.HasProfile = true
-		s.Endpoint = endpoint(string(data))
+		if conf, err := loadProfile(); err == nil {
+			s.Endpoint = endpoint(conf)
+		}
 	}
 	s.Running = running()
 	if s.Running {
@@ -219,9 +314,9 @@ func start() error {
 	if running() {
 		return nil
 	}
-	data, err := os.ReadFile(wgPath)
+	conf, err := loadProfile()
 	if err != nil {
-		return errors.New("není uložený žádný VPN profil")
+		return err
 	}
 	exe, _ := os.Executable()
 	wireproxy := filepath.Join(filepath.Dir(exe), "wireproxy.exe")
@@ -236,9 +331,15 @@ func start() error {
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(runPath, []byte(runConfig(string(data), user, pass)), 0o600); err != nil {
+	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return err
 	}
+	if err := os.WriteFile(runPath, []byte(runConfig(conf, user, pass)), 0o600); err != nil {
+		return err
+	}
+	// wireproxy konfiguraci načte hned po spuštění; smazat ji, jakmile start skončí
+	// (tunel odpovídá, vypršel čas, nebo wireproxy skončila)
+	defer os.Remove(runPath)
 	cmd := exec.Command(wireproxy, "-s", "-c", runPath)
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true, CreationFlags: createNoWindow}
 	if err := cmd.Start(); err != nil {
@@ -247,7 +348,7 @@ func start() error {
 	proc = cmd
 	exited = make(chan struct{})
 	socksUser, socksPass = user, pass
-	probeAddr = probeTarget(string(data))
+	probeAddr = probeTarget(conf)
 	go func(c *exec.Cmd, done chan struct{}) { c.Wait(); close(done) }(cmd, exited)
 
 	// počkat, až tunel odpoví (max. ~15 s); když ne, wireproxy necháme běžet
@@ -284,9 +385,7 @@ func handle(req request) status {
 	case "setProfile":
 		if err = validate(req.Conf); err == nil {
 			stop()
-			if err = os.MkdirAll(dataDir, 0o700); err == nil {
-				err = os.WriteFile(wgPath, []byte(req.Conf), 0o600)
-			}
+			err = saveProfile(req.Conf)
 		}
 	case "removeProfile":
 		stop()
@@ -335,6 +434,8 @@ func write(w io.Writer, s status) error {
 }
 
 func main() {
+	migrate()
+	os.Remove(runPath) // zbytek po pádu
 	in := bufio.NewReader(os.Stdin)
 	for {
 		req, err := read(in)

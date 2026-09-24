@@ -25,8 +25,8 @@ Add-AppxPackage -AllowUnsigned "$env:USERPROFILE\Downloads\Mantis\mantis-156.0.1
 
 Mantis pak najdete v nabídce Start. Běží vedle verze z instalátoru a má vlastní
 profil (Firefox má pro každou instalační složku samostatný profil). Nové soubory
-v `%APPDATA%` si MSIX ukládá do soukromé složky balíčku – VPN profil proto možná
-bude potřeba vložit znovu. Odinstalace: Nastavení → Aplikace, nebo
+v `%APPDATA%` a `%LOCALAPPDATA%` si MSIX ukládá do soukromé složky balíčku – VPN
+profil (zašifrovaný v `%LOCALAPPDATA%\mantis\vpn`) proto bude potřeba vložit znovu. Odinstalace: Nastavení → Aplikace, nebo
 `Get-AppxPackage *Mantis* | Remove-AppxPackage`.
 
 **Co ověřit** (hlavně VPN):
