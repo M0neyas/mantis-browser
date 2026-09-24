@@ -148,6 +148,23 @@ cp "$REPO_DIR/branding/window.svg" "$SRC_DIR/browser/themes/shared/icons/window-
 [ -f "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg" ] || die "chybí aboutdebugging-firefox-librewolf.svg"
 cp "$REPO_DIR/branding/logo.svg" "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg"
 
+# Obecná nápověda → stránka Mantisu ($HELP_URL): témata „preferences“ (Nastavení → Nápověda,
+# Podpora → Získat pomoc, „Potřebujete pomoc?“ ve výsledcích hledání) a „firefox-help“
+# (Nápověda → Získat pomoc, F1). Ostatní témata („Zjistit více“) dál přes app.support.baseURL.
+replace toolkit/content/widgets/moz-support-link/moz-support-link.mjs \
+  '    let base = MozSupportLink.SUPPORT_URL + supportPage;' \
+  "    // Mantis: obecná nápověda na vlastní stránku
+    let base = [\"preferences\", \"firefox-help\"].includes(supportPage)
+      ? \"$HELP_URL\"
+      : MozSupportLink.SUPPORT_URL + supportPage;"
+replace browser/base/content/utilityOverlay.js \
+  '  var url = Services.urlFormatter.formatURLPref("app.support.baseURL");' \
+  "  // Mantis: obecná nápověda na vlastní stránku
+  if (aHelpTopic == \"firefox-help\" || aHelpTopic == \"preferences\") {
+    return \"$HELP_URL\";
+  }
+  var url = Services.urlFormatter.formatURLPref(\"app.support.baseURL\");"
+
 # ---------------------------------------------------------------------------
 info "5/7 Nastavení a policies"
 cfg="$SRC_DIR/lw/librewolf.cfg"
