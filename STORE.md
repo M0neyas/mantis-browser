@@ -32,8 +32,11 @@ přesný název vypíše `build.sh`.) Po testu certifikát odebrat:
 
 Mantis pak najdete v nabídce Start. Běží vedle verze z instalátoru a má vlastní
 profil (Firefox má pro každou instalační složku samostatný profil). Nové soubory
-v `%APPDATA%` a `%LOCALAPPDATA%` si MSIX ukládá do soukromé složky balíčku – VPN
-profil (zašifrovaný v `%LOCALAPPDATA%\mantis\vpn`) proto bude potřeba vložit znovu. Odinstalace: Nastavení → Aplikace, nebo
+v `%APPDATA%` a `%LOCALAPPDATA%` si MSIX ukládá do soukromé složky balíčku, existující
+ale čte ze skutečných složek – VPN profil uložený verzí z instalátoru (zašifrovaný pod
+účtem Windows v `%LOCALAPPDATA%\mantis\vpn`) proto uvidí i verze ze Storu. V balíčku
+žádný profil není; na jiném počítači nebo pod jiným účtem je potřeba vložit vlastní.
+Obě verze používají stejný místní port VPN – nezapínat VPN v obou najednou. Odinstalace: Nastavení → Aplikace, nebo
 `Get-AppxPackage *Mantis* | Remove-AppxPackage`.
 
 **Co ověřit** (hlavně VPN):
