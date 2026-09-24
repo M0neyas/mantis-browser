@@ -11,7 +11,8 @@ const SYNC_KEYS = [
   "sensitive", // choulostivé stránky: přepínače, vlastní weby, výjimky
   "doh", // šifrované DNS: režim a poskytovatel
   "vpnRouting", // co jde přes VPN (kontejnery se mezi počítači můžou lišit)
-  "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování)
+  "vpnKillSwitch",
+  "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
 ];
 
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);

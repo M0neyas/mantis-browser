@@ -9,6 +9,16 @@ LW_VERSION="156.0.1-1"
 MANTIS_RELEASE=2
 LW_FORGE="https://librewolf.dev"
 LW_SOURCE_URL="$LW_FORGE/api/packages/librewolf/generic/librewolf-source/$LW_VERSION/librewolf-$LW_VERSION.source.tar.gz"
+# SHA-256 zdrojového balíku, zapsaný v repozitáři (check-update.sh --apply ho aktualizuje).
+# Balík se ověřuje proti této hodnotě, ne jen proti souboru .sha256sum ze stejného
+# serveru – podvržený server by musel podvrhnout i commit v tomto repozitáři.
+LW_SOURCE_SHA256="93b6d0189fa1171b9ce9ee42c95f8721f7f10df0c1214922ee965a4efbc64f46"
+
+# Veřejný klíč Ed25519 pro podpis vydání (latest.json), base64 z scripts/release-key.sh.
+# Prohlížeč s tímto klíčem nabídne instalaci jedním kliknutím jen u podepsaného vydání.
+# Prázdný = build bez ověřování podpisu (aktualizace jen odkazem na stránku ke stažení).
+# Soukromý klíč nikdy do repozitáře – leží jen u vydavatele (~/.config/mantis/release-key.pem).
+MANTIS_RELEASE_PUBKEY=""
 # windows.mozconfig z buildovacího systému LibreWolfu (bsys6), stejná verze
 BSYS6_RAW_URLS=(
   "$LW_FORGE/librewolf/bsys6/raw/tag/$LW_VERSION/assets/windows.mozconfig"

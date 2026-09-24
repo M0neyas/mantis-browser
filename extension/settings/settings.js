@@ -2,21 +2,28 @@
 // Stránka Nastavení Mantis: přepínače nastavení prohlížeče (přes mantisPrefs),
 // volby nové karty (storage), zapomenutí webu, odkaz na VPN.
 
-const STORE_DEFAULTS = { newtabClock: true, newtabBackground: true, devUpdateCheck: false };
+const STORE_DEFAULTS = {
+  newtabClock: true,
+  newtabBackground: true,
+  devUpdateCheck: false,
+  vpnKillSwitch: true,
+};
 
 // ---------- Nastavení prohlížeče ----------
+// data-pref-invert: zaškrtnuto = pref false (např. webgl.disabled)
 
 for (const el of document.querySelectorAll("[data-pref]")) {
   const name = el.dataset.pref;
+  const invert = el.hasAttribute("data-pref-invert");
   browser.mantisPrefs.get(name).then(value => {
     if (el.type === "checkbox") {
-      el.checked = value;
+      el.checked = invert ? !value : value;
     } else {
       el.value = String(value);
     }
   });
   el.addEventListener("change", async () => {
-    const value = el.type === "checkbox" ? el.checked : Number(el.value);
+    const value = el.type === "checkbox" ? el.checked !== invert : Number(el.value);
     await browser.mantisPrefs.set(name, value);
     // uložit i do storage – odtud se přepínače synchronizují na další počítače (sync.js)
     const { browserPrefs } = await browser.storage.local.get("browserPrefs");

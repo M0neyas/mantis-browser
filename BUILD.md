@@ -152,10 +152,15 @@ Kdo Mantis sestavuje, může si v **Nastavení Mantis → Aktualizace** zapnout
 ```bash
 cd ~/mantis-browser
 git pull
-./scripts/check-update.sh --apply   # přepne LW_VERSION v config.sh (MANTIS_RELEASE vrátit na 1)
+./scripts/check-update.sh --apply   # přepne LW_VERSION, LW_SOURCE_SHA256 a MANTIS_RELEASE=1 v config.sh
 ./scripts/prepare-source.sh
 ./scripts/build.sh
 ```
+
+`prepare-source.sh` ověřuje zdrojový balík proti **`LW_SOURCE_SHA256` zapsanému
+v `config.sh`** (ne jen proti součtu ze stejného serveru). `check-update.sh --apply`
+nový součet zjistí, ověří stažením balíku a zapíše – při commitu zkontrolujte, že
+diff `config.sh` mění jen verzi a součet.
 
 ## Vydání vlastního buildu
 
@@ -170,8 +175,20 @@ se jednou denně podívají na `latest.json` na adrese `LATEST_URL` v
 SHA-256, spuštění instalátoru). Pro vlastní vydání změňte v `extension/` adresy
 `moneyas.cz` (oficiální vydání Mantisu) na svůj web a `PUBLISH_URL` v `config.sh`.
 
+**Podpis vydání (Ed25519):** instalaci jedním kliknutím prohlížeč nabídne jen tehdy,
+když je `latest.json` podepsaný klíčem vydavatele. Jednorázově:
+```bash
+./scripts/release-key.sh   # vytvoří ~/.config/mantis/release-key.pem a vypíše veřejný klíč
+```
+Veřejný klíč zapište do `config.sh` jako `MANTIS_RELEASE_PUBKEY` (commit) – dostane se
+do buildu. Soukromý klíč nikam nenahrávejte a zazálohujte si ho. `publish-installer.sh`
+pak každé vydání podepíše; build s klíčem nepodepsaný nebo špatně podepsaný
+`latest.json` ignoruje. S prázdným `MANTIS_RELEASE_PUBKEY` se podpis neověřuje a nové
+verze se nabízejí jen odkazem na stránku ke stažení. **Pro vlastní vydání si vytvořte
+vlastní klíč** – s klíčem oficiálního vydání vaše `latest.json` neprojde.
+
 **Zveřejnění:** `./scripts/publish-installer.sh` nahraje instalátor přes SSH na webový
-server a vedle něj zapíše `latest.json` (verze, velikost, SHA-256). Server a složku
+server a vedle něj zapíše `latest.json` (verze, velikost, SHA-256, podpis). Server a složku
 nastavte v `scripts/config.local.sh` (není v gitu):
 ```bash
 PUBLISH_HOST="uzivatel@server"
@@ -195,8 +212,9 @@ profil a data zůstávají v `%APPDATA%\mantis`.
 | `scripts/make-icons.sh` | z `branding/logo.svg` vyrobí PNG/ICO ikony a z `branding/installer-*.svg` obrázky instalátoru |
 | `scripts/build.sh` | `mach build` + `mach package-multi-locale` + přibalení VPN + instalátor, vše v Dockeru; s `--msix` i balíček pro Microsoft Store |
 | `scripts/package-vpn.sh` | zkompiluje VPN pomocníka (Go v Dockeru), stáhne a ověří wireproxy – volá ho `build.sh` |
-| `scripts/check-update.sh` | zjistí nejnovější LibreWolf, s `--apply` přepne `LW_VERSION` |
-| `scripts/publish-installer.sh` | nahraje instalátor a `latest.json` na vlastní web (server v `config.local.sh`) |
+| `scripts/check-update.sh` | zjistí nejnovější LibreWolf, s `--apply` přepne `LW_VERSION` a zapíše `LW_SOURCE_SHA256` |
+| `scripts/release-key.sh` | vytvoří klíč Ed25519 pro podpis vydání a vypíše veřejný klíč |
+| `scripts/publish-installer.sh` | podepíše a nahraje instalátor a `latest.json` na vlastní web (server v `config.local.sh`) |
 
 `prepare-source.sh` začíná vždy od čistých zdrojáků, takže každý build
 je zatím celý (bez inkrementálního překladu).

@@ -16,6 +16,7 @@ function showError(text) {
 function render(s) {
   const showProfile = s.hostAvailable && (!s.hasProfile || editing);
   $("no-host").hidden = s.hostAvailable;
+  $("unblock").hidden = s.hostAvailable || !s.enabled;
   $("profile").hidden = !showProfile;
   $("main").hidden = !s.hostAvailable || showProfile;
   $("cancel").hidden = !s.hasProfile;
@@ -31,7 +32,10 @@ function render(s) {
   };
   $("state").textContent = !s.enabled
     ? "Prohlížeč jde přímo do internetu."
-    : s.connected
+    : s.blocked
+      ? "VPN neběží – provoz, který má jít přes VPN, je zablokovaný (kill switch). " +
+        "Mantis ji zkouší každou minutu znovu spustit; napřímo pustíte provoz vypnutím VPN."
+      : s.connected
       ? routed[s.routing] || routed.all
       : "Tunel zatím neodpovídá – zkontrolujte připojení k internetu a VPN server.";
 
@@ -132,6 +136,7 @@ $("cancel").addEventListener("click", async () => {
 // ---------- Zapnutí / vypnutí ----------
 
 $("toggle").addEventListener("change", () => send({ vpn: "toggle" }));
+$("unblock-btn").addEventListener("click", () => send({ vpn: "off" }));
 
 $("routing").addEventListener("click", () => {
   browser.tabs.create({ url: browser.runtime.getURL("settings/settings.html#vpn") });

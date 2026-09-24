@@ -17,6 +17,7 @@ const ALLOWED_PREFS = {
   "media.videocontrols.picture-in-picture.enable-when-switching-tabs.enabled": "bool",
   "media.autoplay.default": "int",
   "general.smoothScroll.msdPhysics.enabled": "bool",
+  "webgl.disabled": "bool",
   // Šifrované DNS (doh.js)
   "network.trr.mode": "int",
   "network.trr.uri": "string",
