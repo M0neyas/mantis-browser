@@ -18,7 +18,7 @@ LW_SOURCE_SHA256="93b6d0189fa1171b9ce9ee42c95f8721f7f10df0c1214922ee965a4efbc64f
 # Prohlížeč s tímto klíčem nabídne instalaci jedním kliknutím jen u podepsaného vydání.
 # Prázdný = build bez ověřování podpisu (aktualizace jen odkazem na stránku ke stažení).
 # Soukromý klíč nikdy do repozitáře – leží jen u vydavatele (~/.config/mantis/release-key.pem).
-MANTIS_RELEASE_PUBKEY=""
+MANTIS_RELEASE_PUBKEY="IzYr0mAy25gKYJtc2RS4Tx5UwvyVQZSCaMWRUqhUVvg="
 # windows.mozconfig z buildovacího systému LibreWolfu (bsys6), stejná verze
 BSYS6_RAW_URLS=(
   "$LW_FORGE/librewolf/bsys6/raw/tag/$LW_VERSION/assets/windows.mozconfig"
