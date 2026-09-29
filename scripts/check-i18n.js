@@ -63,7 +63,7 @@ for (const locale of LOCALES) {
 
 const used = new Set();
 const prefixes = new Set();
-const KEY_LIKE = /^(common|update|err|forget|sensitive|doh|other|vpn|vpnErr|newtab|welcome|settings)_\w+$/;
+const KEY_LIKE = /^(common|update|err|forget|sensitive|doh|other|vpn|vpnErr|newtab|welcome|settings|tools|printEdit)_\w+$/;
 
 for (const file of files) {
   const src = fs.readFileSync(file, "utf8");

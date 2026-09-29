@@ -13,6 +13,9 @@ const SYNC_KEYS = [
   "doh", // šifrované DNS: režim a poskytovatel
   "vpnRouting", // co jde přes VPN (kontejnery se mezi počítači můžou lišit)
   "vpnKillSwitch",
+  "toolUnaccent", // nástroje v kontextové nabídce
+  "toolSaveImage",
+  "toolPrintEdit",
   "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
   "otherBrowserSites", // weby s tlačítkem „Otevřít v jiném prohlížeči“ (volba prohlížeče je místní)
 ];

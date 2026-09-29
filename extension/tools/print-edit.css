@@ -1,0 +1,12 @@
+/* „Upravit a uložit PDF“ (print-edit.js): lišta se netiskne, „Skrýt obrázky“ platí i pro tisk */
+@media print {
+  [data-mantis-print-edit] {
+    display: none !important;
+  }
+}
+
+html[data-mantis-print-noimg] img,
+html[data-mantis-print-noimg] picture,
+html[data-mantis-print-noimg] video {
+  display: none !important;
+}

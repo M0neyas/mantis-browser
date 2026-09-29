@@ -9,6 +9,9 @@ const STORE_DEFAULTS = {
   newtabBackground: true,
   devUpdateCheck: false,
   vpnKillSwitch: true,
+  toolUnaccent: true, // nástroje v kontextové nabídce (tools.js)
+  toolSaveImage: true,
+  toolPrintEdit: true,
 };
 
 // ---------- Nastavení prohlížeče ----------

@@ -25,8 +25,15 @@
     "networkStatus",
     "downloads",
     "contextualIdentities",
+    "clipboardWrite",
     "<all_urls>"
   ],
+  "commands": {
+    "copy-without-diacritics": {
+      "suggested_key": { "default": "Ctrl+Shift+U" },
+      "description": "__MSG_tools_unaccentCommand__"
+    }
+  },
   "chrome_url_overrides": {
     "newtab": "newtab/newtab.html"
   },
@@ -40,7 +47,8 @@
       "sensitive.js",
       "doh.js",
       "sync.js",
-      "otherbrowser.js"
+      "otherbrowser.js",
+      "tools.js"
     ],
     "persistent": true
   },

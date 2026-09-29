@@ -10,6 +10,7 @@ const RECOMMENDED = [
   { key: "bitwarden", id: "{446900e4-71c2-419f-a6a7-df9c091e268b}", slug: "bitwarden-password-manager", icon: "🔑" },
   { key: "containers", id: "@testpilot-containers", slug: "multi-account-containers", icon: "🗂️" },
   { key: "czechDictionary", id: "cs@dictionaries.addons.mozilla.org", slug: "czech-spell-checking-dictionar", icon: "✍️" },
+  { key: "consentOMatic", id: "gdpr@cavi.au.dk", slug: "consent-o-matic", icon: "🍪" },
   { key: "ttvLolPro", id: "{76ef94a4-e3d0-4c6f-961a-d38a429a332b}", slug: "ttv-lol-pro", icon: "📺", warn: true },
 ];
 
