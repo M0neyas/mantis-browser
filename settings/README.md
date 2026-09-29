@@ -19,7 +19,8 @@
 | Vyhledávač | DuckDuckGo (výchozí v LibreWolfu, „No-AI“ varianta) |
 | Rychlé hledání | v adresním řádku `@mapy`, `@heureka`, `@wiki`, `@csfd`, `@yt`, `@seznam` + hledaný text |
 | Rozšíření | předinstalovaný jen uBlock Origin (z LibreWolfu). Bitwarden, Multi-Account Containers, český slovník a TTV LOL PRO **nabízí uvítací stránka** k přidání (neinstalují se samy – pravidlo Microsoft Store 10.1.5) |
-| Nápověda | položka „Mantis Browser – nahlásit chybu“ (GitHub Issues) místo LibreWolfího „LibreWolf Issue Tracker“ (policy `SupportMenu`) |
+| Nápověda | položka „Mantis Browser – nahlásit chybu“ (GitHub Issues) místo LibreWolfího „LibreWolf Issue Tracker“ (policy `SupportMenu`); Nápověda → Získat pomoc a F1 na moneyas.cz/mantis/napoveda (anglicky /mantis/help) |
+| Jazyk textů z policies | policies jsou jeden soubor pro všechny jazyky, texty v něm jsou česky. V jiném jazyce prohlížeče je `prepare-source.sh` nahradí anglickými z `config.sh` (`SUPPORT_MENU_TITLE_EN`, `BLOCKED_INSTALL_MESSAGE_EN`) – úprava v `utilityOverlay.js` a `browser-addons.js` |
 | Kontrola pravopisu | česky (`spellchecker.dictionary` = `cs`) |
 | Filtry reklam | navíc EasyList Czech and Slovak |
 | Spuštění | obnoví karty z minula |

@@ -148,22 +148,40 @@ cp "$REPO_DIR/branding/window.svg" "$SRC_DIR/browser/themes/shared/icons/window-
 [ -f "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg" ] || die "chybí aboutdebugging-firefox-librewolf.svg"
 cp "$REPO_DIR/branding/logo.svg" "$SRC_DIR/devtools/client/themes/images/aboutdebugging-firefox-librewolf.svg"
 
-# Obecná nápověda → stránka Mantisu ($HELP_URL): témata „preferences“ (Nastavení → Nápověda,
-# Podpora → Získat pomoc, „Potřebujete pomoc?“ ve výsledcích hledání) a „firefox-help“
-# (Nápověda → Získat pomoc, F1). Ostatní témata („Zjistit více“) dál přes app.support.baseURL.
+# Obecná nápověda → stránka Mantisu ($HELP_URL česky, $HELP_URL_EN v ostatních jazycích):
+# témata „preferences“ (Nastavení → Nápověda, Podpora → Získat pomoc, „Potřebujete pomoc?“
+# ve výsledcích hledání) a „firefox-help“ (Nápověda → Získat pomoc, F1). Ostatní témata
+# („Zjistit více“) dál přes app.support.baseURL. moz-support-link běží i v obsahových
+# stránkách about: bez Services – tam jazyk podle <html lang> (nastavuje ho Fluent).
 replace toolkit/content/widgets/moz-support-link/moz-support-link.mjs \
   '    let base = MozSupportLink.SUPPORT_URL + supportPage;' \
-  "    // Mantis: obecná nápověda na vlastní stránku
+  "    // Mantis: obecná nápověda na vlastní stránku (česky / anglicky)
+    let mantisLocale = globalThis.Services?.locale.appLocaleAsBCP47 ?? document.documentElement.lang ?? \"\";
     let base = [\"preferences\", \"firefox-help\"].includes(supportPage)
-      ? \"$HELP_URL\"
+      ? (mantisLocale.startsWith(\"cs\") ? \"$HELP_URL\" : \"$HELP_URL_EN\")
       : MozSupportLink.SUPPORT_URL + supportPage;"
 replace browser/base/content/utilityOverlay.js \
   '  var url = Services.urlFormatter.formatURLPref("app.support.baseURL");' \
-  "  // Mantis: obecná nápověda na vlastní stránku
+  "  // Mantis: obecná nápověda na vlastní stránku (česky / anglicky)
   if (aHelpTopic == \"firefox-help\" || aHelpTopic == \"preferences\") {
-    return \"$HELP_URL\";
+    return Services.locale.appLocaleAsBCP47.startsWith(\"cs\") ? \"$HELP_URL\" : \"$HELP_URL_EN\";
   }
   var url = Services.urlFormatter.formatURLPref(\"app.support.baseURL\");"
+
+# Texty z policies.json jsou česky (policies nejdou přeložit) → v jiných jazycích anglicky.
+# Nabídka Nápověda (menu i ☰ → Nápověda, které položky kopíruje):
+replace browser/base/content/utilityOverlay.js \
+  '    menuitem.setAttribute("label", supportMenu.Title);' \
+  "    // Mantis: název z policies je česky, v jiných jazycích anglický
+    menuitem.setAttribute(
+      \"label\",
+      Services.locale.appLocaleAsBCP47.startsWith(\"cs\") ? supportMenu.Title : \"$SUPPORT_MENU_TITLE_EN\"
+    );"
+# Hláška policy ExtensionSettings[\"*\"].blocked_install_message (jediná v policies.json:
+# jazykové balíčky; stejný řádek je ve browser-addons.js dvakrát, replace nahradí oba):
+replace browser/base/content/browser-addons.js \
+  'messageString += " " + extensionSettings.blocked_install_message;' \
+  "messageString += \" \" + (Services.locale.appLocaleAsBCP47.startsWith(\"cs\") ? extensionSettings.blocked_install_message : \"$BLOCKED_INSTALL_MESSAGE_EN\"); // Mantis: česky / anglicky"
 
 # ---------------------------------------------------------------------------
 info "5/7 Nastavení a policies"

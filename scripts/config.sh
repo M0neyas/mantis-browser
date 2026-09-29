@@ -69,7 +69,15 @@ PUBLISH_FILE="Mantis-Browser-Setup.exe"
 PUBLISH_URL="https://moneyas.cz/mantis/download"
 # Obecná nápověda (Nastavení → Nápověda / Získat pomoc, Nápověda → Získat pomoc, F1).
 # „Zjistit více“ u jednotlivých voleb vede dál na nápovědu Mozilly (app.support.baseURL).
+# Česky HELP_URL, v ostatních jazycích prohlížeče HELP_URL_EN.
 HELP_URL="https://moneyas.cz/mantis/napoveda/"
+HELP_URL_EN="https://moneyas.cz/mantis/help/"
+
+# Texty z settings/policies.json jsou česky; policies nejdou přeložit, proto je
+# prepare-source.sh v jiných jazycích prohlížeče nahradí těmito (nabídka Nápověda,
+# hláška při pokusu nainstalovat jazykový balíček).
+SUPPORT_MENU_TITLE_EN="Mantis Browser – report a problem"
+BLOCKED_INSTALL_MESSAGE_EN="Mantis Browser doesn't allow installing language packs – Czech and English are already built in."
 
 # Pracovní složka – musí být na disku WSL (ext4), ne na /mnt/c
 WORK_DIR="${WORK_DIR:-$HOME/mantis-work}"
