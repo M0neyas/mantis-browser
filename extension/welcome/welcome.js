@@ -12,6 +12,7 @@ const RECOMMENDED = [
   { key: "czechDictionary", id: "cs@dictionaries.addons.mozilla.org", slug: "czech-spell-checking-dictionar", icon: "✍️" },
   { key: "consentOMatic", id: "gdpr@cavi.au.dk", slug: "consent-o-matic", icon: "🍪" },
   { key: "darkReader", id: "addon@darkreader.org", slug: "darkreader", icon: "🌙" },
+  { key: "youtubeWindowed", id: "{59c55aed-bdb3-4f2f-b81d-27011a689be6}", slug: "youtube-window-fullscreen", icon: "🖥️" },
   { key: "ttvLolPro", id: "{76ef94a4-e3d0-4c6f-961a-d38a429a332b}", slug: "ttv-lol-pro", icon: "📺", warn: true },
 ];
 

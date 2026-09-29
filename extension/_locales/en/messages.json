@@ -190,7 +190,7 @@
   "settings_sensitiveNote": {"message": "Note: open tabs are restored after a restart including their Back button history, and cookies (logins) are still saved. For full privacy use a private window or right-click → <i>Forget site</i>."},
   "settings_extensions": {"message": "Extensions"},
   "settings_recommended": {"message": "Recommended extensions"},
-  "settings_recommendedHint": {"message": "Bitwarden, tab containers, Czech dictionary, Consent-O-Matic, Dark Reader and TTV LOL PRO – nothing installs by itself, the page offers them to add with one click."},
+  "settings_recommendedHint": {"message": "Bitwarden, tab containers, Czech dictionary, Consent-O-Matic, Dark Reader, YouTube Windowed FullScreen and TTV LOL PRO – nothing installs by itself, the page offers them to add with one click."},
   "settings_updates": {"message": "Updates"},
   "settings_updatesMantis": {"message": "New versions of Mantis Browser"},
   "settings_updatesMantisHint": {"message": "Checks moneyas.cz once a day; when a new version is out, it shows a notification and a download link on the new tab."},
@@ -277,5 +277,7 @@
   "settings_tabSleepExceptions": {"message": "Never put these sites to sleep"},
   "settings_tabSleepExceptionsHint": {"message": "One per line, subdomains included (e.g. web apps that should keep running in the background)."},
   "welcome_addon_darkReader_name": {"message": "Dark Reader"},
-  "welcome_addon_darkReader_text": {"message": "Dark mode for every website, even those without their own. Brightness, contrast and per-site exceptions."}
+  "welcome_addon_darkReader_text": {"message": "Dark mode for every website, even those without their own. Brightness, contrast and per-site exceptions."},
+  "welcome_addon_youtubeWindowed_name": {"message": "YouTube Windowed FullScreen"},
+  "welcome_addon_youtubeWindowed_text": {"message": "YouTube videos fill the browser window instead of the whole screen – you can keep working in other windows. It only has access to YouTube."}
 }
