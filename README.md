@@ -7,7 +7,11 @@
 Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](https://librewolf.net/)
 (a tedy na Firefoxu). Česky, bez telemetrie, s blokováním reklam a vestavěnou VPN.
 
-**Stažení instalátoru:** https://moneyas.cz/mantis
+**Instalace:**
+- [Microsoft Store](https://apps.microsoft.com/detail/9N3D60HQMK9P) – podepsaný Microsoftem,
+  bez varování SmartScreen, aktualizuje ho Store
+- [Instalátor ke stažení](https://moneyas.cz/mantis) – aktualizace jedním kliknutím přímo
+  v prohlížeči (Windows SmartScreen při první instalaci varuje, instalátor není podepsaný)
 
 ## Co umí
 

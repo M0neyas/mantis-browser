@@ -4,6 +4,9 @@ Balíček **MSIX** z Microsoft Store Microsoft sám podepíše, takže se instal
 varování SmartScreen a aktualizuje se automaticky (stejnou cestou jde do Storu
 i LibreWolf). Postup: nejdřív balíček vyzkoušet místně, pak ho odeslat.
 
+Oficiální vydání Mantisu je ve Storu od 2026-09-29:
+https://apps.microsoft.com/detail/9N3D60HQMK9P (Store ID `9N3D60HQMK9P`).
+
 ## Krok 1: vyzkoušet MSIX místně (bez Storu)
 
 Nepodepsaný prohlížeč Windows nainstalovat nedovolí (manifest Firefoxu má „Executable
