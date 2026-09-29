@@ -63,7 +63,7 @@ for (const locale of LOCALES) {
 
 const used = new Set();
 const prefixes = new Set();
-const KEY_LIKE = /^(common|update|err|forget|sensitive|doh|other|vpn|vpnErr|newtab|welcome|settings|tools|printEdit)_\w+$/;
+const KEY_LIKE = /^(common|update|err|forget|sensitive|doh|other|vpn|vpnErr|newtab|welcome|settings|tools|printEdit|eshop|currency)_\w+$/;
 
 for (const file of files) {
   const src = fs.readFileSync(file, "utf8");
@@ -92,12 +92,16 @@ const unused = keys.filter(k => !used.has(k) && ![...prefixes].some(p => k.start
 for (const key of unused) console.log(`info nepoužitý klíč ${key}`);
 
 // ---------- Čeština napevno v kódu (mimo komentáře) ----------
+// Řádek s komentářem „i18n-ignore“ se přeskočí (data, ne text pro uživatele – např. „Kč“).
 
 const CZECH = /[áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]/;
 for (const file of files.filter(f => /\.(js|html)$/.test(f))) {
   let src = fs.readFileSync(file, "utf8");
   src = src.replace(/<!--[\s\S]*?-->/g, "").replace(/\/\*[\s\S]*?\*\//g, "");
   src.split("\n").forEach((line, i) => {
+    if (line.includes("i18n-ignore")) {
+      return;
+    }
     const code = line.replace(/(^|\s)\/\/.*$/, "");
     if (CZECH.test(code) && !/console\.(error|warn|log)\(/.test(code)) {
       bad(`${file}:${i + 1}: český text napevno: ${code.trim().slice(0, 90)}`);

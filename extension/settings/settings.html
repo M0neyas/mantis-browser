@@ -46,6 +46,29 @@
       </span>
       <input type="checkbox" class="switch" data-pref="general.smoothScroll.msdPhysics.enabled">
     </label>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_tabSleep"></b>
+        <span class="hint" data-i18n="settings_tabSleepHint"></span>
+      </span>
+      <select id="tab-sleep-minutes" data-i18n-aria-label="settings_tabSleepAfter">
+        <option value="15" data-i18n="settings_tabSleep15"></option>
+        <option value="30" data-i18n="settings_tabSleep30"></option>
+        <option value="60" data-i18n="settings_tabSleep60"></option>
+        <option value="120" data-i18n="settings_tabSleep120"></option>
+        <option value="240" data-i18n="settings_tabSleep240"></option>
+      </select>
+      <input type="checkbox" class="switch" data-store="tabSleep">
+    </label>
+
+    <div class="option column" id="tab-sleep-exceptions-row">
+      <label for="tab-sleep-exceptions">
+        <b data-i18n="settings_tabSleepExceptions"></b>
+        <span class="hint" data-i18n="settings_tabSleepExceptionsHint"></span>
+      </label>
+      <textarea id="tab-sleep-exceptions" rows="2" spellcheck="false"></textarea>
+    </div>
   </section>
 
   <section id="security">
@@ -78,6 +101,22 @@
   <section>
     <h2 data-i18n="settings_privacy"></h2>
 
+    <label class="option">
+      <span>
+        <b data-i18n="settings_blockNotifications"></b>
+        <span class="hint" data-i18n="settings_blockNotificationsHint"></span>
+      </span>
+      <input type="checkbox" class="switch" data-pref="permissions.default.desktop-notification" data-pref-on="2" data-pref-off="0">
+    </label>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_blockGeo"></b>
+        <span class="hint" data-i18n="settings_blockGeoHint"></span>
+      </span>
+      <input type="checkbox" class="switch" data-pref="permissions.default.geo" data-pref-on="2" data-pref-off="0">
+    </label>
+
     <div class="option column">
       <span>
         <b data-i18n="settings_forget"></b>
@@ -90,6 +129,28 @@
       </form>
       <p id="forget-result" class="hint" role="status"></p>
     </div>
+  </section>
+
+  <section id="shopping">
+    <h2 data-i18n="settings_shopping"></h2>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_eshopWarning"></b>
+        <span class="hint" data-i18n="settings_eshopWarningHint"></span>
+        <span class="hint" id="eshop-info"></span>
+      </span>
+      <input type="checkbox" class="switch" data-store="eshopWarning">
+    </label>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_currency"></b>
+        <span class="hint" data-i18n="settings_currencyHint"></span>
+        <span class="hint" id="currency-info"></span>
+      </span>
+      <input type="checkbox" class="switch" data-store="currencyConvert">
+    </label>
   </section>
 
   <section id="tools">

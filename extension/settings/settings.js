@@ -12,23 +12,62 @@ const STORE_DEFAULTS = {
   toolUnaccent: true, // nástroje v kontextové nabídce (tools.js)
   toolSaveImage: true,
   toolPrintEdit: true,
+  tabSleep: true, // uspávání karet (tabsleep.js)
+  eshopWarning: true, // rizikové e-shopy (eshops.js)
+  currencyConvert: true, // převod měn (currency.js)
 };
+
+// ---------- Uspávání karet (logika v ../tabsleep.js) ----------
+
+browser.storage.local.get({ tabSleepMinutes: 60, tabSleepExceptions: [] }).then(values => {
+  const minutes = document.getElementById("tab-sleep-minutes");
+  minutes.value = String(values.tabSleepMinutes);
+  minutes.addEventListener("change", () => browser.storage.local.set({ tabSleepMinutes: Number(minutes.value) }));
+  const exceptions = document.getElementById("tab-sleep-exceptions");
+  exceptions.value = values.tabSleepExceptions.join("\n");
+  exceptions.addEventListener("change", () => {
+    const sites = [...new Set(exceptions.value.split(/[\n,]/).map(normalizeSite).filter(Boolean))];
+    exceptions.value = sites.join("\n");
+    browser.storage.local.set({ tabSleepExceptions: sites });
+  });
+});
+
+// ---------- Nákupy (logika v ../eshops.js a ../currency.js) ----------
+
+browser.runtime.sendMessage({ eshopListInfo: true }).then(info => {
+  if (info?.count && info.generated) {
+    const date = new Date(`${info.generated}T12:00:00`).toLocaleDateString(uiLocale());
+    document.getElementById("eshop-info").textContent = t("settings_eshopInfo", info.count.toLocaleString(uiLocale()), date);
+  }
+});
+
+function showCurrencyInfo() {
+  browser.runtime.sendMessage({ cnbRatesInfo: true }).then(info => {
+    document.getElementById("currency-info").textContent = info?.date
+      ? t("settings_currencyInfo", new Date(`${info.date}T12:00:00`).toLocaleDateString(uiLocale()))
+      : "";
+  });
+}
+showCurrencyInfo();
 
 // ---------- Nastavení prohlížeče ----------
 // data-pref-invert: zaškrtnuto = pref false (např. webgl.disabled)
+// data-pref-on / data-pref-off: číselný pref jako přepínač (např. 2 = blokovat, 0 = ptát se)
 
 for (const el of document.querySelectorAll("[data-pref]")) {
   const name = el.dataset.pref;
   const invert = el.hasAttribute("data-pref-invert");
+  const onOff = "prefOn" in el.dataset ? [Number(el.dataset.prefOn), Number(el.dataset.prefOff)] : null;
   browser.mantisPrefs.get(name).then(value => {
     if (el.type === "checkbox") {
-      el.checked = invert ? !value : value;
+      el.checked = onOff ? value === onOff[0] : invert ? !value : value;
     } else {
       el.value = String(value);
     }
   });
   el.addEventListener("change", async () => {
-    const value = el.type === "checkbox" ? el.checked !== invert : Number(el.value);
+    const value =
+      el.type !== "checkbox" ? Number(el.value) : onOff ? onOff[el.checked ? 0 : 1] : el.checked !== invert;
     await browser.mantisPrefs.set(name, value);
     // uložit i do storage – odtud se přepínače synchronizují na další počítače (sync.js)
     const { browserPrefs } = await browser.storage.local.get("browserPrefs");
@@ -313,6 +352,9 @@ browser.storage.onChanged.addListener((changes, area) => {
   }
   if (changes.otherBrowser || changes.otherBrowserSites) {
     showOther();
+  }
+  if (changes.cnbRates || changes.currencyConvert) {
+    showCurrencyInfo();
   }
 });
 showSensitive();

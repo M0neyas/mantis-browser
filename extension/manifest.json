@@ -48,7 +48,10 @@
       "doh.js",
       "sync.js",
       "otherbrowser.js",
-      "tools.js"
+      "tools.js",
+      "currency.js",
+      "eshops.js",
+      "tabsleep.js"
     ],
     "persistent": true
   },

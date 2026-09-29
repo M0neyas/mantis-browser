@@ -16,6 +16,11 @@ const SYNC_KEYS = [
   "toolUnaccent", // nástroje v kontextové nabídce
   "toolSaveImage",
   "toolPrintEdit",
+  "tabSleep", // uspávání karet
+  "tabSleepMinutes",
+  "tabSleepExceptions",
+  "eshopWarning", // varování před rizikovými e-shopy (výjimky jsou jen místní)
+  "currencyConvert",
   "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
   "otherBrowserSites", // weby s tlačítkem „Otevřít v jiném prohlížeči“ (volba prohlížeče je místní)
 ];

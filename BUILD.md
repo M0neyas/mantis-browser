@@ -169,6 +169,9 @@ diff `config.sh` mění jen verzi a součet.
 - **jen vlastní změny** (stejný LibreWolf) → `MANTIS_RELEASE` o 1 zvýšit, jinak
   nainstalované prohlížeče nový build nepoznají
 
+**Před každým vydáním** obnovte seznam rizikových e-shopů ČOI (přibývá každý týden) a commitněte ho:
+`./scripts/update-eshop-list.sh`.
+
 **Kontrola nových verzí v prohlížeči:** nainstalované prohlížeče (mimo Microsoft Store)
 se jednou denně podívají na `latest.json` na adrese `LATEST_URL` v
 `extension/background.js` a nabídnou aktualizaci jedním kliknutím (stažení, ověření
@@ -213,6 +216,7 @@ profil a data zůstávají v `%APPDATA%\mantis`.
 | `scripts/build.sh` | `mach build` + `mach package-multi-locale` + přibalení VPN + instalátor, vše v Dockeru; s `--msix` i balíček pro Microsoft Store |
 | `scripts/package-vpn.sh` | zkompiluje VPN pomocníka (Go v Dockeru), stáhne a ověří wireproxy – volá ho `build.sh` |
 | `scripts/check-update.sh` | zjistí nejnovější LibreWolf, s `--apply` přepne `LW_VERSION` a zapíše `LW_SOURCE_SHA256` |
+| `scripts/update-eshop-list.sh` | stáhne seznam rizikových e-shopů ČOI do `extension/eshops/coi-risky.txt` – spouštět před každým vydáním a commitnout |
 | `scripts/check-i18n.js` | kontrola překladů rozšíření (`node scripts/check-i18n.js`): stejné klíče v češtině i angličtině, použité klíče existují, žádný český text napevno v kódu |
 | `scripts/release-key.sh` | vytvoří klíč Ed25519 pro podpis vydání a vypíše veřejný klíč |
 | `scripts/publish-installer.sh` | podepíše a nahraje instalátor a `latest.json` na vlastní web (server v `config.local.sh`) |
