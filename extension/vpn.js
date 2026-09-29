@@ -41,7 +41,7 @@ function connectHost() {
   port = browser.runtime.connectNative(VPN_HOST);
   port.onMessage.addListener(reply => waiting.shift()?.resolve(reply));
   port.onDisconnect.addListener(p => {
-    const reason = p.error?.message || "pomocník se ukončil";
+    const reason = p.error?.message || "helper exited";
     port = null;
     while (waiting.length) {
       waiting.shift().reject(new Error(reason));
@@ -69,11 +69,18 @@ function hostCall(message) {
 let socksAuth = null; // { username, password } běžící wireproxy
 let changingProfile = false; // pomocník zastavil wireproxy kvůli novému profilu
 
+// Chyba z pomocníka: errorCode → text vpnErr_<kód> v jazyce prohlížeče ($1 = errorArg),
+// neznámý kód → anglický text z pomocníka
+function helperError(s) {
+  const text = s.errorCode && browser.i18n.getMessage(`vpnErr_${s.errorCode}`, [String(s.errorArg || "")]);
+  return text || s.error || t("vpn_errUnknown");
+}
+
 function applyStatus(s) {
   vpn.hostAvailable = true;
   vpn.hasProfile = s.hasProfile;
   vpn.endpoint = s.endpoint || "";
-  vpn.error = s.ok ? "" : s.error || "neznámá chyba";
+  vpn.error = s.ok ? "" : helperError(s);
   if (s.running && s.socksUser && s.socksPass) {
     vpn.running = true;
     vpn.connected = s.connected;
@@ -103,10 +110,8 @@ function lost() {
     browser.notifications.create("mantis-vpn-lost", {
       type: "basic",
       iconUrl: browser.runtime.getURL("icons/vpn-warn.svg"),
-      title: "VPN se odpojila",
-      message: vpn.killSwitch
-        ? "Provoz, který má jít přes VPN, je zablokovaný, dokud se VPN neobnoví nebo ji nevypnete."
-        : "Prohlížeč teď jde přímo do internetu.",
+      title: t("vpn_lostTitle"),
+      message: t(vpn.killSwitch ? "vpn_lostBlocked" : "vpn_lostDirect"),
     });
   }
 }
@@ -241,20 +246,20 @@ function updateButton() {
   let title;
   let icon = "icons/vpn-off.svg";
   if (!vpn.hostAvailable) {
-    title = "VPN: pomocník není nainstalovaný";
+    title = t("vpn_titleNoHost");
   } else if (!vpn.hasProfile) {
-    title = "VPN: přidat profil";
+    title = t("vpn_titleNoProfile");
   } else if (vpn.blocked) {
-    title = "VPN: odpojeno – provoz je zablokovaný";
+    title = t("vpn_titleBlocked");
     icon = "icons/vpn-warn.svg";
   } else if (vpn.enabled && vpn.connected) {
-    title = `VPN: připojeno (${vpn.endpoint})`;
+    title = t("vpn_titleConnected", vpn.endpoint);
     icon = "icons/vpn-on.svg";
   } else if (vpn.enabled) {
-    title = "VPN: tunel neodpovídá";
+    title = t("vpn_titleNoResponse");
     icon = "icons/vpn-warn.svg";
   } else {
-    title = "VPN: vypnuto";
+    title = t("vpn_titleOff");
   }
   browser.browserAction.setIcon({ path: icon });
   browser.browserAction.setTitle({ title });

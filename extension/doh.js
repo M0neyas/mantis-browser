@@ -8,11 +8,12 @@
 // Režim TRR 2 = šifrované DNS s návratem k DNS sítě, když poskytovatel neodpovídá.
 // Se zapnutou VPN jde DNS tunelem (proxyDNS) a tohle nastavení se nepoužije.
 
+// Názvy pro uživatele jsou v Nastavení Mantis (settings.html), tady jen adresy
 const DOH_PROVIDERS = {
-  quad9: { name: "Quad9", uri: "https://dns.quad9.net/dns-query" },
-  mullvad: { name: "Mullvad", uri: "https://dns.mullvad.net/dns-query" },
-  "mullvad-adblock": { name: "Mullvad (blokuje reklamy)", uri: "https://adblock.dns.mullvad.net/dns-query" },
-  cloudflare: { name: "Cloudflare", uri: "https://mozilla.cloudflare-dns.com/dns-query" },
+  quad9: "https://dns.quad9.net/dns-query",
+  mullvad: "https://dns.mullvad.net/dns-query",
+  "mullvad-adblock": "https://adblock.dns.mullvad.net/dns-query",
+  cloudflare: "https://mozilla.cloudflare-dns.com/dns-query",
 };
 const DOH_DEFAULTS = { mode: "off", provider: "quad9" }; // výchozí vypnuto – zapíná uživatel
 const DOH_CANARY = "use-application-dns.net";
@@ -42,28 +43,29 @@ async function applyDoh() {
   try {
     const { doh } = await browser.storage.local.get("doh");
     const config = { ...DOH_DEFAULTS, ...doh };
-    const provider = DOH_PROVIDERS[config.provider] || DOH_PROVIDERS.quad9;
+    const provider = Object.hasOwn(DOH_PROVIDERS, config.provider) ? config.provider : "quad9";
 
+    // reason: kód, text podle něj ukáže Nastavení Mantis (doh_reason_<kód>)
     let active;
     let reason;
     if (config.mode === "off") {
       active = false;
-      reason = "vypnuto v nastavení";
+      reason = "off";
     } else if (config.mode === "on") {
       active = true;
-      reason = "zapnuto v nastavení";
+      reason = "on";
     } else if (await networkAllowsDoh()) {
       active = true;
-      reason = "síť ho dovoluje";
+      reason = "allowed";
     } else {
       active = false;
-      reason = "síť si ho nepřeje (Pi-hole, firemní síť) – používá se DNS sítě";
+      reason = "blocked"; // Pi-hole, firemní síť – používá se DNS sítě
     }
 
-    await browser.mantisPrefs.set("network.trr.uri", provider.uri);
+    await browser.mantisPrefs.set("network.trr.uri", DOH_PROVIDERS[provider]);
     await browser.mantisPrefs.set("network.trr.mode", active ? TRR_FIRST : TRR_OFF);
     await browser.storage.local.set({
-      dohState: { active, reason, provider: provider.name, checked: Date.now() },
+      dohState: { active, reason, provider, checked: Date.now() },
     });
   } catch (e) {
     console.error("Mantis DoH:", e);

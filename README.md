@@ -5,7 +5,8 @@
 # Mantis Browser
 
 Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](https://librewolf.net/)
-(a tedy na Firefoxu). Česky, bez telemetrie, s blokováním reklam a vestavěnou VPN.
+(a tedy na Firefoxu). Česky i anglicky (podle jazyka Windows), bez telemetrie, s blokováním reklam
+a vestavěnou VPN.
 
 **Instalace:**
 - [Microsoft Store](https://apps.microsoft.com/detail/9N3D60HQMK9P) – podepsaný Microsoftem,
@@ -30,7 +31,7 @@ Rychlý a soukromý webový prohlížeč pro Windows postavený na [LibreWolfu](
 - **Vzhled** – kompaktní dvouřádková lišta, stránka přes celou plochu, zelený akcent,
   vlastní nová karta s hodinami.
 - **Soukromá historie** – vybrané weby se neukládají do historie, „Zapomenout web“ jedním klikem.
-- **Připravený k použití** – čeština, doporučená rozšíření jedním kliknutím (Bitwarden,
+- **Připravený k použití** – čeština i angličtina, doporučená rozšíření jedním kliknutím (Bitwarden,
   kontejnery karet, český slovník, TTV LOL PRO – nic se neinstaluje samo),
   rychlé hledání `@mapy @heureka @csfd @yt @wiki @seznam`, DRM (Widevine; Netflix
   na Windows nefunguje – vyžaduje podpis Widevine VMP, který vlastní buildy Firefoxu nedostanou),

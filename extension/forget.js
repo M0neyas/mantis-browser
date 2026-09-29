@@ -14,7 +14,7 @@ function siteOf(url) {
 
 browser.menus.create({
   id: FORGET_MENU,
-  title: "Zapomenout tento web (historie, cookies, data)",
+  title: t("forget_menu"),
   contexts: ["page", "tab"],
   documentUrlPatterns: ["http://*/*", "https://*/*"],
 });
@@ -23,7 +23,7 @@ browser.menus.create({
 browser.menus.onShown.addListener((info, tab) => {
   const site = siteOf(info.pageUrl || tab?.url);
   if (info.menuIds.includes(FORGET_MENU) && site) {
-    browser.menus.update(FORGET_MENU, { title: `Zapomenout web ${site} (historie, cookies, data)` });
+    browser.menus.update(FORGET_MENU, { title: t("forget_menuSite", site) });
     browser.menus.refresh();
   }
 });
@@ -33,9 +33,8 @@ async function forgetSite(url) {
   await browser.notifications.create({
     type: "basic",
     iconUrl: browser.runtime.getURL("icons/mantis.svg"),
-    title: `Web ${base} zapomenut`,
-    message: "Historie, cookies, cache a data webu jsou smazané. Otevřené karty " +
-      "tohoto webu zavřete, jinak si data uloží znovu.",
+    title: t("forget_doneTitle", base),
+    message: t("forget_doneMessage"),
   });
   return base;
 }

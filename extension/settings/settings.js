@@ -1,6 +1,8 @@
-/* global MANTIS_LW_VERSION */
+/* global MANTIS_LW_VERSION, MANTIS_RELEASE, t, applyI18n, versionLabel, uiLocale */
 // Stránka Nastavení Mantis: přepínače nastavení prohlížeče (přes mantisPrefs),
 // volby nové karty (storage), zapomenutí webu, odkaz na VPN.
+
+applyI18n();
 
 const STORE_DEFAULTS = {
   newtabClock: true,
@@ -43,6 +45,13 @@ browser.storage.local.get({ syncSettings: true }).then(values => {
 // ---------- Šifrované DNS (logika v ../doh.js) ----------
 
 const DOH_DEFAULTS = { mode: "off", provider: "quad9" }; // výchozí vypnuto – zapíná uživatel
+const DOH_REASONS = ["off", "on", "allowed", "blocked"];
+
+// Název poskytovatele podle výběru ve stránce (Mullvad s blokováním je přeložený)
+function dohProviderName(key) {
+  const option = document.querySelector(`[data-doh="provider"] option[value="${CSS.escape(key)}"]`);
+  return option ? option.textContent : key;
+}
 
 async function showDoh() {
   const { doh, dohState } = await browser.storage.local.get(["doh", "dohState"]);
@@ -52,11 +61,13 @@ async function showDoh() {
   }
   document.querySelector('[data-doh="provider"]').disabled = config.mode === "off";
   const state = document.getElementById("doh-state");
-  if (dohState) {
-    const time = new Date(dohState.checked).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+  // dohState od doh.js: reason = off | on | allowed | blocked, provider = klíč poskytovatele
+  if (dohState && DOH_REASONS.includes(dohState.reason)) {
+    const time = new Date(dohState.checked).toLocaleTimeString(uiLocale(), { hour: "2-digit", minute: "2-digit" });
+    const reason = t(`doh_reason_${dohState.reason}`);
     state.textContent = dohState.active
-      ? `Zapnuto (${dohState.provider}) – ${dohState.reason}. Zkontrolováno v ${time}.`
-      : `Vypnuto – ${dohState.reason}. Zkontrolováno v ${time}.`;
+      ? t("settings_dohStateOn", dohProviderName(dohState.provider), reason, time)
+      : t("settings_dohStateOff", reason, time);
   }
 }
 
@@ -69,7 +80,7 @@ for (const el of document.querySelectorAll("[data-doh]")) {
 
 document.getElementById("doh-check").addEventListener("click", async event => {
   event.currentTarget.disabled = true;
-  document.getElementById("doh-state").textContent = "Zjišťuji…";
+  document.getElementById("doh-state").textContent = t("settings_checking");
   await browser.runtime.sendMessage({ dohCheck: true });
   event.currentTarget.disabled = false;
   showDoh();
@@ -114,7 +125,7 @@ async function showRouting() {
   }
   list.replaceChildren();
   if (!containers.length) {
-    list.textContent = "Žádné kontejnery – vytvoříte je tlačítkem kontejnerů ve spodní liště.";
+    list.textContent = t("settings_routingNoContainers");
     list.classList.add("hint");
   }
   for (const c of containers) {
@@ -163,9 +174,14 @@ async function showOther(refresh = false) {
   const { browsers } = await browser.runtime.sendMessage({ otherBrowsers: true, refresh });
   const select = document.getElementById("other-browser-select");
   const fallback = browsers.find(b => b.isDefault) || browsers[0];
-  const auto = new Option(fallback
-    ? `Automaticky (${fallback.isDefault ? "výchozí prohlížeč Windows – " : ""}${fallback.name})`
-    : "Žádný jiný prohlížeč nenalezen", "auto");
+  const auto = new Option(
+    !fallback
+      ? t("settings_otherNone")
+      : fallback.isDefault
+        ? t("settings_otherAutoDefault", fallback.name)
+        : t("settings_otherAuto", fallback.name),
+    "auto"
+  );
   select.replaceChildren(auto, ...browsers.map(b => new Option(b.name, b.id)));
   select.value = browsers.some(b => b.id === config.browser) ? config.browser : "auto";
   select.disabled = !browsers.length;
@@ -209,14 +225,14 @@ document.getElementById("forget").addEventListener("submit", async event => {
   const result = document.getElementById("forget-result");
   const site = input.value.trim().replace(/^https?:\/\//, "").split("/")[0];
   if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(site) && site !== "localhost") {
-    result.textContent = "Zadejte adresu webu, např. example.com.";
+    result.textContent = t("settings_forgetInvalid");
     return;
   }
-  if (!confirm(`Zapomenout web ${site}? Smaže se jeho historie, cookies, cache a data.`)) {
+  if (!confirm(t("settings_forgetConfirm", site))) {
     return;
   }
   const reply = await browser.runtime.sendMessage({ forgetSite: "https://" + site });
-  result.textContent = reply?.error ? `Nepodařilo se: ${reply.error}` : `Web ${reply.base} je zapomenutý.`;
+  result.textContent = reply?.error ? t("common_failed", reply.error) : t("settings_forgetDone", reply.base);
   if (!reply?.error) {
     input.value = "";
   }
@@ -266,16 +282,16 @@ for (const el of document.querySelectorAll("[data-sensitive-list]")) {
 document.getElementById("sensitive-clean").addEventListener("click", async event => {
   const button = event.currentTarget;
   const result = document.getElementById("sensitive-result");
-  if (!confirm("Projít celou historii a smazat z ní choulostivé stránky?")) {
+  if (!confirm(t("settings_sensitiveCleanConfirm"))) {
     return;
   }
   button.disabled = true;
-  result.textContent = "Procházím historii…";
+  result.textContent = t("settings_sensitiveCleaning");
   const reply = await browser.runtime.sendMessage({ sensitiveClean: true });
   button.disabled = false;
   result.textContent = reply?.error
-    ? `Nepodařilo se: ${reply.error}`
-    : `Hotovo, smazáno stránek: ${reply.removed}.`;
+    ? t("common_failed", reply.error)
+    : t("settings_sensitiveCleaned", reply.removed.toLocaleString(uiLocale()));
 });
 
 // Změna z kontextové nabídky, synchronizace nebo kontroly DNS se ukáže i na otevřené stránce
@@ -309,16 +325,17 @@ document.getElementById("open-vpn").addEventListener("click", () => {
 
 browser.storage.local.get("update").then(({ update }) => {
   const release = Number.parseInt(MANTIS_RELEASE, 10) || 1;
-  const base = /^\d/.test(MANTIS_LW_VERSION)
-    ? `založeno na LibreWolf ${MANTIS_LW_VERSION}${release > 1 ? `, sestavení ${release}` : ""}`
-    : "vývojová verze";
-  document.getElementById("version").textContent = update
-    ? `${base} · je dostupná nová verze ${update.latest}`
-    : base;
+  const base = !/^\d/.test(MANTIS_LW_VERSION)
+    ? t("settings_versionDev")
+    : release > 1
+      ? t("settings_versionBuild", MANTIS_LW_VERSION, release)
+      : t("settings_version", MANTIS_LW_VERSION);
+  const latest = update && versionLabel(update.version, update.release);
+  document.getElementById("version").textContent = update ? t("settings_versionNew", base, latest) : base;
   if (update) {
     document.getElementById("update-status").textContent = update.installable
-      ? `Je dostupná nová verze ${update.latest}. „Nainstalovat“ ji stáhne, ověří a spustí instalátor.`
-      : `Je dostupná nová verze ${update.latest} – stáhněte ji a nainstalujte přes současnou.`;
+      ? t("settings_updateInstallable", latest)
+      : t("settings_updateDownload", latest);
     document.getElementById("update-install").hidden = !update.installable;
   }
 });
@@ -326,8 +343,7 @@ browser.storage.local.get("update").then(({ update }) => {
 // Verze z Microsoft Store: aktualizace řeší Store (background.js je nekontroluje)
 browser.mantisPrefs.isPackaged().then(packaged => {
   if (packaged) {
-    document.getElementById("update-status").textContent =
-      "Nainstalováno z Microsoft Store – nové verze instaluje Store automaticky.";
+    document.getElementById("update-status").textContent = t("settings_updateStore");
     document.getElementById("update-install").hidden = true;
   }
 });
@@ -336,10 +352,8 @@ document.getElementById("update-install").addEventListener("click", async event 
   const button = event.currentTarget;
   const status = document.getElementById("update-status");
   button.disabled = true;
-  status.textContent = "Stahuji a ověřuji instalátor…";
+  status.textContent = t("common_installing");
   const reply = await browser.runtime.sendMessage({ installUpdate: true });
   button.disabled = false;
-  status.textContent = reply?.error
-    ? `Nepodařilo se: ${reply.error}`
-    : "Instalátor je spuštěný – dokončete instalaci v jeho okně (Mantis se při ní zavře).";
+  status.textContent = reply?.error ? t("common_failed", reply.error) : t("settings_installerRunning");
 });

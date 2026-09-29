@@ -1,5 +1,8 @@
 // Nová karta Mantis Browseru: vyhledávání, nejnavštěvovanější stránky,
 // upozornění na novou verzi.
+/* global t, applyI18n, versionLabel, uiLocale, MANTIS_LW_VERSION, MANTIS_RELEASE */
+
+applyI18n();
 
 const form = document.getElementById("search");
 const query = document.getElementById("query");
@@ -86,9 +89,9 @@ async function renderUpdate() {
   const { update } = await browser.storage.local.get("update");
   if (update) {
     const el = document.getElementById("update");
-    el.textContent = update.installable
-      ? `Je tu nový Mantis Browser ${update.latest} (máte ${update.current}) – nainstalovat`
-      : `Je tu nový Mantis Browser ${update.latest} (máte ${update.current}) – stáhnout`;
+    const latest = versionLabel(update.version, update.release);
+    const current = versionLabel(MANTIS_LW_VERSION, MANTIS_RELEASE);
+    el.textContent = t(update.installable ? "newtab_updateInstall" : "newtab_updateDownload", latest, current);
     if (update.url) {
       el.href = update.url;
     }
@@ -96,11 +99,9 @@ async function renderUpdate() {
       // stáhne, ověří SHA-256 a spustí instalátor (background.js)
       el.addEventListener("click", async event => {
         event.preventDefault();
-        el.textContent = "Stahuji a ověřuji instalátor…";
+        el.textContent = t("common_installing");
         const reply = await browser.runtime.sendMessage({ installUpdate: true });
-        el.textContent = reply?.error
-          ? `Nepodařilo se (${reply.error}) – stáhnout ručně`
-          : "Instalátor je spuštěný – dokončete instalaci v jeho okně";
+        el.textContent = reply?.error ? t("newtab_updateFailed", reply.error) : t("newtab_installerRunning");
         if (reply?.error) {
           el.addEventListener("click", () => browser.tabs.create({ url: update.url }), { once: true });
         }
@@ -115,8 +116,8 @@ async function renderUpdate() {
 function tick() {
   const now = new Date();
   document.getElementById("time").textContent =
-    now.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
-  const date = now.toLocaleDateString("cs-CZ", { weekday: "long", day: "numeric", month: "long" });
+    now.toLocaleTimeString(uiLocale(), { hour: "2-digit", minute: "2-digit" });
+  const date = now.toLocaleDateString(uiLocale(), { weekday: "long", day: "numeric", month: "long" });
   document.getElementById("date").textContent = date.charAt(0).toUpperCase() + date.slice(1);
 }
 

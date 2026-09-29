@@ -1,4 +1,7 @@
 // Okno tlačítka „Otevřít v jiném prohlížeči“ v adresním řádku (logika v ../otherbrowser.js)
+/* global t, applyI18n */
+
+applyI18n();
 
 const error = document.getElementById("error");
 
@@ -18,7 +21,7 @@ const error = document.getElementById("error");
   for (const b of browsers) {
     const button = document.createElement("button");
     button.type = "button";
-    button.textContent = b.isDefault ? `${b.name} (výchozí prohlížeč)` : b.name;
+    button.textContent = b.isDefault ? t("other_popupDefault", b.name) : b.name;
     if (b.id === preferred) {
       button.className = "primary";
     }

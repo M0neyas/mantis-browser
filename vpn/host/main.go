@@ -58,6 +58,8 @@ type request struct {
 type status struct {
 	OK         bool   `json:"ok"`
 	Error      string `json:"error,omitempty"`
+	ErrorCode  string `json:"errorCode,omitempty"` // text v jazyce prohlížeče dohledá vpn.js (vpnErr_<kód>)
+	ErrorArg   string `json:"errorArg,omitempty"`
 	HasProfile bool   `json:"hasProfile"`
 	Endpoint   string `json:"endpoint,omitempty"`
 	Running    bool   `json:"running"`
@@ -66,6 +68,15 @@ type status struct {
 	SocksUser  string `json:"socksUser,omitempty"`
 	SocksPass  string `json:"socksPass,omitempty"`
 }
+
+// Chyba pro uživatele: kód (+ hodnota) přeloží rozšíření, text je anglická záloha
+type vpnError struct {
+	code, arg, text string
+}
+
+func (e *vpnError) Error() string { return e.text }
+
+func fail(code, arg, text string) error { return &vpnError{code, arg, text} }
 
 var (
 	mu        sync.Mutex
@@ -110,7 +121,7 @@ func newBlob(b []byte) *dataBlob {
 // (vstup, popis, entropie, rezervováno, výzva, příznaky, výstup)
 func dpapi(proc *syscall.LazyProc, in []byte) ([]byte, error) {
 	if len(in) == 0 {
-		return nil, errors.New("prázdná data")
+		return nil, errors.New("empty data")
 	}
 	var out dataBlob
 	r, _, err := proc.Call(
@@ -127,11 +138,11 @@ func dpapi(proc *syscall.LazyProc, in []byte) ([]byte, error) {
 func loadProfile() (string, error) {
 	enc, err := os.ReadFile(wgPath)
 	if err != nil {
-		return "", errors.New("není uložený žádný VPN profil")
+		return "", fail("noProfile", "", "no VPN profile is saved")
 	}
 	plain, err := dpapi(procUnprotectData, enc)
 	if err != nil {
-		return "", errors.New("VPN profil nejde rozšifrovat (jiný uživatel nebo počítač?) – vložte ho znovu")
+		return "", fail("profileDecrypt", "", "the VPN profile cannot be decrypted (different user or computer?) - add it again")
 	}
 	return string(plain), nil
 }
@@ -139,7 +150,7 @@ func loadProfile() (string, error) {
 func saveProfile(conf string) error {
 	enc, err := dpapi(procProtectData, []byte(conf))
 	if err != nil {
-		return errors.New("VPN profil se nepodařilo zašifrovat: " + err.Error())
+		return fail("profileEncrypt", err.Error(), "the VPN profile could not be encrypted: "+err.Error())
 	}
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return err
@@ -177,7 +188,7 @@ func validate(conf string) error {
 	lower := strings.ToLower(conf)
 	for _, need := range []string{"[interface]", "privatekey", "[peer]", "publickey", "endpoint"} {
 		if !strings.Contains(lower, need) {
-			return errors.New("profil není platná konfigurace WireGuard (chybí " + need + "); podporovaný je jen WireGuard")
+			return fail("invalidProfile", need, "not a valid WireGuard configuration (missing "+need+"); only WireGuard is supported")
 		}
 	}
 	return nil
@@ -321,7 +332,7 @@ func start() error {
 	exe, _ := os.Executable()
 	wireproxy := filepath.Join(filepath.Dir(exe), "wireproxy.exe")
 	if _, err := os.Stat(wireproxy); err != nil {
-		return errors.New("chybí wireproxy.exe vedle mantis-vpn.exe")
+		return fail("noWireproxy", "", "wireproxy.exe is missing next to mantis-vpn.exe")
 	}
 	user, err := randomToken()
 	if err != nil {
@@ -362,7 +373,7 @@ func start() error {
 	}
 	if !running() {
 		socksUser, socksPass = "", ""
-		return errors.New("wireproxy se nepodařilo spustit – zkontrolujte profil")
+		return fail("wireproxyFailed", "", "wireproxy failed to start - check the profile")
 	}
 	return nil
 }
@@ -398,12 +409,18 @@ func handle(req request) status {
 	case "stop":
 		stop()
 	default:
-		err = errors.New("neznámý příkaz " + req.Cmd)
+		err = fail("unknownCommand", req.Cmd, "unknown command "+req.Cmd)
 	}
 	s := current()
 	if err != nil {
 		s.OK = false
 		s.Error = err.Error()
+		var ve *vpnError
+		if errors.As(err, &ve) {
+			s.ErrorCode, s.ErrorArg = ve.code, ve.arg
+		} else {
+			s.ErrorCode, s.ErrorArg = "io", err.Error() // soubory, registr, spuštění programu
+		}
 	}
 	return s
 }
@@ -415,7 +432,7 @@ func read(r io.Reader) (request, error) {
 		return req, err
 	}
 	if size > 1<<20 {
-		return req, errors.New("zpráva je příliš velká")
+		return req, errors.New("message too large")
 	}
 	buf := make([]byte, size)
 	if _, err := io.ReadFull(r, buf); err != nil {

@@ -97,7 +97,7 @@ function findBrowsers() {
     }
   }
   const list = [...found.values()].map(b => ({ ...b, isDefault: b.exe.toLowerCase() === defaultExe }));
-  return list.sort((a, b) => b.isDefault - a.isDefault || a.name.localeCompare(b.name, "cs"));
+  return list.sort((a, b) => b.isDefault - a.isDefault || a.name.localeCompare(b.name, Services.locale.appLocaleAsBCP47));
 }
 
 // Běží z balíčku MSIX (Microsoft Store)? Stejná kontrola jako ShellService.sys.mjs.
@@ -119,10 +119,10 @@ function fileExists(path) {
   }
 }
 
-function checkPref(name) {
+function checkPref(name, fail) {
   const type = ALLOWED_PREFS[name];
   if (!type) {
-    throw new ExtensionError(`Nastavení ${name} není povolené`);
+    fail("err_prefNotAllowed", name);
   }
   return type;
 }
@@ -136,11 +136,15 @@ function sha256Hex(bytes) {
 }
 
 this.mantisPrefs = class extends ExtensionAPI {
-  getAPI() {
+  getAPI(context) {
+    // Chyby pro uživatele v jazyce prohlížeče (texty z _locales rozšíření)
+    const fail = (key, ...subs) => {
+      throw new ExtensionError(context.extension.localizeMessage(key, subs.map(String)));
+    };
     return {
       mantisPrefs: {
         async get(name) {
-          const type = checkPref(name);
+          const type = checkPref(name, fail);
           if (type === "bool") {
             return Services.prefs.getBoolPref(name, false);
           }
@@ -151,7 +155,7 @@ this.mantisPrefs = class extends ExtensionAPI {
         },
 
         async set(name, value) {
-          const type = checkPref(name);
+          const type = checkPref(name, fail);
           if (type === "bool") {
             Services.prefs.setBoolPref(name, !!value);
           } else if (type === "int") {
@@ -159,7 +163,7 @@ this.mantisPrefs = class extends ExtensionAPI {
           } else {
             const text = String(value);
             if (name === "network.trr.uri" && !/^https:\/\/[^\s]+$/.test(text)) {
-              throw new ExtensionError("Adresa DNS serveru musí začínat https://");
+              fail("err_dohUri");
             }
             Services.prefs.setStringPref(name, text);
           }
@@ -173,7 +177,7 @@ this.mantisPrefs = class extends ExtensionAPI {
             host = String(url).trim();
           }
           if (!host) {
-            throw new ExtensionError("Chybí adresa webu");
+            fail("err_noSite");
           }
           let base;
           try {
@@ -210,7 +214,7 @@ this.mantisPrefs = class extends ExtensionAPI {
           manifest.append("vpn");
           manifest.append("cz.mantis.vpn.json");
           if (!manifest.exists()) {
-            return { registered: false, reason: "pomocník není přibalený" };
+            return { registered: false, reason: "helper not bundled" };
           }
           const key = Cc["@mozilla.org/windows-registry-key;1"].createInstance(Ci.nsIWindowsRegKey);
           let current = "";
@@ -235,16 +239,16 @@ this.mantisPrefs = class extends ExtensionAPI {
         // pro stahování a SHA-256 z latest.json (ověří se přímo před spuštěním).
         async launchInstaller(path, sha256) {
           if (isPackaged()) {
-            throw new ExtensionError("Verzi z Microsoft Store aktualizuje Store");
+            fail("err_storeUpdates");
           }
           const file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
           try {
             file.initWithPath(path);
           } catch (e) {
-            throw new ExtensionError("Neplatná cesta k instalátoru");
+            fail("err_installerPath");
           }
           if (!file.exists() || !file.isFile() || !INSTALLER_NAME.test(file.leafName)) {
-            throw new ExtensionError("Instalátor nebyl nalezen");
+            fail("err_installerMissing");
           }
           const { Downloads } = ChromeUtils.importESModule("resource://gre/modules/Downloads.sys.mjs");
           const allowedDirs = [
@@ -252,11 +256,11 @@ this.mantisPrefs = class extends ExtensionAPI {
             await Downloads.getSystemDownloadsDirectory(),
           ].map(d => PathUtils.normalize(d).toLowerCase());
           if (!allowedDirs.includes(PathUtils.normalize(file.parent.path).toLowerCase())) {
-            throw new ExtensionError("Instalátor není ve složce pro stahování");
+            fail("err_installerFolder");
           }
           const actual = sha256Hex(await IOUtils.read(file.path));
           if (!/^[0-9a-f]{64}$/i.test(sha256) || actual !== sha256.toLowerCase()) {
-            throw new ExtensionError("Kontrolní součet instalátoru nesedí – stáhněte ho ručně z moneyas.cz/mantis");
+            fail("err_installerHash");
           }
           file.launch();
         },
@@ -270,11 +274,11 @@ this.mantisPrefs = class extends ExtensionAPI {
         // jediný argument programu, nic dalšího se mu nepředá.
         async openInBrowser(id, url) {
           if (!/^https?:\/\/[^\s]+$/i.test(url)) {
-            throw new ExtensionError("V jiném prohlížeči jde otevřít jen webová adresa");
+            fail("err_webAddressOnly");
           }
           const target = findBrowsers().find(b => b.id === id);
           if (!target) {
-            throw new ExtensionError("Prohlížeč nebyl nalezen");
+            fail("err_browserNotFound");
           }
           const exe = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
           exe.initWithPath(target.exe);

@@ -1,4 +1,4 @@
-/* global MANTIS_LW_VERSION, MANTIS_RELEASE, MANTIS_RELEASE_PUBKEY */
+/* global MANTIS_LW_VERSION, MANTIS_RELEASE, MANTIS_RELEASE_PUBKEY, t, versionLabel */
 // Kontrola nových verzí, jednou denně:
 //  - vydání Mantis Browseru na moneyas.cz (latest.json od scripts/publish-installer.sh):
 //    upozornění Windows (jednou pro každou verzi) + proužek na nové kartě s odkazem ke stažení
@@ -26,13 +26,10 @@ function isNewer(a, b) {
   return false;
 }
 
-// Verze Mantisu = verze LibreWolfu + pořadí sestavení nad ní (MANTIS_RELEASE)
+// Verze Mantisu = verze LibreWolfu + pořadí sestavení nad ní (MANTIS_RELEASE);
+// popisek pro uživatele dělá versionLabel (i18n.js)
 function releaseNumber(r) {
   return Number.parseInt(r, 10) || 1;
-}
-
-function mantisLabel(version, release) {
-  return releaseNumber(release) > 1 ? `${version} (sestavení ${releaseNumber(release)})` : version;
 }
 
 async function fetchJson(url) {
@@ -118,14 +115,13 @@ async function checkMantisRelease() {
     await browser.storage.local.remove("update");
     return;
   }
-  const label = mantisLabel(latest.version, latest.release);
+  const label = versionLabel(latest.version, latest.release);
   // Jednoklikovou instalaci nabídnout jen u podepsaného vydání s názvem souboru a SHA-256
   const installable =
     signed && /^[\w.-]+\.exe$/.test(latest.file || "") && /^[0-9a-f]{64}$/i.test(latest.sha256 || "");
+  // Popisky verzí si stránky skládají samy (v jazyce prohlížeče) z version a release
   await browser.storage.local.set({
     update: {
-      latest: label,
-      current: mantisLabel(MANTIS_LW_VERSION, MANTIS_RELEASE),
       url: DOWNLOAD_PAGE,
       installable,
       file: latest.file,
@@ -138,12 +134,8 @@ async function checkMantisRelease() {
   await notifyOnce(
     "notified",
     "mantis-update",
-    `Je tu nový Mantis Browser ${label}`,
-    installable
-      ? "Obsahuje bezpečnostní opravy. Klikněte a Mantis instalátor stáhne, ověří a spustí – " +
-          "záložky i hesla zůstanou."
-      : "Obsahuje bezpečnostní opravy. Klikněte pro stažení – instalátor stačí spustit přes " +
-          "současnou verzi, záložky i hesla zůstanou."
+    t("update_notifyTitle", label),
+    t(installable ? "update_notifyInstallable" : "update_notifyDownload")
   );
 }
 
@@ -165,9 +157,8 @@ async function checkLibreWolf() {
     await notifyOnce(
       "notifiedLibreWolf",
       "mantis-librewolf",
-      `Vyšel LibreWolf ${latest.name}`,
-      `Mantis je z verze ${MANTIS_LW_VERSION}. Spusťte scripts/check-update.sh --apply, ` +
-        "build a publish-installer.sh."
+      t("update_lwTitle", latest.name),
+      t("update_lwMessage", MANTIS_LW_VERSION)
     );
   }
 }
@@ -195,7 +186,7 @@ function waitForDownload(id) {
         resolve(item);
       } else if (delta.state.current === "interrupted") {
         browser.downloads.onChanged.removeListener(listener);
-        reject(new Error("stahování se přerušilo"));
+        reject(new Error(t("update_downloadInterrupted")));
       }
     };
     browser.downloads.onChanged.addListener(listener);
@@ -233,8 +224,8 @@ async function installUpdateWithFeedback() {
     await browser.notifications.create("mantis-update-error", {
       type: "basic",
       iconUrl: browser.runtime.getURL("icons/mantis.svg"),
-      title: "Aktualizaci se nepodařilo nainstalovat",
-      message: `${e.message}. Instalátor si můžete stáhnout ručně z moneyas.cz/mantis.`,
+      title: t("update_errorTitle"),
+      message: t("update_errorMessage", e.message),
     });
     return { error: e.message };
   }

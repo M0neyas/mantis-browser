@@ -213,6 +213,7 @@ profil a data zůstávají v `%APPDATA%\mantis`.
 | `scripts/build.sh` | `mach build` + `mach package-multi-locale` + přibalení VPN + instalátor, vše v Dockeru; s `--msix` i balíček pro Microsoft Store |
 | `scripts/package-vpn.sh` | zkompiluje VPN pomocníka (Go v Dockeru), stáhne a ověří wireproxy – volá ho `build.sh` |
 | `scripts/check-update.sh` | zjistí nejnovější LibreWolf, s `--apply` přepne `LW_VERSION` a zapíše `LW_SOURCE_SHA256` |
+| `scripts/check-i18n.js` | kontrola překladů rozšíření (`node scripts/check-i18n.js`): stejné klíče v češtině i angličtině, použité klíče existují, žádný český text napevno v kódu |
 | `scripts/release-key.sh` | vytvoří klíč Ed25519 pro podpis vydání a vypíše veřejný klíč |
 | `scripts/publish-installer.sh` | podepíše a nahraje instalátor a `latest.json` na vlastní web (server v `config.local.sh`) |
 

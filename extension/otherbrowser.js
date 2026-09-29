@@ -11,7 +11,7 @@ const OTHER_MENU = "mantis-other-browser";
 const OTHER_NOTIFY = "mantis-other-browser:";
 const OTHER_DEFAULTS = { browser: "auto", notify: true };
 const OTHER_SITES_DEFAULT = ["netflix.com"];
-const OTHER_REASONS = { "netflix.com": "Netflix v Mantisu videa nepřehraje" };
+const OTHER_REASONS = { "netflix.com": "other_reason_netflix" }; // klíče překladů
 
 let otherBrowsers = []; // [{ id, name, isDefault }]
 const otherNotified = new Set(); // weby, u kterých už upozornění bylo (do restartu)
@@ -42,7 +42,7 @@ function otherPreferred(config) {
 async function openInOther(url, id) {
   const target = id ? otherBrowsers.find(b => b.id === id) : otherPreferred(await otherConfig());
   if (!target) {
-    throw new Error("Nenašel jsem žádný jiný nainstalovaný prohlížeč");
+    throw new Error(t("other_noBrowser"));
   }
   return browser.mantisPrefs.openInBrowser(target.id, url);
 }
@@ -52,7 +52,7 @@ function openInOtherWithFeedback(url, id) {
     browser.notifications.create("mantis-other-browser-error", {
       type: "basic",
       iconUrl: browser.runtime.getURL("icons/mantis.svg"),
-      title: "Web se nepodařilo otevřít v jiném prohlížeči",
+      title: t("other_errorTitle"),
       message: e.message,
     });
     return { error: e.message };
@@ -72,16 +72,16 @@ async function otherMenus() {
     targetUrlPatterns: ["http://*/*", "https://*/*"],
   };
   if (otherBrowsers.length === 1) {
-    browser.menus.create({ ...item, id: OTHER_MENU, title: `Otevřít v prohlížeči ${otherBrowsers[0].name}` });
+    browser.menus.create({ ...item, id: OTHER_MENU, title: t("other_openIn", otherBrowsers[0].name) });
     return;
   }
-  browser.menus.create({ ...item, id: OTHER_MENU, title: "Otevřít v jiném prohlížeči" });
+  browser.menus.create({ ...item, id: OTHER_MENU, title: t("other_openInOther") });
   for (const b of otherBrowsers) {
     browser.menus.create({
       ...item, // podpoložky mají jinak jen kontext „page“
       id: `${OTHER_MENU}:${b.id}`,
       parentId: OTHER_MENU,
-      title: b.isDefault ? `${b.name} (výchozí)` : b.name,
+      title: b.isDefault ? t("other_defaultSuffix", b.name) : b.name,
     });
   }
 }
@@ -105,15 +105,15 @@ async function otherUpdateTab(tab) {
     await browser.pageAction.hide(tab.id);
     return;
   }
-  await browser.pageAction.setTitle({ tabId: tab.id, title: `Otevřít v prohlížeči ${target.name}` });
+  await browser.pageAction.setTitle({ tabId: tab.id, title: t("other_openIn", target.name) });
   await browser.pageAction.show(tab.id);
   if (config.notify && tab.active && !otherNotified.has(site)) {
     otherNotified.add(site);
     browser.notifications.create(OTHER_NOTIFY + tab.id, {
       type: "basic",
       iconUrl: browser.runtime.getURL("icons/mantis.svg"),
-      title: OTHER_REASONS[site] || `${site} otevírat v jiném prohlížeči`,
-      message: `Kliknutím web otevřete v prohlížeči ${target.name}. Stejné tlačítko je vpravo v adresním řádku.`,
+      title: OTHER_REASONS[site] ? t(OTHER_REASONS[site]) : t("other_notifyTitle", site),
+      message: t("other_notifyMessage", target.name),
     });
   }
 }

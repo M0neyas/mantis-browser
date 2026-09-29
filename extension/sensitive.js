@@ -167,7 +167,7 @@ async function removeSiteFromHistory(site) {
 
 browser.menus.create({
   id: SENSITIVE_MENU,
-  title: "Neukládat tento web do historie",
+  title: t("sensitive_menu"),
   contexts: ["page", "tab"],
   documentUrlPatterns: ["http://*/*", "https://*/*"],
 });
@@ -175,7 +175,7 @@ browser.menus.create({
 browser.menus.onShown.addListener((info, tab) => {
   const host = hostOf(info.pageUrl || tab?.url);
   if (info.menuIds.includes(SENSITIVE_MENU) && host) {
-    browser.menus.update(SENSITIVE_MENU, { title: `Neukládat web ${host} do historie` });
+    browser.menus.update(SENSITIVE_MENU, { title: t("sensitive_menuSite", host) });
     browser.menus.refresh();
   }
 });
@@ -201,8 +201,8 @@ browser.menus.onClicked.addListener(async (info, tab) => {
     await browser.notifications.create({
       type: "basic",
       iconUrl: browser.runtime.getURL("icons/mantis.svg"),
-      title: `Web ${site} se neukládá do historie`,
-      message: "Dosavadní historie webu je smazaná. Změnit: Nastavení Mantis → Choulostivé stránky.",
+      title: t("sensitive_addedTitle", site),
+      message: t("sensitive_addedMessage"),
     });
   } catch (e) {
     console.error(e);

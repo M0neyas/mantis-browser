@@ -1,38 +1,20 @@
 // Uvítací stránka (otevře se při prvním spuštění, znovu z Nastavení Mantis).
 // Rozšíření se neinstalují samy (pravidlo Microsoft Store 10.1.5 – jen se souhlasem):
 // „Přidat“ otevře stránku rozšíření na addons.mozilla.org, instalaci potvrdí uživatel.
+/* global t, applyI18n, uiLocale */
 
+applyI18n();
+
+// Texty: welcome_addon_<key>_name / _text / _warn (warn jen u TTV LOL PRO)
 const RECOMMENDED = [
-  {
-    id: "{446900e4-71c2-419f-a6a7-df9c091e268b}",
-    slug: "bitwarden-password-manager",
-    icon: "🔑",
-    name: "Bitwarden",
-    text: "Správce hesel – hesla v šifrovaném trezoru, synchronizace mezi zařízeními.",
-  },
-  {
-    id: "@testpilot-containers",
-    slug: "multi-account-containers",
-    icon: "🗂️",
-    name: "Multi-Account Containers",
-    text: "Kontejnery karet – oddělená přihlášení (např. dva účty Google) a izolace webů.",
-  },
-  {
-    id: "cs@dictionaries.addons.mozilla.org",
-    slug: "czech-spell-checking-dictionar",
-    icon: "✍️",
-    name: "Český slovník",
-    text: "Kontrola pravopisu v češtině při psaní na webu.",
-  },
-  {
-    id: "{76ef94a4-e3d0-4c6f-961a-d38a429a332b}",
-    slug: "ttv-lol-pro",
-    icon: "📺",
-    name: "TTV LOL PRO",
-    text: "Bez reklam ve streamech na Twitchi.",
-    warn: "Seznamy úseků streamu jdou přes proxy třetí strany – ta vidí, který kanál sledujete, a vaši IP adresu.",
-  },
+  { key: "bitwarden", id: "{446900e4-71c2-419f-a6a7-df9c091e268b}", slug: "bitwarden-password-manager", icon: "🔑" },
+  { key: "containers", id: "@testpilot-containers", slug: "multi-account-containers", icon: "🗂️" },
+  { key: "czechDictionary", id: "cs@dictionaries.addons.mozilla.org", slug: "czech-spell-checking-dictionar", icon: "✍️" },
+  { key: "ttvLolPro", id: "{76ef94a4-e3d0-4c6f-961a-d38a429a332b}", slug: "ttv-lol-pro", icon: "📺", warn: true },
 ];
+
+// Jazyk stránek addons.mozilla.org podle prohlížeče
+const AMO_LOCALE = uiLocale().startsWith("cs") ? "cs" : "en-US";
 
 // ---------- Rozšíření ----------
 
@@ -55,15 +37,15 @@ async function renderAddons() {
 
     const text = document.createElement("span");
     const name = document.createElement("b");
-    name.textContent = addon.name;
+    name.textContent = t(`welcome_addon_${addon.key}_name`);
     const hint = document.createElement("span");
     hint.className = "hint";
-    hint.textContent = addon.text;
+    hint.textContent = t(`welcome_addon_${addon.key}_text`);
     text.append(name, hint);
     if (addon.warn) {
       const warn = document.createElement("span");
       warn.className = "hint warn";
-      warn.textContent = addon.warn;
+      warn.textContent = t(`welcome_addon_${addon.key}_warn`);
       text.append(warn);
     }
 
@@ -71,13 +53,13 @@ async function renderAddons() {
     if (installed[addon.id]) {
       action = document.createElement("span");
       action.className = "badge";
-      action.textContent = "Nainstalováno";
+      action.textContent = t("welcome_installed");
     } else {
       action = document.createElement("button");
       action.type = "button";
-      action.textContent = "Přidat";
+      action.textContent = t("welcome_add");
       action.addEventListener("click", () => {
-        browser.tabs.create({ url: `https://addons.mozilla.org/cs/firefox/addon/${addon.slug}/` });
+        browser.tabs.create({ url: `https://addons.mozilla.org/${AMO_LOCALE}/firefox/addon/${addon.slug}/` });
       });
     }
     row.append(icon, text, action);

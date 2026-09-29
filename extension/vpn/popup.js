@@ -1,4 +1,7 @@
 // Okno VPN: přidání profilu, zapnutí/vypnutí, stav. Logika je ve vpn.js.
+/* global t, applyI18n */
+
+applyI18n();
 
 const $ = id => document.getElementById(id);
 const inTab = new URLSearchParams(location.search).has("tab");
@@ -24,20 +27,17 @@ function render(s) {
 
   $("toggle").checked = s.enabled;
   $("toggle").disabled = s.busy;
-  $("toggle-label").textContent = s.enabled ? "Zapnuto" : "Vypnuto";
-  const routed = {
-    all: "Provoz prohlížeče jde přes VPN.",
-    only: "Přes VPN jdou jen vybrané weby a kontejnery, zbytek napřímo.",
-    except: "Přes VPN jde všechno kromě vybraných webů a kontejnerů.",
-  };
-  $("state").textContent = !s.enabled
-    ? "Prohlížeč jde přímo do internetu."
-    : s.blocked
-      ? "VPN neběží – provoz, který má jít přes VPN, je zablokovaný (kill switch). " +
-        "Mantis ji zkouší každou minutu znovu spustit; napřímo pustíte provoz vypnutím VPN."
-      : s.connected
-      ? routed[s.routing] || routed.all
-      : "Tunel zatím neodpovídá – zkontrolujte připojení k internetu a VPN server.";
+  $("toggle-label").textContent = t(s.enabled ? "common_on" : "common_off");
+  const routed = { all: "vpn_routedAll", only: "vpn_routedOnly", except: "vpn_routedExcept" };
+  $("state").textContent = t(
+    !s.enabled
+      ? "vpn_stateDirect"
+      : s.blocked
+        ? "vpn_stateBlocked"
+        : s.connected
+          ? routed[s.routing] || routed.all
+          : "vpn_stateNoResponse"
+  );
 
   showError(s.error);
 }
@@ -62,7 +62,7 @@ function looksValid(text) {
 
 async function readFile(file) {
   if (file.size > 64 * 1024) {
-    showError("Soubor je příliš velký – je to opravdu konfigurace WireGuard?");
+    showError(t("vpn_fileTooBig"));
     return;
   }
   $("conf").value = await file.text();
@@ -72,19 +72,19 @@ async function readFile(file) {
 $("save").addEventListener("click", async () => {
   const conf = $("conf").value.trim();
   if (looksLikeOpenVpn(conf)) {
-    showError("Tohle je konfigurace OpenVPN. Mantis Browser zatím podporuje jen WireGuard.");
+    showError(t("vpn_isOpenVpn"));
     return;
   }
   if (!looksValid(conf)) {
-    showError("Tohle nevypadá jako konfigurace WireGuard (chybí [Interface], PrivateKey, [Peer] nebo Endpoint).");
+    showError(t("vpn_notWireguard"));
     return;
   }
   $("save").disabled = true;
-  $("save").textContent = "Připojuji…";
+  $("save").textContent = t("vpn_connecting");
   editing = false;
   const s = await send({ vpn: "setProfile", conf });
   $("save").disabled = false;
-  $("save").textContent = "Uložit a připojit";
+  $("save").textContent = t("vpn_saveConnect");
   if (s.error) {
     editing = true;
     render(s);
@@ -151,7 +151,7 @@ $("change").addEventListener("click", async () => {
 });
 
 $("remove").addEventListener("click", async () => {
-  if (confirm("Odebrat VPN profil z tohoto počítače?")) {
+  if (confirm(t("vpn_confirmRemove"))) {
     await send({ vpn: "removeProfile" });
   }
 });
