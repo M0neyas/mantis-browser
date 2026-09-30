@@ -111,6 +111,16 @@
   order: -1 !important;
 }
 
+/* Firefox dává poslednímu tlačítku lišty (☰) a prvnímu v přizpůsobitelné části (←)
+ * vnější okraj 8 px – po přesunu ☰ se sešly mezi ☰ a ← (mezera 36 px místo 23 px) */
+#PanelUI-menu-button {
+  padding-inline-end: 2px !important;
+}
+
+#nav-bar-customization-target > :first-child {
+  padding-inline-start: 2px !important;
+}
+
 /* ---------- Stránka: přes celou plochu, jen horní rohy zaoblené ---------- */
 
 #browser {
