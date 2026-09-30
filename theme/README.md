@@ -8,7 +8,7 @@ Až bude vzhled odladěný, zapečeme ho do buildu jako patch témat Firefoxu.
 
 ## Rozložení lišt
 
-- 1. řádek: ← → ⟳, ☰, adresní řádek (sbalený na ikonu lupy, rozbalí se přes karty) | karty, + | tlačítka okna
+- 1. řádek: ☰, ← → ⟳, adresní řádek (sbalený na ikonu lupy, rozbalí se přes karty) | karty, + | tlačítka okna
 - 2. řádek: záložky vlevo | stahování, rozšíření, uBlock… vpravo
 
 Přesun tlačítek do lišty záložek CSS neumí – je to nastavení rozložení lišt

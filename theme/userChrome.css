@@ -51,7 +51,7 @@
 }
 
 /* ---------- Jeden řádek jako v Safari ----------
- * [← → ⟳ ☰ | adresní řádek] [karty … +] [– □ ×]
+ * [☰ ← → ⟳ | adresní řádek] [karty … +] [– □ ×]
  * Na úzkém okně se vrátí dva řádky (karty nahoře, adresa pod nimi).
  */
 
@@ -102,22 +102,14 @@
   }
 }
 
-/* ---------- Nabídka ☰ před adresním řádkem: ← → ⟳ ☰ adresa ----------
+/* ---------- Nabídka ☰ úplně vlevo: ☰ ← → ⟳ adresa ----------
  * Tlačítko nabídky (#PanelUI-button) je mimo přizpůsobitelnou část lišty, Firefox ho
- * nepřesune. Kontejner tlačítek se proto rozpustí (display: contents) a pořadí určí
- * `order`. Ověřeno v LibreWolfu 156: tlačítka nepřetékají při žádné šířce okna, nabídka
- * se otevírá. Mimo režim přizpůsobení lišty (tam musí kontejner zůstat kvůli přetahování). */
+ * nepřesune – stačí ho v liště (flex) posunout na začátek. Kontejner tlačítek zůstává,
+ * takže přetékání lišty i režim přizpůsobení fungují beze změny. */
 
-:root:not([customizing]) #nav-bar-customization-target {
-  display: contents !important;
+#PanelUI-button {
+  order: -1 !important;
 }
-
-:root:not([customizing]) #nav-bar > * { order: 10; }
-:root:not([customizing]) #back-button { order: 1 !important; }
-:root:not([customizing]) #forward-button { order: 2 !important; }
-:root:not([customizing]) #stop-reload-button { order: 3 !important; }
-:root:not([customizing]) #PanelUI-button { order: 4 !important; }
-:root:not([customizing]) #urlbar-container { order: 5 !important; }
 
 /* ---------- Stránka: přes celou plochu, jen horní rohy zaoblené ---------- */
 
