@@ -205,6 +205,60 @@ input[type="range"] {
   accent-color: var(--accent);
 }
 
+/* Vlastní motiv – pět barev vedle sebe */
+.colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+}
+
+.colors label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Vlastní zvuky a mody */
+.sound-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sound-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sound-item > span { flex: 1; }
+
+button.secondary {
+  background: var(--field);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  font-weight: 500;
+}
+
+button.secondary:hover {
+  background: var(--line);
+}
+
+.option > label.checkline,
+.checkline {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-start;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.checkline input { accent-color: var(--accent); }
+
 .hint.warn {
   display: block;
   color: #dc2626;

@@ -100,16 +100,33 @@
         "name": "setSounds",
         "type": "function",
         "async": true,
-        "description": "Zvuky psaní a otevření/zavření karty (generované, bez souborů), hlasitost 0–1.",
+        "description": "Zvuky psaní a otevření/zavření karty, hlasitost 0–1, sada soft/keyboard/typewriter/bubbles/custom; custom = vlastní krátké soubory (data: URL audio) pro key/open/close.",
         "parameters": [{
           "name": "options",
           "type": "object",
           "properties": {
             "typing": { "type": "boolean" },
             "tabs": { "type": "boolean" },
-            "volume": { "type": "number" }
+            "volume": { "type": "number" },
+            "pack": { "type": "string", "optional": true },
+            "custom": {
+              "type": "object",
+              "optional": true,
+              "properties": {
+                "key": { "type": "string", "optional": true },
+                "open": { "type": "string", "optional": true },
+                "close": { "type": "string", "optional": true }
+              }
+            }
           }
         }]
+      },
+      {
+        "name": "previewSound",
+        "type": "function",
+        "async": true,
+        "description": "Přehraje zvuk key/open/close s aktuální sadou a hlasitostí (tlačítko Přehrát v Nastavení Mantis).",
+        "parameters": [{ "name": "kind", "type": "string" }]
       },
       {
         "name": "setAccent",

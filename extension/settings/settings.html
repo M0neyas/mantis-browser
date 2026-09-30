@@ -151,8 +151,23 @@
         <option value="violet" data-i18n="settings_themeViolet"></option>
         <option value="sunset" data-i18n="settings_themeSunset"></option>
         <option value="day" data-i18n="settings_themeDay"></option>
+        <option value="custom" data-i18n="settings_themeCustom"></option>
       </select>
     </label>
+
+    <div class="option column" id="theme-custom-row" hidden>
+      <span>
+        <b data-i18n="settings_themeCustomColors"></b>
+        <span class="hint" data-i18n="settings_themeCustomHint"></span>
+      </span>
+      <div class="colors">
+        <label><input type="color" data-theme-color="frame"> <span data-i18n="settings_colorFrame"></span></label>
+        <label><input type="color" data-theme-color="toolbar"> <span data-i18n="settings_colorToolbar"></span></label>
+        <label><input type="color" data-theme-color="text"> <span data-i18n="settings_colorText"></span></label>
+        <label><input type="color" data-theme-color="field"> <span data-i18n="settings_colorField"></span></label>
+        <label><input type="color" data-theme-color="accent"> <span data-i18n="settings_colorAccent"></span></label>
+      </div>
+    </div>
 
     <label class="option">
       <span>
@@ -192,6 +207,75 @@
       <span><b data-i18n="settings_soundVolume"></b></span>
       <input type="range" min="5" max="100" step="5" data-store-number="soundVolume" data-i18n-aria-label="settings_soundVolume">
     </label>
+
+    <div class="option">
+      <span>
+        <b data-i18n="settings_soundPack"></b>
+        <span class="hint" data-i18n="settings_soundPackHint"></span>
+      </span>
+      <select id="sound-pack" data-i18n-aria-label="settings_soundPack">
+        <option value="soft" data-i18n="settings_soundPackSoft"></option>
+        <option value="keyboard" data-i18n="settings_soundPackKeyboard"></option>
+        <option value="typewriter" data-i18n="settings_soundPackTypewriter"></option>
+        <option value="bubbles" data-i18n="settings_soundPackBubbles"></option>
+        <option value="custom" data-i18n="settings_soundPackCustom"></option>
+      </select>
+      <button type="button" class="secondary" data-sound-preview="key" data-i18n="settings_soundPlay"></button>
+    </div>
+
+    <div class="option column" id="sound-custom-row" hidden>
+      <span>
+        <b data-i18n="settings_soundCustom"></b>
+        <span class="hint" data-i18n="settings_soundCustomHint"></span>
+      </span>
+      <input type="file" id="sound-file" accept="audio/*" hidden>
+      <div class="sound-list">
+        <div class="sound-item" data-sound-kind="key">
+          <span><b data-i18n="settings_soundKindKey"></b> <span class="hint" data-sound-state></span></span>
+          <button type="button" class="secondary" data-sound-choose data-i18n="settings_soundChoose"></button>
+          <button type="button" class="secondary" data-sound-preview="key" data-i18n="settings_soundPlay"></button>
+          <button type="button" class="secondary" data-sound-remove data-i18n="settings_wallpaperRemove"></button>
+        </div>
+        <div class="sound-item" data-sound-kind="open">
+          <span><b data-i18n="settings_soundKindOpen"></b> <span class="hint" data-sound-state></span></span>
+          <button type="button" class="secondary" data-sound-choose data-i18n="settings_soundChoose"></button>
+          <button type="button" class="secondary" data-sound-preview="open" data-i18n="settings_soundPlay"></button>
+          <button type="button" class="secondary" data-sound-remove data-i18n="settings_wallpaperRemove"></button>
+        </div>
+        <div class="sound-item" data-sound-kind="close">
+          <span><b data-i18n="settings_soundKindClose"></b> <span class="hint" data-sound-state></span></span>
+          <button type="button" class="secondary" data-sound-choose data-i18n="settings_soundChoose"></button>
+          <button type="button" class="secondary" data-sound-preview="close" data-i18n="settings_soundPlay"></button>
+          <button type="button" class="secondary" data-sound-remove data-i18n="settings_wallpaperRemove"></button>
+        </div>
+      </div>
+      <p class="hint" id="sound-custom-error" role="alert" hidden></p>
+    </div>
+  </section>
+
+  <section id="mods">
+    <h2 data-i18n="settings_mods"></h2>
+
+    <div class="option column">
+      <span>
+        <b data-i18n="settings_modExport"></b>
+        <span class="hint" data-i18n="settings_modExportHint"></span>
+      </span>
+      <div class="inline">
+        <input type="text" id="mod-name" maxlength="60" data-i18n-placeholder="settings_modNamePlaceholder" data-i18n-aria-label="settings_modName">
+        <button type="button" id="mod-export" data-i18n="settings_modExportButton"></button>
+      </div>
+      <label class="checkline"><input type="checkbox" id="mod-wallpaper"> <span data-i18n="settings_modIncludeWallpaper"></span></label>
+    </div>
+
+    <div class="option">
+      <span>
+        <b data-i18n="settings_modImport"></b>
+        <span class="hint" id="mod-status" role="status" data-i18n="settings_modImportHint"></span>
+      </span>
+      <input type="file" id="mod-file" accept=".mantis-mod,application/json" hidden>
+      <button type="button" id="mod-import" data-i18n="settings_modImportButton"></button>
+    </div>
   </section>
 
   <section id="security">
@@ -514,5 +598,6 @@
   <script src="../i18n.js"></script>
   <script src="../version.js"></script>
   <script src="settings.js"></script>
+  <script src="mods.js"></script>
 </body>
 </html>

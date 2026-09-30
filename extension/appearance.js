@@ -2,11 +2,14 @@
 //  - Motiv: barvy lišt, karet, adresního řádku a nabídek přes browser.theme (bez restartu)
 //    + barva zvýraznění (--mb-accent v theme/userChrome.css) přes mantisPrefs.setAccent.
 //    „Kudlanka“ = výchozí vzhled Mantisu (motiv se zruší, zvýraznění zelené).
+//    „Vlastní“ (custom) = pět barev od uživatele (themeCustom), světlý/tmavý podle pozadí.
 //  - Vlastní barva zvýraznění přebije barvu motivu.
-//  - Zvuky psaní a karet (generované, mantisPrefs.setSounds). Co se píše, se nečte.
-// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu),
-// soundTyping, soundTabs, soundVolume (0–100). Tapeta nové karty (newtabWallpaper) je
-// jen místní – obrázek se do synchronizace nevejde.
+//  - Zvuky psaní a karet (mantisPrefs.setSounds): sady generované v prohlížeči nebo vlastní
+//    krátké soubory (soundCustom). Co se píše, se nečte.
+// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu), themeCustom,
+// soundTyping, soundTabs, soundVolume (0–100), soundPack. Jen místní (velké): tapeta nové karty
+// (newtabWallpaper) a vlastní zvuky (soundCustom { key, open, close } – data: URL).
+// Balíčky .mantis-mod (export/import všeho výše) řeší settings/mods.js.
 
 const APPEARANCE_DEFAULTS = {
   themePreset: "mantis",
@@ -14,7 +17,23 @@ const APPEARANCE_DEFAULTS = {
   soundTyping: false,
   soundTabs: false,
   soundVolume: 40,
+  soundPack: "soft",
+  themeCustom: null,
+  soundCustom: null,
 };
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+// Vlastní motiv: jen platné barvy, jinak výchozí vzhled; světlý/tmavý podle jasu pozadí
+function customPreset(custom) {
+  const keys = ["frame", "toolbar", "text", "field", "accent"];
+  if (!custom || !keys.every(key => HEX.test(custom[key] || ""))) {
+    return null;
+  }
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(custom.frame.slice(i, i + 2), 16));
+  const light = 0.2126 * r + 0.7152 * g + 0.0722 * b > 140;
+  return { ...Object.fromEntries(keys.map(key => [key, custom[key]])), scheme: light ? "light" : "dark" };
+}
 
 // frame = pozadí okna a karet, toolbar = lišty a vybraná karta, text, field = adresní řádek
 const THEME_PRESETS = {
@@ -74,18 +93,22 @@ function themeFromPreset(p) {
 
 async function appearanceApply() {
   const config = await browser.storage.local.get(APPEARANCE_DEFAULTS);
-  const preset = THEME_PRESETS[config.themePreset] ?? null;
+  const preset = config.themePreset === "custom"
+    ? customPreset(config.themeCustom)
+    : THEME_PRESETS[config.themePreset] ?? null;
   if (preset) {
     await browser.theme.update(themeFromPreset(preset));
   } else {
     await browser.theme.reset();
   }
-  const accent = /^#[0-9a-f]{6}$/i.test(config.themeAccent) ? config.themeAccent : preset?.accent || "";
+  const accent = HEX.test(config.themeAccent) ? config.themeAccent : preset?.accent || "";
   await browser.mantisPrefs.setAccent(accent);
   await browser.mantisPrefs.setSounds({
     typing: config.soundTyping,
     tabs: config.soundTabs,
     volume: Math.max(0, Math.min(100, Number(config.soundVolume) || 0)) / 100,
+    pack: config.soundPack,
+    custom: config.soundCustom || {},
   });
 }
 
@@ -99,7 +122,7 @@ browser.storage.onChanged.addListener((changes, area) => {
 browser.runtime.onMessage.addListener(msg => {
   if (msg?.themePresets) {
     return Promise.resolve(Object.fromEntries(Object.entries(THEME_PRESETS)
-      .map(([id, p]) => [id, p ? { frame: p.frame, toolbar: p.toolbar, accent: p.accent } : null])));
+      .map(([id, p]) => [id, p && { frame: p.frame, toolbar: p.toolbar, text: p.text, field: p.field, accent: p.accent }])));
   }
   return undefined;
 });

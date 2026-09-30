@@ -23,6 +23,8 @@ const SYNC_KEYS = [
   "currencyConvert",
   "themePreset", // vzhled (appearance.js); tapeta nové karty jen místně
   "themeAccent",
+  "themeCustom", // vlastní motiv (5 barev); vlastní zvuky (soundCustom) jen místně – velké
+  "soundPack",
   "soundTyping",
   "soundTabs",
   "soundVolume",

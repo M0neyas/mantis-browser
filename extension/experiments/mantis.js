@@ -312,15 +312,131 @@ function setNetworkLimit(kBps) {
   Services.obs.addObserver(netLimit.observer, "http-on-examine-response");
 }
 
-// ---------- Zvuky (sounds.js) ----------
-// Krátké zvuky generované přes WebAudio (žádné cizí soubory): psaní – stisk klávesy v okně
-// prohlížeče i ve webech (posluchač v okně prohlížeče, co se píše, se nečte), otevření
-// a zavření karty. Klávesy s Ctrl/Alt a samotné modifikátory se ignorují.
-const sounds = { typing: false, tabs: false, volume: 0.4, windows: new Map(), listening: false };
+// ---------- Zvuky (appearance.js) ----------
+// Stisk klávesy (v okně prohlížeče i ve webech – posluchač v okně prohlížeče, co se píše,
+// se nečte), otevření a zavření karty. Klávesy s Ctrl/Alt a samotné modifikátory se ignorují.
+// Sady generované přes WebAudio (žádné cizí soubory): soft, keyboard, typewriter, bubbles;
+// custom = vlastní krátké soubory uživatele (data: URL, audio, nejvýš ~300 kB), chybějící
+// událost v custom hraje soft.
+const sounds = {
+  typing: false, tabs: false, volume: 0.4, pack: "soft",
+  custom: { key: "", open: "", close: "" },
+  windows: new Map(), listening: false,
+};
 const SOUND_SKIP_KEYS = new Set(["Shift", "Control", "Alt", "Meta", "AltGraph", "CapsLock", "Tab", "Escape"]);
+const SOUND_PACKS = new Set(["soft", "keyboard", "typewriter", "bubbles", "custom"]);
+const SOUND_DATA_URL = /^data:audio\/(mpeg|mp3|ogg|wav|x-wav|wave|webm|aac|mp4|x-m4a|flac);base64,[A-Za-z0-9+/=]+$/;
+const SOUND_MAX_CHARS = 420 * 1024; // ~300 kB v base64
 
-function soundPlay(win, kind) {
-  const state = sounds.windows.get(win);
+function soundNoise(ctx, seconds, shape = 3) {
+  const length = Math.max(1, Math.round(ctx.sampleRate * seconds));
+  const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i++) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** shape;
+  }
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  return src;
+}
+
+function soundTone(ctx, out, t, type, from, to, duration, level) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(from, t);
+  osc.frequency.exponentialRampToValueAtTime(to, t + duration);
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(level, t + Math.min(0.01, duration / 4));
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration + 0.03);
+  osc.connect(gain).connect(out);
+  osc.start(t);
+  osc.stop(t + duration + 0.05);
+}
+
+function soundFiltered(ctx, out, t, seconds, type, frequency, q, level, rate = 1) {
+  const src = soundNoise(ctx, seconds);
+  src.playbackRate.value = rate;
+  const filter = ctx.createBiquadFilter();
+  filter.type = type;
+  filter.frequency.value = frequency;
+  filter.Q.value = q;
+  const gain = ctx.createGain();
+  gain.gain.value = level;
+  src.connect(filter).connect(gain).connect(out);
+  src.start(t);
+}
+
+// Generované zvuky jednotlivých sad
+function soundSynth(ctx, out, pack, kind) {
+  const t = ctx.currentTime;
+  const jitter = 0.9 + Math.random() * 0.25;
+  if (kind === "key") {
+    if (pack === "keyboard") {
+      // mechanická klávesnice: ostré cvaknutí + tlumený doraz
+      soundFiltered(ctx, out, t, 0.018, "highpass", 3200, 0.7, 1.1, jitter);
+      soundTone(ctx, out, t + 0.004, "triangle", 190 * jitter, 90, 0.035, 0.5);
+    } else if (pack === "typewriter") {
+      // psací stroj: úder typu + kovový dozvuk
+      soundFiltered(ctx, out, t, 0.03, "bandpass", 1600, 1.2, 1.3, jitter);
+      soundTone(ctx, out, t, "square", 2600 * jitter, 2400, 0.05, 0.06);
+    } else if (pack === "bubbles") {
+      soundTone(ctx, out, t, "sine", 700 * jitter + Math.random() * 300, 260, 0.06, 0.45);
+    } else {
+      soundFiltered(ctx, out, t, 0.025, "bandpass", 2400, 0.8, 0.9, jitter);
+    }
+    return;
+  }
+  const open = kind === "open";
+  if (pack === "typewriter") {
+    // otevření = „cink“, zavření = posun válce
+    if (open) {
+      soundTone(ctx, out, t, "sine", 1900, 1850, 0.35, 0.3);
+    } else {
+      soundFiltered(ctx, out, t, 0.16, "bandpass", 900, 0.6, 0.7, 0.8);
+    }
+  } else if (pack === "bubbles") {
+    soundTone(ctx, out, t, "sine", open ? 300 : 900, open ? 1100 : 250, 0.12, 0.4);
+  } else if (pack === "keyboard") {
+    soundFiltered(ctx, out, t, 0.03, "highpass", 2500, 0.7, 0.9);
+    soundTone(ctx, out, t, "triangle", open ? 440 : 330, open ? 660 : 220, 0.08, 0.3);
+  } else {
+    soundTone(ctx, out, t, "sine", open ? 520 : 700, open ? 880 : 380, 0.09, 0.35);
+  }
+}
+
+// Vlastní soubor: data: URL → ArrayBuffer → AudioBuffer (dekódovaný jednou pro každé okno)
+async function soundCustomBuffer(state, ctx, kind) {
+  const url = sounds.custom[kind];
+  if (!url) {
+    return null;
+  }
+  state.buffers ||= new Map();
+  if (state.buffers.has(url)) {
+    return state.buffers.get(url);
+  }
+  let buffer = null;
+  try {
+    const base64url = url.slice(url.indexOf(",") + 1).replace(/\+/g, "-").replace(/\//g, "_");
+    const bytes = ChromeUtils.base64URLDecode(base64url, { padding: "ignore" });
+    buffer = await ctx.decodeAudioData(bytes);
+  } catch (e) {
+    // nepodporovaný nebo poškozený soubor → zahraje se generovaný zvuk
+  }
+  state.buffers.set(url, buffer);
+  return buffer;
+}
+
+// Přehrání na zkoušku (Nastavení Mantis) funguje i se zvuky vypnutými – bez posluchačů kláves
+const soundPreviewStates = new WeakMap();
+
+async function soundPlay(win, kind) {
+  let state = sounds.windows.get(win);
+  if (!state && kind.startsWith("preview:")) {
+    state = soundPreviewStates.get(win) || {};
+    soundPreviewStates.set(win, state);
+  }
+  kind = kind.replace("preview:", "");
   if (!state) {
     return;
   }
@@ -329,42 +445,21 @@ function soundPlay(win, kind) {
     if (ctx.state === "suspended") {
       ctx.resume();
     }
-    const t = ctx.currentTime;
-    const gain = ctx.createGain();
-    gain.connect(ctx.destination);
-    const volume = sounds.volume;
-    if (kind === "key") {
-      // krátké „klapnutí“: filtrovaný šum 25 ms
-      const length = Math.round(ctx.sampleRate * 0.025);
-      const buffer = ctx.createBuffer(1, length, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < length; i++) {
-        data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
+    const out = ctx.createGain();
+    out.gain.value = sounds.volume;
+    out.connect(ctx.destination);
+    if (sounds.pack === "custom") {
+      const buffer = await soundCustomBuffer(state, ctx, kind);
+      if (buffer) {
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        src.connect(out);
+        src.start();
+        src.stop(ctx.currentTime + Math.min(buffer.duration, 2)); // nejvýš 2 s
+        return;
       }
-      const src = ctx.createBufferSource();
-      src.buffer = buffer;
-      src.playbackRate.value = 0.9 + Math.random() * 0.25;
-      const filter = ctx.createBiquadFilter();
-      filter.type = "bandpass";
-      filter.frequency.value = 2400;
-      filter.Q.value = 0.8;
-      src.connect(filter).connect(gain);
-      gain.gain.value = volume * 0.9;
-      src.start(t);
-    } else {
-      // otevření karty stoupavý, zavření klesavý tón 90 ms
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      const [from, to] = kind === "open" ? [520, 880] : [700, 380];
-      osc.frequency.setValueAtTime(from, t);
-      osc.frequency.exponentialRampToValueAtTime(to, t + 0.09);
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(volume * 0.35, t + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-      osc.connect(gain);
-      osc.start(t);
-      osc.stop(t + 0.13);
     }
+    soundSynth(ctx, out, sounds.pack === "custom" ? "soft" : sounds.pack, kind);
   } catch (e) {
     // bez zvukového zařízení apod.
   }
@@ -431,10 +526,15 @@ const soundWindowObserver = {
   },
 };
 
-function setSounds({ typing, tabs, volume }) {
+function setSounds({ typing, tabs, volume, pack, custom }) {
   sounds.typing = !!typing;
   sounds.tabs = !!tabs;
   sounds.volume = Math.max(0, Math.min(1, Number(volume) || 0));
+  sounds.pack = SOUND_PACKS.has(pack) ? pack : "soft";
+  for (const kind of ["key", "open", "close"]) {
+    const url = String(custom?.[kind] || "");
+    sounds.custom[kind] = url.length <= SOUND_MAX_CHARS && SOUND_DATA_URL.test(url) ? url : "";
+  }
   const want = sounds.typing || sounds.tabs;
   if (want && !sounds.listening) {
     for (const win of Services.wm.getEnumerator("navigator:browser")) {
@@ -676,7 +776,21 @@ this.mantisPrefs = class extends ExtensionAPI {
         },
 
         async setSounds(options) {
-          setSounds({ typing: options?.typing, tabs: options?.tabs, volume: options?.volume });
+          setSounds({
+            typing: options?.typing, tabs: options?.tabs, volume: options?.volume,
+            pack: options?.pack, custom: options?.custom,
+          });
+        },
+
+        // Přehraje zvuk (key/open/close) s aktuální sadou a hlasitostí v posledním okně
+        async previewSound(kind) {
+          if (!["key", "open", "close"].includes(kind)) {
+            return;
+          }
+          const win = Services.wm.getMostRecentWindow("navigator:browser");
+          if (win) {
+            await soundPlay(win, "preview:" + kind);
+          }
         },
 
         // Barva zvýraznění #rrggbb, "" = výchozí zelená

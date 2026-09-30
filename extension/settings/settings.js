@@ -67,13 +67,18 @@ showCpuFailed();
 // ---------- Vzhled (logika v ../appearance.js) ----------
 
 async function showTheme() {
-  const { themePreset, themeAccent } = await browser.storage.local.get({ themePreset: "mantis", themeAccent: "" });
+  const { themePreset, themeAccent, themeCustom } =
+    await browser.storage.local.get({ themePreset: "mantis", themeAccent: "", themeCustom: null });
   const presets = await browser.runtime.sendMessage({ themePresets: true });
-  document.getElementById("theme-preset").value = themePreset in presets ? themePreset : "mantis";
+  const preset = themePreset in presets || themePreset === "custom" ? themePreset : "mantis";
+  document.getElementById("theme-preset").value = preset;
+  document.getElementById("theme-custom-row").hidden = preset !== "custom"; // barvy řeší mods.js
   const custom = /^#[0-9a-f]{6}$/i.test(themeAccent);
   const color = document.getElementById("theme-accent-color");
   document.getElementById("theme-accent-custom").checked = custom;
-  color.value = custom ? themeAccent : presets[themePreset]?.accent || "#22c55e";
+  color.value = custom
+    ? themeAccent
+    : (preset === "custom" ? themeCustom?.accent : presets[preset]?.accent) || "#22c55e";
   color.disabled = !custom;
 }
 
@@ -478,7 +483,7 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (changes.perfCpuFailed) {
     showCpuFailed();
   }
-  if (changes.themePreset || changes.themeAccent) {
+  if (changes.themePreset || changes.themeAccent || changes.themeCustom) {
     showTheme();
   }
   if (changes.newtabWallpaper) {
