@@ -15,7 +15,126 @@ const STORE_DEFAULTS = {
   tabSleep: true, // uspávání karet (tabsleep.js)
   eshopWarning: true, // rizikové e-shopy (eshops.js)
   currencyConvert: true, // převod měn (currency.js)
+  ramLimit: false, // výkon (performance.js)
+  cpuLimit: false,
+  netLimit: false,
+  soundTyping: false, // zvuky (appearance.js)
+  soundTabs: false,
 };
+
+// Číselné volby (výběr nebo posuvník, data-store-number) – výchozí hodnoty jako v performance.js
+// a appearance.js
+const STORE_NUMBER_DEFAULTS = {
+  ramLimitMB: 4096,
+  cpuLimitPercent: 50,
+  netLimitKBps: 2048,
+  soundVolume: 40,
+};
+
+browser.storage.local.get(STORE_NUMBER_DEFAULTS).then(values => {
+  for (const el of document.querySelectorAll("[data-store-number]")) {
+    const key = el.dataset.storeNumber;
+    el.value = String(values[key]);
+    el.addEventListener("change", () => browser.storage.local.set({ [key]: Number(el.value) }));
+  }
+});
+
+// ---------- Výkon (logika v ../performance.js) ----------
+
+async function showPerfUsage() {
+  const stats = await browser.runtime.sendMessage({ perfStats: true });
+  const memory = stats.memoryMB >= 1024
+    ? t("settings_perfGB", (stats.memoryMB / 1024).toLocaleString(uiLocale(), { maximumFractionDigits: 1 }))
+    : t("settings_perfMB", stats.memoryMB);
+  document.getElementById("perf-usage").textContent = stats.cpuPercent === null
+    ? t("settings_perfUsageMemory", memory)
+    : t("settings_perfUsageValue", memory, stats.cpuPercent);
+}
+
+showPerfUsage().catch(() => {});
+setInterval(() => {
+  if (!document.hidden) {
+    showPerfUsage().catch(() => {});
+  }
+}, 2000);
+
+async function showCpuFailed() {
+  const { perfCpuFailed } = await browser.storage.local.get({ perfCpuFailed: false });
+  document.getElementById("cpu-limit-failed").hidden = !perfCpuFailed;
+}
+showCpuFailed();
+
+// ---------- Vzhled (logika v ../appearance.js) ----------
+
+async function showTheme() {
+  const { themePreset, themeAccent } = await browser.storage.local.get({ themePreset: "mantis", themeAccent: "" });
+  const presets = await browser.runtime.sendMessage({ themePresets: true });
+  document.getElementById("theme-preset").value = themePreset in presets ? themePreset : "mantis";
+  const custom = /^#[0-9a-f]{6}$/i.test(themeAccent);
+  const color = document.getElementById("theme-accent-color");
+  document.getElementById("theme-accent-custom").checked = custom;
+  color.value = custom ? themeAccent : presets[themePreset]?.accent || "#22c55e";
+  color.disabled = !custom;
+}
+
+document.getElementById("theme-preset").addEventListener("change", event => {
+  browser.storage.local.set({ themePreset: event.currentTarget.value });
+});
+
+document.getElementById("theme-accent-custom").addEventListener("change", event => {
+  browser.storage.local.set({
+    themeAccent: event.currentTarget.checked ? document.getElementById("theme-accent-color").value : "",
+  });
+});
+
+document.getElementById("theme-accent-color").addEventListener("change", event => {
+  if (document.getElementById("theme-accent-custom").checked) {
+    browser.storage.local.set({ themeAccent: event.currentTarget.value });
+  }
+});
+
+showTheme();
+
+// ---------- Tapeta nové karty ----------
+// Obrázek se zmenší na nejvýš 2560 px a uloží jako JPEG jen v tomto počítači (newtabWallpaper).
+
+async function showWallpaper() {
+  const { newtabWallpaper } = await browser.storage.local.get({ newtabWallpaper: "" });
+  document.getElementById("wallpaper-remove").hidden = !newtabWallpaper;
+  document.getElementById("wallpaper-state").textContent =
+    t(newtabWallpaper ? "settings_wallpaperSet" : "settings_wallpaperHint");
+}
+
+document.getElementById("wallpaper-choose").addEventListener("click", () => {
+  document.getElementById("wallpaper-file").click();
+});
+
+document.getElementById("wallpaper-file").addEventListener("change", async event => {
+  const file = event.currentTarget.files[0];
+  event.currentTarget.value = "";
+  if (!file) {
+    return;
+  }
+  const state = document.getElementById("wallpaper-state");
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 2560 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d").drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    await browser.storage.local.set({ newtabWallpaper: canvas.toDataURL("image/jpeg", 0.85) });
+  } catch (e) {
+    state.textContent = t("settings_wallpaperFailed");
+  }
+});
+
+document.getElementById("wallpaper-remove").addEventListener("click", () => {
+  browser.storage.local.remove("newtabWallpaper");
+});
+
+showWallpaper();
 
 // ---------- Uspávání karet (logika v ../tabsleep.js) ----------
 
@@ -355,6 +474,15 @@ browser.storage.onChanged.addListener((changes, area) => {
   }
   if (changes.cnbRates || changes.currencyConvert) {
     showCurrencyInfo();
+  }
+  if (changes.perfCpuFailed) {
+    showCpuFailed();
+  }
+  if (changes.themePreset || changes.themeAccent) {
+    showTheme();
+  }
+  if (changes.newtabWallpaper) {
+    showWallpaper();
   }
 });
 showSensitive();

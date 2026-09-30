@@ -26,6 +26,7 @@
     "downloads",
     "contextualIdentities",
     "clipboardWrite",
+    "theme",
     "<all_urls>"
   ],
   "commands": {
@@ -51,7 +52,9 @@
       "tools.js",
       "currency.js",
       "eshops.js",
-      "tabsleep.js"
+      "tabsleep.js",
+      "performance.js",
+      "appearance.js"
     ],
     "persistent": true
   },

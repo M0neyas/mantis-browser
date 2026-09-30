@@ -21,6 +21,11 @@ const SYNC_KEYS = [
   "tabSleepExceptions",
   "eshopWarning", // varování před rizikovými e-shopy (výjimky jsou jen místní)
   "currencyConvert",
+  "themePreset", // vzhled (appearance.js); tapeta nové karty jen místně
+  "themeAccent",
+  "soundTyping",
+  "soundTabs",
+  "soundVolume",
   "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
   "otherBrowserSites", // weby s tlačítkem „Otevřít v jiném prohlížeči“ (volba prohlížeče je místní)
 ];

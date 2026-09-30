@@ -74,6 +74,49 @@
           { "name": "id", "type": "string" },
           { "name": "url", "type": "string" }
         ]
+      },
+      {
+        "name": "processStats",
+        "type": "function",
+        "async": true,
+        "description": "Paměť všech procesů Mantisu v MB a vytížení CPU od minulého volání v % výkonu počítače ({memoryMB, cpuPercent, processes}).",
+        "parameters": []
+      },
+      {
+        "name": "setCpuLimit",
+        "type": "function",
+        "async": true,
+        "description": "Tvrdý strop CPU pro procesy s obsahem webů (5–95 %), 0 = bez omezení. Vrátí false, když ho Windows nepřijmou.",
+        "parameters": [{ "name": "percent", "type": "number" }]
+      },
+      {
+        "name": "setNetworkLimit",
+        "type": "function",
+        "async": true,
+        "description": "Omezí rychlost stahování i odesílání přes HTTP(S) v kB/s, 0 = bez omezení.",
+        "parameters": [{ "name": "kBps", "type": "number" }]
+      },
+      {
+        "name": "setSounds",
+        "type": "function",
+        "async": true,
+        "description": "Zvuky psaní a otevření/zavření karty (generované, bez souborů), hlasitost 0–1.",
+        "parameters": [{
+          "name": "options",
+          "type": "object",
+          "properties": {
+            "typing": { "type": "boolean" },
+            "tabs": { "type": "boolean" },
+            "volume": { "type": "number" }
+          }
+        }]
+      },
+      {
+        "name": "setAccent",
+        "type": "function",
+        "async": true,
+        "description": "Barva zvýraznění oken prohlížeče (#rrggbb), prázdný řetězec = výchozí zelená.",
+        "parameters": [{ "name": "color", "type": "string" }]
       }
     ]
   }

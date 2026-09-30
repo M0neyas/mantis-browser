@@ -185,6 +185,35 @@ button:hover,
 a.button:hover { background: #15803d; }
 button:disabled { opacity: 0.6; cursor: progress; }
 
+/* Barva zvýraznění a hlasitost (Vzhled, Zvuky) */
+input[type="color"] {
+  flex: none;
+  width: 42px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+  cursor: pointer;
+}
+
+input[type="color"]:disabled { opacity: 0.45; cursor: default; }
+
+input[type="range"] {
+  flex: none;
+  width: 160px;
+  accent-color: var(--accent);
+}
+
+.hint.warn {
+  display: block;
+  color: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hint.warn { color: #f87171; }
+}
+
 /* atribut hidden musí přebít display: flex u .option */
 [hidden] { display: none !important; }
 

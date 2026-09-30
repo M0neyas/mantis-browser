@@ -122,9 +122,15 @@ function tick() {
 }
 
 async function renderLook() {
-  const { newtabClock, newtabBackground } =
-    await browser.storage.local.get({ newtabClock: true, newtabBackground: true });
-  document.body.classList.toggle("tinted", newtabBackground);
+  const { newtabClock, newtabBackground, newtabWallpaper } =
+    await browser.storage.local.get({ newtabClock: true, newtabBackground: true, newtabWallpaper: "" });
+  // vlastní tapeta (Nastavení Mantis → Nová karta) má přednost před zeleným pozadím
+  if (/^data:image\/(jpeg|png|webp);base64,/.test(newtabWallpaper)) {
+    document.body.style.backgroundImage = `url("${newtabWallpaper}")`;
+    document.body.classList.add("wallpaper");
+  } else {
+    document.body.classList.toggle("tinted", newtabBackground);
+  }
   if (newtabClock) {
     tick();
     document.getElementById("clock").hidden = false;

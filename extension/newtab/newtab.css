@@ -55,6 +55,24 @@ body.tinted {
   background-attachment: fixed;
 }
 
+/* Vlastní tapeta (Nastavení Mantis → Nová karta → Tapeta) – obrázek nastaví newtab.js */
+body.wallpaper {
+  background-color: var(--bg);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body.wallpaper #clock,
+body.wallpaper .logo {
+  filter: drop-shadow(0 1px 8px rgb(0 0 0 / 0.45));
+}
+
+body.wallpaper #clock {
+  color: #fff;
+}
+
 .logo {
   width: 64px;
   height: 64px;
