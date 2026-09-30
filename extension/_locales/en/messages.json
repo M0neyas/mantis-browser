@@ -279,5 +279,8 @@
   "welcome_addon_darkReader_name": {"message": "Dark Reader"},
   "welcome_addon_darkReader_text": {"message": "Dark mode for every website, even those without their own. Brightness, contrast and per-site exceptions."},
   "welcome_addon_youtubeWindowed_name": {"message": "YouTube Windowed FullScreen"},
-  "welcome_addon_youtubeWindowed_text": {"message": "YouTube videos fill the browser window instead of the whole screen – you can keep working in other windows. It only has access to YouTube."}
+  "welcome_addon_youtubeWindowed_text": {"message": "YouTube videos fill the browser window instead of the whole screen – you can keep working in other windows. It only has access to YouTube."},
+  "settings_appearance": {"message": "Appearance"},
+  "settings_compactUrlbar": {"message": "Address bar as a magnifier icon"},
+  "settings_compactUrlbarHint": {"message": "Tabs get more room. The address bar expands over the tabs when you hover or click the magnifier, or press Ctrl+L. You then see the page address only after hovering – check it on sensitive sites (banking). Wide windows only."}
 }

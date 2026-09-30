@@ -279,5 +279,8 @@
   "welcome_addon_darkReader_name": {"message": "Dark Reader"},
   "welcome_addon_darkReader_text": {"message": "Tmavý režim pro všechny weby, i ty, které ho samy nemají. Jas, kontrast a výjimky pro jednotlivé weby."},
   "welcome_addon_youtubeWindowed_name": {"message": "YouTube Windowed FullScreen"},
-  "welcome_addon_youtubeWindowed_text": {"message": "Video na YouTube přes celé okno prohlížeče místo celé obrazovky – můžete dál pracovat v jiných oknech. Přístup má jen k YouTube."}
+  "welcome_addon_youtubeWindowed_text": {"message": "Video na YouTube přes celé okno prohlížeče místo celé obrazovky – můžete dál pracovat v jiných oknech. Přístup má jen k YouTube."},
+  "settings_appearance": {"message": "Vzhled"},
+  "settings_compactUrlbar": {"message": "Adresní řádek jako ikona lupy"},
+  "settings_compactUrlbarHint": {"message": "Karty mají víc místa. Adresní řádek se rozbalí přes karty, když na lupu najedete myší, kliknete na ni nebo stisknete Ctrl+L. Adresu stránky pak uvidíte až po najetí myší – u citlivých webů (banka) si ji zkontrolujte. Jen v širokém okně."}
 }

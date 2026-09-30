@@ -18,6 +18,7 @@ const ALLOWED_PREFS = {
   "media.autoplay.default": "int",
   "general.smoothScroll.msdPhysics.enabled": "bool",
   "webgl.disabled": "bool",
+  "mantis.urlbar.compact": "bool", // sbalený adresní řádek (theme/userChrome.css)
   // Žádosti webů o upozornění a polohu: 0 = ptát se, 2 = blokovat
   "permissions.default.desktop-notification": "int",
   "permissions.default.geo": "int",
