@@ -238,6 +238,15 @@
       width: var(--mb-urlbar-expanded) !important;
     }
 
+    /* Rozbalený leží přes karty → neprůhledné pozadí a stín (jinak prosvítají názvy karet).
+     * Firefox 156 proměnné přejmenoval (--toolbar-field-background-color-focus místo
+     * --toolbar-field-focus-background-color, --toolbar-background-color místo --toolbar-bgcolor) */
+    :root:not([customizing]) #urlbar:is(:hover, [focused], [open]) :is(.urlbar-background, #urlbar-background) {
+      background-color: var(--toolbar-field-background-color-focus, var(--toolbar-field-focus-background-color, Field)) !important;
+      border-radius: var(--mb-radius) !important;
+      box-shadow: 0 6px 20px rgb(0 0 0 / 0.3) !important;
+    }
+
     /* Sbalený: místo obsahu jen lupa */
     :root:not([customizing]) #urlbar:not(:hover, [focused], [open]) :is(.urlbar-input-container, #urlbar-input-container) {
       visibility: hidden !important;
