@@ -284,6 +284,25 @@
       fill: currentColor;
       fill-opacity: 0.8;
     }
+
+    /* Rozbalený jen najetím (kurzor ještě není v poli): lupa zůstane na svém místě a je součástí
+     * pole pro psaní – kliknutím na ni se rovnou píše. Ikony webu (štít, zámek, oprávnění…) se
+     * ukážou až po kliknutí, jinak by pod kurzorem byl štít a kliknutí otevřelo jeho panel. */
+    :root:not([customizing]) #urlbar-container:hover #urlbar:not([focused], [open]) :is(
+      #remote-control-box, .searchmode-switcher, #searchmode-switcher, #trust-icon-container,
+      #tracking-protection-icon-container, #identity-box, #identity-permission-box, #notification-popup-box) {
+      display: none !important;
+    }
+
+    :root:not([customizing]) #urlbar-container:hover #urlbar:not([focused], [open]) :is(.urlbar-input, #urlbar-input) {
+      padding-inline-start: 24px !important;
+      /* 0 px: střed lupy vyjde na střed sbaleného tlačítka (kontejner má 9–10 px vnitřní okraj) */
+      background: url("chrome://global/skin/icons/search-glass.svg") 0 center / 16px no-repeat !important;
+      -moz-context-properties: fill;
+      fill: currentColor;
+      fill-opacity: 0.8;
+      text-align: start !important;
+    }
   }
 }
 
