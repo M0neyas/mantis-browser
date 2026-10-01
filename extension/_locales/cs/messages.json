@@ -279,6 +279,8 @@
   "settings_tabSleepExceptionsHint": {"message": "Jeden na řádek, platí i pro subdomény (např. webové aplikace, které mají běžet na pozadí)."},
   "welcome_addon_darkReader_name": {"message": "Dark Reader"},
   "welcome_addon_darkReader_text": {"message": "Tmavý režim pro všechny weby, i ty, které ho samy nemají. Jas, kontrast a výjimky pro jednotlivé weby."},
+  "welcome_addon_hlidacShopu_name": {"message": "Hlídač shopů"},
+  "welcome_addon_hlidacShopu_text": {"message": "U velkých českých a slovenských e-shopů (Alza, Mall, Rohlík, Notino…) ukáže historii ceny a prozradí falešné slevy. Open source od Apify, Keboola a TopMonks; adresu prohlíženého zboží posílá na api.hlidacshopu.cz."},
   "welcome_addon_youtubeWindowed_name": {"message": "YouTube Windowed FullScreen"},
   "welcome_addon_youtubeWindowed_text": {"message": "Video na YouTube přes celé okno prohlížeče místo celé obrazovky – můžete dál pracovat v jiných oknech. Přístup má jen k YouTube."},
   "settings_appearance": {"message": "Vzhled"},

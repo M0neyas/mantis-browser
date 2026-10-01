@@ -279,6 +279,8 @@
   "settings_tabSleepExceptionsHint": {"message": "One per line, subdomains included (e.g. web apps that should keep running in the background)."},
   "welcome_addon_darkReader_name": {"message": "Dark Reader"},
   "welcome_addon_darkReader_text": {"message": "Dark mode for every website, even those without their own. Brightness, contrast and per-site exceptions."},
+  "welcome_addon_hlidacShopu_name": {"message": "Hlídač shopů"},
+  "welcome_addon_hlidacShopu_text": {"message": "Shows the price history on major Czech and Slovak online shops (Alza, Mall, Rohlík, Notino…) and reveals fake discounts. Open source by Apify, Keboola and TopMonks; sends the address of the product you view to api.hlidacshopu.cz."},
   "welcome_addon_youtubeWindowed_name": {"message": "YouTube Windowed FullScreen"},
   "welcome_addon_youtubeWindowed_text": {"message": "YouTube videos fill the browser window instead of the whole screen – you can keep working in other windows. It only has access to YouTube."},
   "settings_appearance": {"message": "Appearance"},

@@ -38,7 +38,7 @@ a vestavěnou VPN.
   inspekce a převod cen v cizí měně na koruny podle kurzu ČNB (označit cenu → pravý klik).
 - **Klid a úspora** – weby se neptají na upozornění ani polohu, nepoužívané karty se uspí.
 - **Připravený k použití** – čeština i angličtina, doporučená rozšíření jedním kliknutím (Bitwarden,
-  kontejnery karet, český slovník, Consent-O-Matic, Dark Reader,
+  kontejnery karet, český slovník, Consent-O-Matic, Dark Reader, Hlídač shopů,
   YouTube Windowed FullScreen, TTV LOL PRO – nic se neinstaluje samo),
   rychlé hledání `@mapy @heureka @csfd @yt @wiki @seznam`, DRM (Widevine; Netflix
   na Windows nefunguje – vyžaduje podpis Widevine VMP, který vlastní buildy Firefoxu nedostanou),
