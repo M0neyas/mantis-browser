@@ -28,7 +28,9 @@
         <circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
       </svg>
       <input id="query" type="text" data-i18n-placeholder="newtab_search"
-             data-i18n-aria-label="newtab_search" autofocus>
+             data-i18n-aria-label="newtab_search" autofocus
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="suggestions">
+      <ul id="suggestions" role="listbox" hidden></ul>
     </form>
 
     <nav id="sites" data-i18n-aria-label="newtab_topSites"></nav>

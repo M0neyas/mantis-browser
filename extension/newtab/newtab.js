@@ -21,17 +21,238 @@ function asUrl(text) {
   return null;
 }
 
-form.addEventListener("submit", event => {
-  event.preventDefault();
-  const text = query.value.trim();
-  if (!text) {
-    return;
-  }
+// „@mapy praha“ → vyhledávač se zkratkou @mapy (policies.json), jinak null
+function aliasSearch(text, engines) {
+  const m = /^(@\S+)\s+(.+)$/.exec(text);
+  const engine = m && engines.find(e => e.alias?.toLowerCase() === m[1].toLowerCase());
+  return engine ? { engine, query: m[2] } : null;
+}
+
+async function openText(text) {
   const url = asUrl(text);
   if (url) {
     browser.tabs.update({ url });
+    return;
+  }
+  const alias = aliasSearch(text, await getEngines());
+  if (alias) {
+    browser.search.search({ query: alias.query, engine: alias.engine.name });
   } else {
     browser.search.search({ query: text }); // výchozí vyhledávač (DuckDuckGo)
+  }
+}
+
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  const selected = suggestionItems[selectedIndex];
+  if (selected) {
+    selected.run();
+    return;
+  }
+  const text = query.value.trim();
+  if (text) {
+    openText(text);
+  }
+});
+
+// ---------- Našeptávač ----------
+// Jako adresní řádek: historie, záložky, otevřené karty a zkratky vyhledávačů (@mapy…).
+// Jen z tohoto počítače – nic se neodesílá (online návrhy vyhledávače LibreWolf vypíná,
+// browser.search.suggest.enabled = false, a Mantis to dodržuje).
+
+const list = document.getElementById("suggestions");
+const SUGGEST_MAX = 7;
+let suggestionItems = [];
+let selectedIndex = -1;
+let suggestTimer = null;
+let suggestRun = 0;
+let enginesCache = null;
+
+async function getEngines() {
+  enginesCache ??= await browser.search.get().catch(() => []);
+  return enginesCache;
+}
+
+function hostOf(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch (e) {
+    return url;
+  }
+}
+
+const WEB_URL = /^(https?|file):/;
+
+function matches(text, ...fields) {
+  const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+  const hay = fields.join(" ").toLowerCase();
+  return words.every(word => hay.includes(word));
+}
+
+async function buildSuggestions(text) {
+  const items = [];
+  const seen = new Set();
+  const add = item => {
+    if (item.url && seen.has(item.url)) {
+      return;
+    }
+    if (item.url) {
+      seen.add(item.url);
+    }
+    items.push(item);
+  };
+  const engines = await getEngines();
+
+  // Zkratky vyhledávačů: „@m“ → @mapy, „@mapy praha“ → hledat na Mapy.cz
+  if (text.startsWith("@")) {
+    const alias = aliasSearch(text, engines);
+    if (alias) {
+      add({ kind: "search", icon: alias.engine.favIconUrl, title: alias.query,
+        detail: t("newtab_suggestSearchIn", alias.engine.name), run: () => openText(text) });
+    } else {
+      for (const engine of engines.filter(e => e.alias?.toLowerCase().startsWith(text.toLowerCase()))) {
+        add({ kind: "alias", icon: engine.favIconUrl, title: engine.alias, detail: engine.name,
+          run: () => { query.value = engine.alias + " "; query.focus(); updateSuggestions(); } });
+      }
+    }
+    return items;
+  }
+
+  // První řádek = co udělá Enter: otevřít adresu, nebo hledat výchozím vyhledávačem
+  const url = asUrl(text);
+  const defaultEngine = engines.find(e => e.isDefault);
+  add(url
+    ? { kind: "url", title: text, detail: t("newtab_suggestOpen"), run: () => openText(text) }
+    : { kind: "search", icon: defaultEngine?.favIconUrl, title: text,
+      detail: t("newtab_suggestSearchIn", defaultEngine?.name || "DuckDuckGo"), run: () => openText(text) });
+
+  const [tabs, bookmarks, history] = await Promise.all([
+    browser.tabs.query({}).catch(() => []),
+    browser.bookmarks.search(text).catch(() => []),
+    browser.history.search({ text, startTime: 0, maxResults: 40 }).catch(() => []),
+  ]);
+  const current = await browser.tabs.getCurrent();
+  for (const tab of tabs.filter(tab => tab.id !== current?.id && WEB_URL.test(tab.url || "") && matches(text, tab.title || "", tab.url))
+    .slice(0, 2)) {
+    add({ kind: "tab", url: tab.url, title: tab.title || tab.url, detail: t("newtab_suggestSwitchTab"),
+      run: async () => {
+        await browser.tabs.update(tab.id, { active: true });
+        await browser.windows.update(tab.windowId, { focused: true });
+        if (current) {
+          browser.tabs.remove(current.id); // prázdnou novou kartu po přepnutí zavřít, jako Firefox
+        }
+      } });
+  }
+  for (const bookmark of bookmarks.filter(b => b.url && WEB_URL.test(b.url)).slice(0, 3)) {
+    add({ kind: "bookmark", url: bookmark.url, title: bookmark.title || bookmark.url, detail: hostOf(bookmark.url),
+      run: () => browser.tabs.update({ url: bookmark.url }) });
+  }
+  for (const item of history.filter(h => WEB_URL.test(h.url || ""))
+    .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0))) {
+    if (items.length >= SUGGEST_MAX) {
+      break;
+    }
+    add({ kind: "history", url: item.url, title: item.title || item.url, detail: hostOf(item.url),
+      run: () => browser.tabs.update({ url: item.url }) });
+  }
+  return items.slice(0, SUGGEST_MAX);
+}
+
+const KIND_ICONS = { search: "🔍", alias: "🔍", url: "🌐", tab: "🗂️", bookmark: "⭐", history: "🕘" };
+
+function renderSuggestions(items) {
+  suggestionItems = items;
+  selectedIndex = -1;
+  list.replaceChildren(...items.map((item, index) => {
+    const row = document.createElement("li");
+    row.id = `suggestion-${index}`;
+    row.role = "option";
+    row.className = `suggestion ${item.kind}`;
+    const icon = document.createElement("span");
+    icon.className = "suggestion-icon";
+    // ikony vyhledávačů jsou data: URL z prohlížeče, weby se nenačítají (nic se neodesílá)
+    if (item.icon && /^data:image\//.test(item.icon)) {
+      const img = document.createElement("img");
+      img.src = item.icon;
+      img.alt = "";
+      icon.append(img);
+    } else {
+      icon.textContent = KIND_ICONS[item.kind];
+    }
+    const title = document.createElement("span");
+    title.className = "suggestion-title";
+    title.textContent = item.title;
+    const detail = document.createElement("span");
+    detail.className = "suggestion-detail";
+    detail.textContent = item.detail;
+    row.append(icon, title, detail);
+    row.addEventListener("mousedown", event => event.preventDefault()); // pole nesmí ztratit fokus
+    row.addEventListener("click", () => item.run());
+    row.addEventListener("mousemove", () => select(index));
+    return row;
+  }));
+  const open = items.length > 0;
+  list.hidden = !open;
+  query.setAttribute("aria-expanded", String(open));
+  query.removeAttribute("aria-activedescendant");
+}
+
+function select(index) {
+  selectedIndex = index;
+  for (const [i, row] of [...list.children].entries()) {
+    row.toggleAttribute("aria-selected", i === index);
+  }
+  if (index >= 0) {
+    query.setAttribute("aria-activedescendant", `suggestion-${index}`);
+  } else {
+    query.removeAttribute("aria-activedescendant");
+  }
+}
+
+function closeSuggestions() {
+  renderSuggestions([]);
+}
+
+function updateSuggestions() {
+  clearTimeout(suggestTimer);
+  const text = query.value.trim();
+  if (!text) {
+    closeSuggestions();
+    return;
+  }
+  const run = ++suggestRun;
+  suggestTimer = setTimeout(async () => {
+    const items = await buildSuggestions(text);
+    if (run === suggestRun) { // mezitím se psalo dál
+      renderSuggestions(items);
+    }
+  }, 60);
+}
+
+query.addEventListener("input", updateSuggestions);
+query.addEventListener("focus", updateSuggestions);
+query.addEventListener("blur", () => setTimeout(() => {
+  if (document.activeElement !== query) { // jen opravdu opuštěné pole (klik jinam, Tab)
+    closeSuggestions();
+  }
+}, 100));
+query.addEventListener("keydown", event => {
+  if (list.hidden) {
+    return;
+  }
+  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+    event.preventDefault();
+    // šipkami dokola: −1 = zpět v poli (Enter pak hledá napsaný text)
+    let next = selectedIndex + (event.key === "ArrowDown" ? 1 : -1);
+    if (next >= suggestionItems.length) {
+      next = -1;
+    } else if (next < -1) {
+      next = suggestionItems.length - 1;
+    }
+    select(next);
+  } else if (event.key === "Escape") {
+    event.preventDefault();
+    closeSuggestions();
   }
 });
 

@@ -6,7 +6,7 @@ Nejde odinstalovat, v `about:addons` je vidět jako „Mantis“.
 
 | Soubor | Co dělá |
 |---|---|
-| `newtab/` | nová karta: logo, hodiny a datum, jemné zelené pozadí, vyhledávání (výchozí vyhledávač), nejnavštěvovanější stránky, upozornění na novou verzi, ozubené kolo → Nastavení Mantis |
+| `newtab/` | nová karta: logo, hodiny a datum, jemné zelené pozadí, vyhledávání (výchozí vyhledávač, zkratky `@mapy`…) s **našeptávačem** jako adresní řádek – historie, záložky, otevřené karty, zkratky; jen místně, bez online návrhů (LibreWolf `browser.search.suggest.enabled` = false), nejnavštěvovanější stránky, upozornění na novou verzi, ozubené kolo → Nastavení Mantis |
 | `welcome/` | **uvítací stránka** při prvním spuštění (`runtime.onInstalled` → `install`, počká na první okno) a z Nastavení Mantis: co už funguje, přepínač šifrovaného DNS (výchozí vypnuto), **doporučená rozšíření** – „Přidat“ otevře stránku na addons.mozilla.org, nic se neinstaluje samo (pravidlo Storu 10.1.5); stav přes `mantisPrefs.addonsInstalled` |
 | `settings/` | **Nastavení Mantis** (`options_ui`; z nové karty nebo about:addons): obraz v obraze při přepnutí karty, automatické přehrávání, plynulé rolování, WebGL (Zabezpečení), kill switch VPN, hodiny/pozadí nové karty, zapomenout web, jiný prohlížeč, choulostivé stránky, šifrované DNS, co jde přes VPN, synchronizace, aktualizace |
 | `forget.js` | „Zapomenout web …“ v kontextové nabídce stránky a karty (Firefoxí `ForgetAboutSite` – historie, cookies, cache, data, oprávnění celé domény) |

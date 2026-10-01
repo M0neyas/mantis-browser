@@ -19,7 +19,7 @@
     "proxy",
     "tabs",
     "menus",
-    "history",
+    "history", "bookmarks",
     "sessions",
     "dns",
     "networkStatus",

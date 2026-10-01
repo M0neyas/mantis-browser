@@ -184,6 +184,66 @@ main:has(#clock:not([hidden])) .logo {
   box-shadow: 0 0 0 3px var(--accent-soft), 0 6px 20px rgb(0 0 0 / 0.08);
 }
 
+/* ---------- Našeptávač ---------- */
+
+#suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--field-border);
+  border-radius: 14px;
+  background: var(--field);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.16);
+}
+
+.suggestion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.suggestion[aria-selected] {
+  background: var(--accent-soft);
+}
+
+.suggestion-icon {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: 20px;
+  font-size: 14px;
+}
+
+.suggestion-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.suggestion-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.suggestion-detail {
+  flex: none;
+  max-width: 45%;
+  margin-inline-start: auto;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 /* ---------- Dlaždice ---------- */
 
 #sites {
