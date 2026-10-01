@@ -62,6 +62,14 @@ insert_once after "$NSIS/installer.nsi" "Function SendPingIfApplicable" \
 grep -qF "$MARK odinstalační ping" "$SRC_DIR/$NSIS/uninstaller.nsi" || replace "$NSIS/uninstaller.nsi" \
   '    HttpPostFile::Post $6 "Content-Type: application/json$\r$\n" $5' \
   "    Push \"disabled\" $MARK odinstalační ping Mozille neposíláme"
+# Na konci odinstalace bez zaškrtávátka „Tell Mozilla why you uninstalled …“ (anketa Mozilly v Edgi)
+grep -qF "$MARK bez ankety" "$SRC_DIR/$NSIS/uninstaller.nsi" || replace "$NSIS/uninstaller.nsi" \
+'!define MUI_FINISHPAGE_SHOWREADME
+!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+!define MUI_FINISHPAGE_SHOWREADME_TEXT $(UN_SURVEY_CHECKBOX_LABEL)
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.Survey
+' "$MARK bez ankety Mozilly po odinstalaci
+"
 
 info "Instalátor: VPN pomocník"
 # Ukončí mantis-vpn.exe a wireproxy.exe spuštěné z této instalace (jinak nejdou přepsat/smazat).
