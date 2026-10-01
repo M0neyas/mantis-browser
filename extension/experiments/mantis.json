@@ -139,7 +139,7 @@
         "name": "setGlow",
         "type": "function",
         "async": true,
-        "description": "Neonová záře kolem aktivní karty a adresního řádku: druhá barva přechodu (#rrggbb), prázdný řetězec = vypnuto.",
+        "description": "Neonová záře kolem aktivní karty a adresního řádku: druhá barva přechodu (#rrggbb), \"auto\" = obě barvy podle barvy lišty, prázdný řetězec = vypnuto.",
         "parameters": [{ "name": "color", "type": "string" }]
       }
     ]

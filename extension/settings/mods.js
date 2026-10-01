@@ -153,7 +153,7 @@ $("sound-file").addEventListener("change", async event => {
 
 $("mod-export").addEventListener("click", async () => {
   const config = await browser.storage.local.get({
-    themePreset: "mantis", themeCustom: null, themeAccent: "", themeGlow: false,
+    themePreset: "mantis", themeCustom: null, themeAccent: "", themeGlow: false, themeGlowColors: "background",
     soundPack: "soft", soundVolume: 40, soundCustom: null, newtabWallpaper: "",
   });
   const name = $("mod-name").value.trim().slice(0, 60) || t("settings_modNameDefault");
@@ -162,7 +162,7 @@ $("mod-export").addEventListener("click", async () => {
     version: 1,
     name,
     created: new Date().toISOString().slice(0, 10),
-    theme: { preset: config.themePreset, custom: config.themeCustom, accent: config.themeAccent, glow: config.themeGlow },
+    theme: { preset: config.themePreset, custom: config.themeCustom, accent: config.themeAccent, glow: config.themeGlow, glowColors: config.themeGlowColors },
     sounds: {
       pack: config.soundPack,
       volume: config.soundVolume,
@@ -206,6 +206,9 @@ async function readMod(file) {
   changes.themeAccent = HEX.test(theme.accent || "") ? theme.accent.toLowerCase() : "";
   if (typeof theme.glow === "boolean") {
     changes.themeGlow = theme.glow;
+  }
+  if (["background", "theme"].includes(theme.glowColors)) {
+    changes.themeGlowColors = theme.glowColors;
   }
 
   const sounds = mod.sounds || {};

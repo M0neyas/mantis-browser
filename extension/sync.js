@@ -24,6 +24,7 @@ const SYNC_KEYS = [
   "themePreset", // vzhled (appearance.js); tapeta nové karty jen místně
   "themeAccent",
   "themeGlow", // neonová záře
+  "themeGlowColors",
   "themeCustom", // vlastní motiv (5 barev); vlastní zvuky (soundCustom) jen místně – velké
   "soundPack",
   "soundTyping",

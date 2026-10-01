@@ -3,12 +3,13 @@
 //    + barva zvýraznění (--mb-accent v theme/userChrome.css) přes mantisPrefs.setAccent.
 //    „Kudlanka“ = výchozí vzhled Mantisu (motiv se zruší, zvýraznění zelené).
 //    „Vlastní“ (custom) = pět barev od uživatele (themeCustom), světlý/tmavý podle pozadí.
-//  - Neonová záře (themeGlow): svítící rámeček aktivní karty a adresního řádku, přechod
-//    zvýraznění → glow motivu (mantisPrefs.setGlow, CSS v theme/userChrome.css).
+//  - Neonová záře (themeGlow): svítící rámeček aktivní karty a adresního řádku
+//    (mantisPrefs.setGlow, CSS v theme/userChrome.css). Barvy (themeGlowColors):
+//    "background" = dopočítané z barvy lišty (i motivy z AMO), "theme" = zvýraznění → glow motivu.
 //  - Vlastní barva zvýraznění přebije barvu motivu.
 //  - Zvuky psaní a karet (mantisPrefs.setSounds): sady generované v prohlížeči nebo vlastní
 //    krátké soubory (soundCustom). Co se píše, se nečte.
-// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu), themeCustom, themeGlow,
+// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu), themeCustom, themeGlow, themeGlowColors,
 // soundTyping, soundTabs, soundVolume (0–100), soundPack. Jen místní (velké): tapeta nové karty
 // (newtabWallpaper) a vlastní zvuky (soundCustom { key, open, close } – data: URL).
 // Balíčky .mantis-mod (export/import všeho výše) řeší settings/mods.js.
@@ -17,6 +18,7 @@ const APPEARANCE_DEFAULTS = {
   themePreset: "mantis",
   themeAccent: "",
   themeGlow: false,
+  themeGlowColors: "background",
   soundTyping: false,
   soundTabs: false,
   soundVolume: 40,
@@ -112,7 +114,8 @@ async function appearanceApply() {
   await browser.mantisPrefs.setAccent(accent);
   // vlastní motiv nemá druhou barvu → záře jednobarevná (barvou zvýraznění)
   const glow = config.themePreset === "custom" ? accent : preset?.glow || MANTIS_GLOW;
-  await browser.mantisPrefs.setGlow(config.themeGlow ? glow : "");
+  const glowMode = config.themeGlowColors === "theme" ? glow : "auto";
+  await browser.mantisPrefs.setGlow(config.themeGlow ? glowMode : "");
   await browser.mantisPrefs.setSounds({
     typing: config.soundTyping,
     tabs: config.soundTabs,

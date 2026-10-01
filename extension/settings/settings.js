@@ -67,8 +67,9 @@ showCpuFailed();
 // ---------- Vzhled (logika v ../appearance.js) ----------
 
 async function showTheme() {
-  const { themePreset, themeAccent, themeCustom, themeGlow } =
-    await browser.storage.local.get({ themePreset: "mantis", themeAccent: "", themeCustom: null, themeGlow: false });
+  const { themePreset, themeAccent, themeCustom, themeGlow, themeGlowColors } = await browser.storage.local.get({
+    themePreset: "mantis", themeAccent: "", themeCustom: null, themeGlow: false, themeGlowColors: "background",
+  });
   const presets = await browser.runtime.sendMessage({ themePresets: true });
   const preset = themePreset in presets || themePreset === "custom" ? themePreset : "mantis";
   document.getElementById("theme-preset").value = preset;
@@ -81,6 +82,8 @@ async function showTheme() {
     : (preset === "custom" ? themeCustom?.accent : presets[preset]?.accent) || "#22c55e";
   color.disabled = !custom;
   document.getElementById("theme-glow").checked = themeGlow;
+  document.getElementById("theme-glow-colors").value = themeGlowColors === "theme" ? "theme" : "background";
+  document.getElementById("theme-glow-colors-row").hidden = !themeGlow;
 }
 
 document.getElementById("theme-preset").addEventListener("change", event => {
@@ -91,6 +94,10 @@ document.getElementById("theme-preset").addEventListener("change", event => {
 
 document.getElementById("theme-glow").addEventListener("change", event => {
   browser.storage.local.set({ themeGlow: event.currentTarget.checked });
+});
+
+document.getElementById("theme-glow-colors").addEventListener("change", event => {
+  browser.storage.local.set({ themeGlowColors: event.currentTarget.value });
 });
 
 document.getElementById("theme-accent-custom").addEventListener("change", event => {
@@ -490,7 +497,7 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (changes.perfCpuFailed) {
     showCpuFailed();
   }
-  if (changes.themePreset || changes.themeAccent || changes.themeCustom || changes.themeGlow) {
+  if (changes.themePreset || changes.themeAccent || changes.themeCustom || changes.themeGlow || changes.themeGlowColors) {
     showTheme();
   }
   if (changes.newtabWallpaper) {

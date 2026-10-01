@@ -555,10 +555,109 @@ function setSounds({ typing, tabs, volume, pack, custom }) {
 // Přepíše proměnnou --mb-accent z theme/userChrome.css přímo na oknech prohlížeče (ne
 // stylem pro celou aplikaci – ten by viděly i weby a šla by podle něj poznat barva).
 // Jen barva #rrggbb, prázdná = výchozí zelená. Stejně neonová záře (atribut mantisglow,
-// --mb-glow = druhá barva přechodu), prázdná = vypnuto.
+// --mb-glow = druhá barva přechodu), prázdná = vypnuto, "auto" = obě barvy záře
+// (--mb-glow-start, --mb-glow) dopočítané z barvy lišty – sedí i k motivům z AMO.
 let accentColor = "";
 let glowColor = "";
 let accentListening = false;
+let glowAutoListening = false;
+const DEFAULT_ACCENT = "#22c55e";
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (!d) {
+    return { h: 0, s: 0, l, chroma: 0 };
+  }
+  const s = d / (1 - Math.abs(2 * l - 1));
+  let h = max === r ? (g - b) / d % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h = (h * 60 + 360) % 360;
+  return { h, s, l, chroma: d };
+}
+
+function hslToHex(h, s, l) {
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  return "#" + [0, 8, 4].map(n => Math.round(f(n) * 255).toString(16).padStart(2, "0")).join("");
+}
+
+// Spočítaná barva: rgb()/rgba(), u color-mix() i color(srgb …). InspectorUtils z okna –
+// v sandboxu experimentu nemusí být.
+function parseColor(win, text) {
+  try {
+    const c = win.InspectorUtils.colorToRGBA(text);
+    if (c) {
+      return c;
+    }
+  } catch (e) {}
+  const m = /^rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?\)$/.exec(text || "");
+  if (m) {
+    return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] };
+  }
+  const srgb = /^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)$/.exec(text || "");
+  return srgb ? { r: srgb[1] * 255, g: srgb[2] * 255, b: srgb[3] * 255, a: srgb[4] === undefined ? 1 : +srgb[4] } : null;
+}
+
+// Neon k barvě lišty: stejný odstín, plná sytost, druhá barva o 45° dál (přechod jako
+// růžová → oranžová). Šedá / průhledná lišta nemá odstín → odstín barvy zvýraznění.
+function glowFromBackground(win) {
+  const doc = win.document;
+  let probe = doc.getElementById("mantis-glow-probe");
+  if (!probe) {
+    probe = doc.createElementNS("http://www.w3.org/1999/xhtml", "span");
+    probe.id = "mantis-glow-probe";
+    probe.hidden = true;
+    probe.style.backgroundColor = "var(--toolbar-background-color, var(--toolbar-bgcolor))";
+    probe.style.color = "var(--lwt-accent-color, transparent)";
+    doc.documentElement.append(probe);
+  }
+  const style = win.getComputedStyle(probe);
+  let bg = parseColor(win, style.backgroundColor);
+  if (!bg || bg.a < 0.1) {
+    bg = parseColor(win, style.color); // pozadí okna z motivu
+  }
+  const accent = parseColor(win, accentColor || DEFAULT_ACCENT);
+  const base = bg && bg.a >= 0.1 ? rgbToHsl(bg.r, bg.g, bg.b) : { chroma: 0, l: 0.15 };
+  const hue = base.chroma >= 0.04 ? base.h : rgbToHsl(accent.r, accent.g, accent.b).h;
+  const light = base.l > 0.6; // světlá lišta → tmavší neon, aby byl vidět
+  return [hslToHex(hue, 1, light ? 0.45 : 0.62), hslToHex((hue + 45) % 360, 1, light ? 0.42 : 0.58)];
+}
+
+const glowThemeObserver = {
+  observe() {
+    // nový motiv se do stylů propíše až po překreslení
+    for (const win of Services.wm.getEnumerator("navigator:browser")) {
+      win.requestAnimationFrame(() => accentApply(win));
+    }
+  },
+};
+
+function glowSchemeChanged(event) {
+  const win = event.target.ownerGlobal ?? null;
+  for (const w of Services.wm.getEnumerator("navigator:browser")) {
+    if (!win || w === win) {
+      w.requestAnimationFrame(() => accentApply(w));
+    }
+  }
+}
+
+const glowSchemeQueries = new WeakMap();
+
+function glowWatchScheme(win, on) {
+  let query = glowSchemeQueries.get(win);
+  if (on && !query) {
+    query = win.matchMedia("(prefers-color-scheme: dark)");
+    query.addEventListener("change", glowSchemeChanged);
+    glowSchemeQueries.set(win, query);
+  } else if (!on && query) {
+    query.removeEventListener("change", glowSchemeChanged);
+    glowSchemeQueries.delete(win);
+  }
+}
 
 function accentApply(win) {
   const root = win.document?.documentElement;
@@ -570,12 +669,23 @@ function accentApply(win) {
   } else {
     root.style.removeProperty("--mb-accent");
   }
-  if (glowColor) {
+  glowWatchScheme(win, glowColor === "auto");
+  if (glowColor === "auto") {
+    const [start, end] = glowFromBackground(win);
+    root.style.setProperty("--mb-glow-start", start);
+    root.style.setProperty("--mb-glow", end);
+    root.setAttribute("mantisglow", "true");
+  } else if (glowColor) {
+    root.style.removeProperty("--mb-glow-start");
     root.style.setProperty("--mb-glow", glowColor);
     root.setAttribute("mantisglow", "true");
   } else {
+    root.style.removeProperty("--mb-glow-start");
     root.style.removeProperty("--mb-glow");
     root.removeAttribute("mantisglow");
+  }
+  if (glowColor !== "auto") {
+    win.document.getElementById("mantis-glow-probe")?.remove();
   }
 }
 
@@ -589,7 +699,7 @@ const accentWindowObserver = {
 
 function setAccent(color, glow = glowColor) {
   accentColor = /^#[0-9a-f]{6}$/i.test(color || "") ? color : "";
-  glowColor = /^#[0-9a-f]{6}$/i.test(glow || "") ? glow : "";
+  glowColor = glow === "auto" || /^#[0-9a-f]{6}$/i.test(glow || "") ? glow : "";
   for (const win of Services.wm.getEnumerator("navigator:browser")) {
     accentApply(win);
   }
@@ -600,6 +710,13 @@ function setAccent(color, glow = glowColor) {
   } else if (!needed && accentListening) {
     Services.ww.unregisterNotification(accentWindowObserver);
     accentListening = false;
+  }
+  if (glowColor === "auto" && !glowAutoListening) {
+    Services.obs.addObserver(glowThemeObserver, "lightweight-theme-styling-update");
+    glowAutoListening = true;
+  } else if (glowColor !== "auto" && glowAutoListening) {
+    Services.obs.removeObserver(glowThemeObserver, "lightweight-theme-styling-update");
+    glowAutoListening = false;
   }
 }
 
