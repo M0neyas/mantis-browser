@@ -83,6 +83,34 @@
         "parameters": []
       },
       {
+        "name": "tabStats",
+        "type": "function",
+        "async": true,
+        "description": "Procesy webů s kartami seřazené podle paměti: [{pid, memoryMB, cpuPercent (od minulého volání, null napoprvé), tabIds}].",
+        "parameters": []
+      },
+      {
+        "name": "minimizeMemory",
+        "type": "function",
+        "async": true,
+        "description": "Uvolní paměť jako about:memory → Minimize memory usage. Vrací {beforeMB, afterMB}.",
+        "parameters": []
+      },
+      {
+        "name": "setEcoMode",
+        "type": "function",
+        "async": true,
+        "description": "Úsporný režim: \"off\", \"on\" nebo \"battery\" (jen na baterii). Vrací stav jako ecoState.",
+        "parameters": [{ "name": "mode", "type": "string" }]
+      },
+      {
+        "name": "ecoState",
+        "type": "function",
+        "async": true,
+        "description": "Stav úsporného režimu {mode, active, battery (true = na baterii, null = neznámé)}.",
+        "parameters": []
+      },
+      {
         "name": "setCpuLimit",
         "type": "function",
         "async": true,

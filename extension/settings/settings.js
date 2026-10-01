@@ -41,11 +41,15 @@ browser.storage.local.get(STORE_NUMBER_DEFAULTS).then(values => {
 
 // ---------- Výkon (logika v ../performance.js) ----------
 
+function formatMemory(mb) {
+  return mb >= 1024
+    ? t("settings_perfGB", (mb / 1024).toLocaleString(uiLocale(), { maximumFractionDigits: 1 }))
+    : t("settings_perfMB", mb);
+}
+
 async function showPerfUsage() {
   const stats = await browser.runtime.sendMessage({ perfStats: true });
-  const memory = stats.memoryMB >= 1024
-    ? t("settings_perfGB", (stats.memoryMB / 1024).toLocaleString(uiLocale(), { maximumFractionDigits: 1 }))
-    : t("settings_perfMB", stats.memoryMB);
+  const memory = formatMemory(stats.memoryMB);
   document.getElementById("perf-usage").textContent = stats.cpuPercent === null
     ? t("settings_perfUsageMemory", memory)
     : t("settings_perfUsageValue", memory, stats.cpuPercent);
@@ -55,8 +59,140 @@ showPerfUsage().catch(() => {});
 setInterval(() => {
   if (!document.hidden) {
     showPerfUsage().catch(() => {});
+    showEcoState().catch(() => {});
   }
 }, 2000);
+
+// Uvolnit paměť (jako about:memory → Minimize memory usage)
+document.getElementById("perf-minimize").addEventListener("click", async event => {
+  const button = event.currentTarget;
+  const status = document.getElementById("perf-minimize-status");
+  button.disabled = true;
+  status.textContent = t("settings_minimizeRunning");
+  try {
+    const { beforeMB, afterMB } = await browser.mantisPrefs.minimizeMemory();
+    status.textContent = beforeMB > afterMB
+      ? t("settings_minimizeDone", formatMemory(beforeMB - afterMB))
+      : t("settings_minimizeNothing");
+    showPerfUsage().catch(() => {});
+  } catch (e) {
+    status.textContent = e.message;
+  } finally {
+    button.disabled = false;
+  }
+});
+
+// Žrouti karet: procesy webů podle paměti (karty stejného webu sdílejí proces)
+const HOT_TABS_SHOWN = 8;
+const WEB_URL = /^(https?|file):/;
+
+function hostOf(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "") || url;
+  } catch (e) {
+    return url;
+  }
+}
+
+function hotTabRow({ group, tabs }) {
+  const row = document.createElement("li");
+  row.className = "hot-tab";
+  const text = document.createElement("span");
+  const title = document.createElement("span");
+  title.className = "hot-tab-title";
+  title.textContent = tabs.length > 1
+    ? t("settings_hotTabMore", tabs[0].title || tabs[0].url, tabs.length - 1)
+    : tabs[0].title || tabs[0].url;
+  title.title = tabs.map(tab => tab.title || tab.url).join("\n");
+  const host = document.createElement("span");
+  host.className = "hint";
+  host.textContent = [...new Set(tabs.map(tab => hostOf(tab.url)))].join(", ");
+  text.append(title, host);
+
+  const load = document.createElement("span");
+  load.className = "hot-tab-load";
+  load.textContent = group.cpuPercent === null
+    ? formatMemory(group.memoryMB)
+    : t("settings_hotTabLoad", formatMemory(group.memoryMB),
+      group.cpuPercent.toLocaleString(uiLocale(), { maximumFractionDigits: 1 }));
+
+  const background = tabs.filter(tab => !tab.active);
+  const sleep = document.createElement("button");
+  sleep.type = "button";
+  sleep.className = "secondary";
+  sleep.textContent = t("settings_hotTabSleep");
+  sleep.disabled = !background.length;
+  sleep.title = background.length ? "" : t("settings_hotTabActive");
+  sleep.addEventListener("click", async () => {
+    await browser.tabs.discard(background.map(tab => tab.id));
+    showHotTabs().catch(() => {});
+  });
+
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "secondary";
+  close.textContent = tabs.length > 1 ? t("settings_hotTabCloseCount", tabs.length) : t("settings_hotTabClose");
+  close.addEventListener("click", async () => {
+    await browser.tabs.remove(tabs.map(tab => tab.id));
+    showHotTabs().catch(() => {});
+  });
+
+  row.append(text, load, sleep, close);
+  return row;
+}
+
+async function showHotTabs() {
+  const groups = await browser.mantisPrefs.tabStats();
+  const rows = [];
+  for (const group of groups) {
+    const tabs = (await Promise.all(group.tabIds.map(id => browser.tabs.get(id).catch(() => null))))
+      .filter(tab => tab && WEB_URL.test(tab.url || ""));
+    if (tabs.length) {
+      rows.push({ group, tabs });
+    }
+    if (rows.length >= HOT_TABS_SHOWN) {
+      break;
+    }
+  }
+  document.getElementById("hot-tabs").replaceChildren(...rows.map(hotTabRow));
+  document.getElementById("hot-tabs-empty").hidden = rows.length > 0;
+}
+
+showHotTabs().catch(() => {});
+setInterval(() => {
+  // tlačítko pod kurzorem se nesmí posunout zrovna při kliknutí
+  if (!document.hidden && !document.getElementById("hot-tabs").matches(":hover")) {
+    showHotTabs().catch(() => {});
+  }
+}, 3000);
+
+document.getElementById("sleep-background").addEventListener("click", async () => {
+  const tabs = (await browser.tabs.query({ active: false, discarded: false, pinned: false, audible: false }))
+    .filter(tab => WEB_URL.test(tab.url || "") && !tab.mutedInfo?.muted);
+  if (tabs.length) {
+    await browser.tabs.discard(tabs.map(tab => tab.id));
+  }
+  document.getElementById("sleep-background-status").textContent = t("settings_sleepBackgroundDone", tabs.length);
+  showHotTabs().catch(() => {});
+});
+
+// Úsporný režim (performance.js → mantisPrefs.setEcoMode)
+async function showEcoState() {
+  const state = await browser.mantisPrefs.ecoState();
+  let key = "";
+  if (state.mode === "battery") {
+    key = state.battery === null ? "settings_ecoBatteryUnknown"
+      : state.active ? "settings_ecoBatteryActive" : "settings_ecoBatteryCharging";
+  }
+  document.getElementById("eco-state").textContent = key ? t(key) : "";
+}
+
+browser.storage.local.get({ ecoMode: "off" }).then(({ ecoMode }) => {
+  const select = document.getElementById("eco-mode");
+  select.value = ["on", "battery"].includes(ecoMode) ? ecoMode : "off";
+  select.addEventListener("change", () => browser.storage.local.set({ ecoMode: select.value }));
+  showEcoState().catch(() => {});
+});
 
 async function showCpuFailed() {
   const { perfCpuFailed } = await browser.storage.local.get({ perfCpuFailed: false });

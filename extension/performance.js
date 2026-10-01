@@ -6,8 +6,13 @@
 //  - CPU (experimentální): tvrdý strop pro procesy webů přes Job Object Windows
 //    (mantisPrefs.setCpuLimit). Okno prohlížeče zůstává svižné, omezené weby se zpomalí.
 //  - Síť: rychlost stahování i odesílání přes HTTP(S) (mantisPrefs.setNetworkLimit).
+//  - Před uspáváním kvůli limitu paměti nejdřív úklid paměti (mantisPrefs.minimizeMemory,
+//    jako about:memory), nejvýš jednou za 10 minut.
+//  - Úsporný režim (ecoMode "off" | "on" | "battery"): mantisPrefs.setEcoMode – méně procesů,
+//    max. 60 snímků/s, řidší ukládání relace; uspávání karet po 15 min (tabsleep.js).
+//  - Žrouti karet a tlačítko Uvolnit paměť jsou v Nastavení Mantis (mantisPrefs.tabStats).
 // storage.local, jen tento počítač (každý má jinou paměť a připojení): ramLimit, ramLimitMB,
-// cpuLimit, cpuLimitPercent, netLimit, netLimitKBps; perfCpuFailed = Windows strop odmítly.
+// cpuLimit, cpuLimitPercent, netLimit, netLimitKBps, ecoMode; perfCpuFailed = Windows strop odmítly.
 
 const PERF_DEFAULTS = {
   ramLimit: false,
@@ -16,7 +21,10 @@ const PERF_DEFAULTS = {
   cpuLimitPercent: 50,
   netLimit: false,
   netLimitKBps: 2048,
+  ecoMode: "off",
 };
+const PERF_MINIMIZE_INTERVAL = 10 * 60 * 1000;
+let perfLastMinimize = 0;
 const PERF_RAM_INTERVAL = 15 * 1000;
 let perfRamTimer = null;
 
@@ -27,6 +35,12 @@ async function perfRamCheck() {
   }
   const stats = await browser.mantisPrefs.processStats();
   if (stats.memoryMB <= config.ramLimitMB) {
+    return;
+  }
+  // Napřed uklidit paměť – často stačí a karty zůstanou načtené; výsledek změří další kontrola
+  if (Date.now() - perfLastMinimize > PERF_MINIMIZE_INTERVAL) {
+    perfLastMinimize = Date.now();
+    await browser.mantisPrefs.minimizeMemory();
     return;
   }
   const tabs = await browser.tabs.query({ discarded: false, active: false, pinned: false, audible: false });
@@ -50,6 +64,8 @@ async function perfApply() {
   await browser.storage.local.set({ perfCpuFailed: config.cpuLimit && !cpuOk });
 
   await browser.mantisPrefs.setNetworkLimit(config.netLimit ? config.netLimitKBps : 0);
+
+  await browser.mantisPrefs.setEcoMode(config.ecoMode);
 
   if (config.ramLimit && !perfRamTimer) {
     perfRamTimer = setInterval(() => perfRamCheck().catch(e => console.error("Mantis – limit paměti:", e)),

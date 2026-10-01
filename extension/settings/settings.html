@@ -78,8 +78,37 @@
       <span>
         <b data-i18n="settings_perfUsage"></b>
         <span class="hint" id="perf-usage" role="status" data-i18n="settings_perfMeasuring"></span>
+        <span class="hint" id="perf-minimize-status" role="status"></span>
+      </span>
+      <button type="button" class="secondary" id="perf-minimize" data-i18n="settings_minimize"
+              data-i18n-title="settings_minimizeHint"></button>
+    </div>
+
+    <div class="option column">
+      <span>
+        <b data-i18n="settings_hotTabs"></b>
+        <span class="hint" data-i18n="settings_hotTabsHint"></span>
+      </span>
+      <ol class="hot-tabs" id="hot-tabs"></ol>
+      <span class="hint" id="hot-tabs-empty" hidden data-i18n="settings_hotTabsEmpty"></span>
+      <span class="hot-tabs-actions">
+        <button type="button" class="secondary" id="sleep-background" data-i18n="settings_sleepBackground"></button>
+        <span class="hint" id="sleep-background-status" role="status"></span>
       </span>
     </div>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_eco"></b>
+        <span class="hint" data-i18n="settings_ecoHint"></span>
+        <span class="hint" id="eco-state" role="status"></span>
+      </span>
+      <select id="eco-mode" data-i18n-aria-label="settings_eco">
+        <option value="off" data-i18n="settings_ecoOff"></option>
+        <option value="battery" data-i18n="settings_ecoBattery"></option>
+        <option value="on" data-i18n="settings_ecoOn"></option>
+      </select>
+    </label>
 
     <label class="option">
       <span>

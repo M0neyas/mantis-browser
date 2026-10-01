@@ -171,6 +171,190 @@ async function processStats() {
   };
 }
 
+const delay = ms => new Promise(resolve => {
+  const timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  timer.initWithCallback(() => resolve(), ms, Ci.nsITimer.TYPE_ONE_SHOT);
+});
+
+async function totalMemoryMB() {
+  const info = await ChromeUtils.requestProcInfo();
+  return Math.round([info, ...info.children].reduce((sum, p) => sum + (p.memory || 0), 0) / 1048576);
+}
+
+// Žrouti karet (jako about:processes): paměť a CPU procesů webů a karty, které v nich běží.
+// S Fission má každý web vlastní proces – karty stejného webu ho sdílejí, ukazují se spolu.
+// Rámce z jiných webů (reklamy, vložená videa) běží ve svých procesech a počítají se tam.
+// Uspané karty proces nemají. Anonymní okna jen s povolením rozšíření pro anonymní okna.
+let lastTabSample = new Map(); // pid → { time, cpuNs }
+
+async function tabStats(extension) {
+  if (!cpuCores) {
+    try {
+      cpuCores = (await Services.sysinfo.processInfo).count || 1;
+    } catch (e) {
+      cpuCores = 1;
+    }
+  }
+  const { PrivateBrowsingUtils } = ChromeUtils.importESModule("resource://gre/modules/PrivateBrowsingUtils.sys.mjs");
+  const info = await ChromeUtils.requestProcInfo();
+  const byPid = new Map(info.children.map(p => [p.pid, p]));
+  const groups = new Map();
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    if (!win.gBrowser || (PrivateBrowsingUtils.isWindowPrivate(win) && !extension.privateBrowsingAllowed)) {
+      continue;
+    }
+    for (const tab of win.gBrowser.tabs) {
+      const browser = tab.linkedBrowser;
+      const pid = browser?.browsingContext?.currentWindowGlobal?.osPid || browser?.frameLoader?.remoteTab?.osPid;
+      const proc = byPid.get(pid);
+      if (!proc) {
+        continue;
+      }
+      let group = groups.get(pid);
+      if (!group) {
+        group = { pid, memoryMB: Math.round((proc.memory || 0) / 1048576), cpuNs: proc.cpuTime || 0, tabIds: [] };
+        groups.set(pid, group);
+      }
+      try {
+        group.tabIds.push(extension.tabManager.getWrapper(tab).id);
+      } catch (e) {}
+    }
+  }
+  const now = Date.now();
+  const sample = new Map();
+  const result = [];
+  for (const group of groups.values()) {
+    const last = lastTabSample.get(group.pid);
+    sample.set(group.pid, { time: now, cpuNs: group.cpuNs });
+    let cpuPercent = null;
+    if (last && now > last.time) {
+      const busyMs = (group.cpuNs - last.cpuNs) / 1e6;
+      cpuPercent = Math.round(Math.max(0, Math.min(100, busyMs / (now - last.time) / cpuCores * 100)) * 10) / 10;
+    }
+    if (group.tabIds.length) {
+      result.push({ pid: group.pid, memoryMB: group.memoryMB, cpuPercent, tabIds: group.tabIds });
+    }
+  }
+  lastTabSample = sample;
+  return result.sort((a, b) => b.memoryMB - a.memoryMB);
+}
+
+// Uvolnění paměti jako about:memory → „Minimize memory usage“: úklid JS paměti (GC/CC),
+// zahození mezipaměti obrázků a fontů ve všech procesech. Weby i karty zůstávají.
+let minimizeRunning = null;
+
+function minimizeMemory() {
+  minimizeRunning ??= (async () => {
+    const beforeMB = await totalMemoryMB();
+    Services.obs.notifyObservers(null, "child-mmu-request"); // procesy webů
+    const mgr = Cc["@mozilla.org/memory-reporter-manager;1"].getService(Ci.nsIMemoryReporterManager);
+    await new Promise(resolve => mgr.minimizeMemoryUsage(() => resolve()));
+    await delay(1500); // procesy webů uklízí samy, chvíli to trvá
+    const afterMB = await totalMemoryMB();
+    return { beforeMB, afterMB };
+  })().finally(() => {
+    minimizeRunning = null;
+  });
+  return minimizeRunning;
+}
+
+// Úsporný režim: méně procesů pro weby (méně paměti; platí pro nově otevřené procesy),
+// max. 60 snímků/s (méně práce GPU/CPU na 120–240Hz monitorech) a ukládání relace
+// 1× za minutu místo 15 s. Uspávání karet po 15 min řeší tabsleep.js (ecoState).
+// Režim "battery" = jen na baterii (Battery API okna prohlížeče – skryté okno na Windows
+// není; při zavření okna se přejde na jiné). Počítač bez baterie se hlásí jako nabíjený
+// → úsporný režim se nezapne.
+const ECO_PREFS = {
+  "dom.ipc.processCount": 4,
+  "layout.frame_rate": 60,
+  "browser.sessionstore.interval": 60000,
+};
+const eco = { mode: "off", active: false, battery: null, batteryWin: null, waiting: false };
+
+function ecoSetPrefs(on) {
+  for (const [name, value] of Object.entries(ECO_PREFS)) {
+    if (on) {
+      Services.prefs.setIntPref(name, value);
+    } else if (Services.prefs.prefHasUserValue(name) && Services.prefs.getIntPref(name, 0) === value) {
+      Services.prefs.clearUserPref(name); // jen naše hodnota – vlastní úpravu uživatele nechat
+    }
+  }
+}
+
+const ecoWanted = () => eco.mode === "on" || (eco.mode === "battery" && eco.battery?.charging === false);
+
+function ecoUpdate() {
+  const active = ecoWanted();
+  if (active !== eco.active) {
+    eco.active = active;
+    ecoSetPrefs(active);
+  }
+}
+
+function ecoBatteryWindowClosed() {
+  eco.battery = null; // posluchače zmizí s oknem
+  eco.batteryWin = null;
+  if (eco.mode === "battery") {
+    ecoWatchBattery(true).then(ecoUpdate, () => {});
+  }
+}
+
+// Ještě žádné okno (start prohlížeče) → počkat na první
+const ecoWindowObserver = {
+  observe(subject, topic) {
+    if (topic === "domwindowopened") {
+      subject.addEventListener("load", () => {
+        if (eco.mode === "battery" && !eco.battery) {
+          ecoWatchBattery(true).then(ecoUpdate, () => {});
+        }
+      }, { once: true });
+    }
+  },
+};
+
+async function ecoWatchBattery(on) {
+  if (eco.battery) {
+    eco.battery.removeEventListener("chargingchange", ecoUpdate);
+    eco.batteryWin?.removeEventListener("unload", ecoBatteryWindowClosed);
+    eco.battery = null;
+    eco.batteryWin = null;
+  }
+  const win = on ? [...Services.wm.getEnumerator("navigator:browser")].find(w => !w.closed) : null;
+  if (win) {
+    try {
+      const battery = await win.navigator.getBattery();
+      eco.battery = battery;
+      eco.batteryWin = win;
+      battery.addEventListener("chargingchange", ecoUpdate);
+      win.addEventListener("unload", ecoBatteryWindowClosed, { once: true });
+    } catch (e) {
+      eco.battery = null; // bez Battery API se „jen na baterii“ nikdy nezapne
+    }
+  }
+  const wait = on && !win;
+  if (wait !== eco.waiting) {
+    eco.waiting = wait;
+    if (wait) {
+      Services.ww.registerNotification(ecoWindowObserver);
+    } else {
+      Services.ww.unregisterNotification(ecoWindowObserver);
+    }
+  }
+}
+
+async function setEcoMode(mode) {
+  eco.mode = ["on", "battery"].includes(mode) ? mode : "off";
+  await ecoWatchBattery(eco.mode === "battery");
+  // vždy zapsat/uklidit – po startu mohou v prefs.js zůstat hodnoty z minula
+  eco.active = ecoWanted();
+  ecoSetPrefs(eco.active);
+  return ecoState();
+}
+
+function ecoState() {
+  return { mode: eco.mode, active: eco.active, battery: eco.battery ? !eco.battery.charging : null };
+}
+
 // Omezení CPU: procesy s obsahem webů v Job Objectu Windows s tvrdým stropem
 // (JOB_OBJECT_CPU_RATE_CONTROL_HARD_CAP, procento výkonu celého počítače). Okno prohlížeče,
 // GPU, síť ani dekódování videa se neomezují. Proces z jobu vyjmout nejde – vypnutí jen zruší strop.
@@ -730,6 +914,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { setNetworkLimit(0); } catch (e) {}
     try { setSounds({ typing: false, tabs: false, volume: 0 }); } catch (e) {}
     try { setAccent("", ""); } catch (e) {}
+    try { setEcoMode("off"); } catch (e) {}
   }
 
   getAPI(context) {
@@ -889,6 +1074,22 @@ this.mantisPrefs = class extends ExtensionAPI {
         // Paměť všech procesů Mantisu (MB) a vytížení CPU od minulého volání (% celého počítače)
         async processStats() {
           return processStats();
+        },
+
+        async tabStats() {
+          return tabStats(context.extension);
+        },
+
+        async minimizeMemory() {
+          return minimizeMemory();
+        },
+
+        async setEcoMode(mode) {
+          return setEcoMode(String(mode || ""));
+        },
+
+        async ecoState() {
+          return ecoState();
         },
 
         // Tvrdý strop CPU pro procesy webů, 5–95 % výkonu počítače; 0 = bez omezení

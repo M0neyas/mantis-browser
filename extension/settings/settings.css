@@ -235,6 +235,59 @@ input[type="range"] {
 
 .sound-item > span { flex: 1; }
 
+/* Žrouti karet (Výkon) */
+.hot-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hot-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--field);
+}
+
+.hot-tab > span {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hot-tab-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.hot-tab-load {
+  min-width: 9em;
+  text-align: end;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hot-tab button {
+  padding: 4px 10px;
+  font-size: 12.5px;
+}
+
+.option > .hot-tabs-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
 button.secondary {
   background: var(--field);
   color: var(--fg);

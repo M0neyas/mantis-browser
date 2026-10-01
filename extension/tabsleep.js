@@ -2,10 +2,12 @@
 // se uspí (tabs.discard – uvolní paměť, stránka se po kliknutí znovu načte, formuláře obnoví
 // obnova relace). Neuspávají se: aktivní karty, připnuté (pošta, chat…), přehrávající zvuk,
 // právě načítané a weby z výjimek. Firefox navíc sám uspává karty, když dochází paměť.
+// V úsporném režimu (performance.js) se uspává nejpozději po 15 minutách.
 // storage.local: tabSleep (výchozí zapnuto), tabSleepMinutes (60), tabSleepExceptions [].
 
 const TAB_SLEEP_DEFAULTS = { tabSleep: true, tabSleepMinutes: 60, tabSleepExceptions: [] };
 const TAB_SLEEP_ALARM = "mantis-tab-sleep";
+const TAB_SLEEP_ECO_MINUTES = 15;
 
 function tabSleepExcepted(url, exceptions) {
   try {
@@ -21,7 +23,11 @@ async function sleepIdleTabs() {
   if (!config.tabSleep) {
     return;
   }
-  const limit = Date.now() - Math.max(5, Number(config.tabSleepMinutes) || 60) * 60 * 1000;
+  let minutes = Math.max(5, Number(config.tabSleepMinutes) || 60);
+  if ((await browser.mantisPrefs.ecoState()).active) {
+    minutes = Math.min(minutes, TAB_SLEEP_ECO_MINUTES);
+  }
+  const limit = Date.now() - minutes * 60 * 1000;
   const tabs = await browser.tabs.query({ discarded: false, active: false, pinned: false, audible: false, status: "complete" });
   const idle = tabs.filter(tab =>
     tab.lastAccessed < limit &&
