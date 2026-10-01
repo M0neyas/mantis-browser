@@ -226,9 +226,11 @@
 /* ---------- Sbalený adresní řádek (jen jednořádkové rozložení) ----------
  * Pref mantis.urlbar.compact (Nastavení Mantis → Vzhled, výchozí zapnuto v settings/mantis.cfg):
  * adresní řádek je jen ikona lupy a karty mají víc místa. Najetím myší, kliknutím nebo
- * zkratkou (Ctrl+L, Alt+D, F6) se rozbalí PŘES karty – Firefox adresní řádek i tak
- * vykresluje nad lištou (breakout, position: absolute), takže se lišta nehýbe.
- * Na nové kartě je adresní řádek aktivní, takže je rozbalený. */
+ * zkratkou (Ctrl+L, Alt+D, F6) se rozšíří celé místo pro adresní řádek a karty na tu
+ * chvíli ustoupí doprava. Na nové kartě je adresní řádek aktivní, takže je rozbalený.
+ * Firefox 157 adresní řádek už nevykresluje jako plovoucí vrstvu přes lištu (breakout
+ * zrušen, .urlbar má flex: 1) – šířka #urlbar se proto ignoruje, roste #urlbar-container.
+ * Ve Firefoxu 156 (breakout) šířku #urlbar podle kontejneru dopočítá Firefox sám. */
 
 @media (min-width: 900px) {
   @media -moz-pref("mantis.urlbar.compact") {
@@ -246,32 +248,37 @@
       flex: 0 0 var(--mb-urlbar-collapsed) !important;
       width: var(--mb-urlbar-collapsed) !important;
       min-width: var(--mb-urlbar-collapsed) !important;
-    }
-
-    :root:not([customizing]) #urlbar {
-      transition: width var(--mb-ease) !important;
+      transition: flex-basis var(--mb-ease), width var(--mb-ease), min-width var(--mb-ease) !important;
     }
 
     /* Rozbalený: při najetí, s kurzorem v poli nebo s otevřeným našeptávačem */
-    :root:not([customizing]) #urlbar:is(:hover, [focused], [open]) {
+    :root:not([customizing]) #urlbar-container:is(:hover, :has(#urlbar:is([focused], [open]))) {
+      flex-basis: var(--mb-urlbar-expanded) !important;
+      width: var(--mb-urlbar-expanded) !important;
+      min-width: var(--mb-urlbar-expanded) !important;
+    }
+
+    /* Firefox 156: plovoucí #urlbar by šířku z kontejneru převzal až se zpožděním (ResizeObserver).
+     * Ve Firefoxu 157 se šířka ignoruje (.urlbar má flex: 1). */
+    :root:not([customizing]) #urlbar-container:is(:hover, :has(#urlbar:is([focused], [open]))) #urlbar {
       width: var(--mb-urlbar-expanded) !important;
     }
 
-    /* Rozbalený leží přes karty → neprůhledné pozadí a stín (jinak prosvítají názvy karet).
+    /* Rozbalený: neprůhledné pozadí a stín (ve Firefoxu 156 leží přes karty, jinak by prosvítaly).
      * Firefox 156 proměnné přejmenoval (--toolbar-field-background-color-focus místo
      * --toolbar-field-focus-background-color, --toolbar-background-color místo --toolbar-bgcolor) */
-    :root:not([customizing]) #urlbar:is(:hover, [focused], [open]) :is(.urlbar-background, #urlbar-background) {
+    :root:not([customizing]) #urlbar-container:is(:hover, :has(#urlbar:is([focused], [open]))) :is(.urlbar-background, #urlbar-background) {
       background-color: var(--toolbar-field-background-color-focus, var(--toolbar-field-focus-background-color, Field)) !important;
       border-radius: var(--mb-radius) !important;
       box-shadow: 0 6px 20px rgb(0 0 0 / 0.3) !important;
     }
 
     /* Sbalený: místo obsahu jen lupa */
-    :root:not([customizing]) #urlbar:not(:hover, [focused], [open]) :is(.urlbar-input-container, #urlbar-input-container) {
+    :root:not([customizing]) #urlbar-container:not(:hover, :has(#urlbar:is([focused], [open]))) :is(.urlbar-input-container, #urlbar-input-container) {
       visibility: hidden !important;
     }
 
-    :root:not([customizing]) #urlbar:not(:hover, [focused], [open]) :is(.urlbar-background, #urlbar-background) {
+    :root:not([customizing]) #urlbar-container:not(:hover, :has(#urlbar:is([focused], [open]))) :is(.urlbar-background, #urlbar-background) {
       background: var(--mb-field) url("chrome://global/skin/icons/search-glass.svg") center / 16px no-repeat !important;
       -moz-context-properties: fill;
       fill: currentColor;
@@ -295,9 +302,13 @@
 
 :root[mantisglow] .tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background,
 :root[mantisglow] #urlbar:is([focused], [open]) :is(.urlbar-background, #urlbar-background) {
-  position: relative;
   box-shadow: var(--mb-glow-shadow) !important;
   outline: none !important;
+}
+
+/* Pozadí adresního řádku je samo position: absolute – ::after se vztahuje k němu */
+:root[mantisglow] .tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background {
+  position: relative;
 }
 
 :root[mantisglow] .tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background::after,
