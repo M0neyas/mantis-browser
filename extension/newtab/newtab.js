@@ -69,7 +69,13 @@ let suggestRun = 0;
 let enginesCache = null;
 
 async function getEngines() {
-  enginesCache ??= await browser.search.get().catch(() => []);
+  if (!enginesCache) {
+    const [engines, aliases] = await Promise.all([
+      browser.search.get().catch(() => []),
+      browser.mantisPrefs.searchAliases().catch(() => ({})),
+    ]);
+    enginesCache = engines.map(e => ({ ...e, alias: e.alias || aliases[e.name] }));
+  }
   return enginesCache;
 }
 

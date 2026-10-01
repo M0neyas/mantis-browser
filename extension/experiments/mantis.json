@@ -35,6 +35,13 @@
         "parameters": []
       },
       {
+        "name": "searchAliases",
+        "type": "function",
+        "async": true,
+        "description": "Zkratky viditelných vyhledávačů: { název: \"@zkratka\" }.",
+        "parameters": []
+      },
+      {
         "name": "addonsInstalled",
         "type": "function",
         "async": true,

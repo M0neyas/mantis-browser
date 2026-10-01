@@ -634,7 +634,7 @@ async function soundPlay(win, kind) {
   try {
     const ctx = (state.ctx ||= new win.AudioContext());
     if (ctx.state === "suspended") {
-      ctx.resume();
+      ctx.resume().catch(() => {});
     }
     const out = ctx.createGain();
     out.gain.value = sounds.volume;
@@ -700,7 +700,7 @@ function soundDetach(win) {
   win.removeEventListener("keydown", state.onKey, { capture: true, mozSystemGroup: true });
   win.gBrowser?.tabContainer.removeEventListener("TabOpen", state.onTabOpen);
   win.gBrowser?.tabContainer.removeEventListener("TabClose", state.onTabClose);
-  state.ctx?.close();
+  state.ctx?.close().catch(() => {}); // zavření před dokončeným resume() je v pořádku
   sounds.windows.delete(win);
 }
 
@@ -982,6 +982,15 @@ this.mantisPrefs = class extends ExtensionAPI {
 
         async isPackaged() {
           return isPackaged();
+        },
+
+        // Zkratky vyhledávačů (@mapy…) – search.get() je u vyhledávačů z policies.json
+        // nevrací (Firefox je drží v aliases, ne v alias). Jen název → první zkratka.
+        async searchAliases() {
+          const { SearchService } = ChromeUtils.importESModule("moz-src:///toolkit/components/search/SearchService.sys.mjs");
+          await SearchService.promiseInitialized;
+          const engines = await SearchService.getVisibleEngines();
+          return Object.fromEntries(engines.filter(e => e.aliases.length).map(e => [e.name, e.aliases[0]]));
         },
 
         // Které z doporučených doplňků (uvítací stránka) jsou nainstalované –
