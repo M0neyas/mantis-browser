@@ -8,6 +8,7 @@
   "common_settingsEllipsis": {"message": "Nastavení…"},
   "common_failed": {"message": "Nepodařilo se: $1"},
   "common_installing": {"message": "Stahuji a ověřuji instalátor…"},
+  "update_storeManaged": {"message": "Tuto verzi aktualizuje Microsoft Store."},
   "update_notifyTitle": {"message": "Je tu nový Mantis Browser $1"},
   "update_notifyInstallable": {"message": "Obsahuje bezpečnostní opravy. Klikněte a Mantis instalátor stáhne, ověří a spustí – záložky i hesla zůstanou."},
   "update_notifyDownload": {"message": "Obsahuje bezpečnostní opravy. Klikněte pro stažení – instalátor stačí spustit přes současnou verzi, záložky i hesla zůstanou."},

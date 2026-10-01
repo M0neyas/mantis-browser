@@ -87,7 +87,8 @@ async function renderSites() {
 
 async function renderUpdate() {
   const { update } = await browser.storage.local.get("update");
-  if (update) {
+  // Verzi z Microsoft Store aktualizuje Store (proužek by mohl zůstat z doby před instalací)
+  if (update && !(await browser.mantisPrefs.isPackaged())) {
     const el = document.getElementById("update");
     const latest = versionLabel(update.version, update.release);
     const current = versionLabel(MANTIS_LW_VERSION, MANTIS_RELEASE);

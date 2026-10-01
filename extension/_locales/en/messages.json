@@ -8,6 +8,7 @@
   "common_settingsEllipsis": {"message": "Settings…"},
   "common_failed": {"message": "Failed: $1"},
   "common_installing": {"message": "Downloading and verifying the installer…"},
+  "update_storeManaged": {"message": "This version is updated by the Microsoft Store."},
   "update_notifyTitle": {"message": "Mantis Browser $1 is available"},
   "update_notifyInstallable": {"message": "It includes security fixes. Click and Mantis will download, verify and run the installer – your bookmarks and passwords stay."},
   "update_notifyDownload": {"message": "It includes security fixes. Click to download – just run the installer over your current version; your bookmarks and passwords stay."},

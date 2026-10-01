@@ -651,7 +651,8 @@ document.getElementById("open-vpn").addEventListener("click", () => {
   browser.tabs.create({ url: browser.runtime.getURL("vpn/popup.html?tab=1") });
 });
 
-browser.storage.local.get("update").then(({ update }) => {
+Promise.all([browser.storage.local.get("update"), browser.mantisPrefs.isPackaged()]).then(([{ update: stored }, packaged]) => {
+  const update = packaged ? null : stored; // Store: aktualizace řeší Store, viz níže
   const release = Number.parseInt(MANTIS_RELEASE, 10) || 1;
   const base = !/^\d/.test(MANTIS_LW_VERSION)
     ? t("settings_versionDev")

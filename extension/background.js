@@ -194,6 +194,9 @@ function waitForDownload(id) {
 }
 
 async function installUpdate() {
+  if (await browser.mantisPrefs.isPackaged()) {
+    return { error: t("update_storeManaged") }; // vlastní instalátor by vedle dal druhou kopii
+  }
   const { update } = await browser.storage.local.get("update");
   if (!update?.installable) {
     browser.tabs.create({ url: DOWNLOAD_PAGE });

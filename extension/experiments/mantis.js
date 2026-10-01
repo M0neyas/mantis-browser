@@ -105,9 +105,16 @@ function findBrowsers() {
 }
 
 // Běží z balíčku MSIX (Microsoft Store)? Stejná kontrola jako ShellService.sys.mjs.
+// Verze z Microsoft Store (MSIX). Vlastnost hasWinPackageId nemusí v nsSystemInfo být
+// (Firefox ji sám čte s výchozí hodnotou) – pojistka: Store instaluje do …\WindowsApps\.
 function isPackaged() {
   try {
-    return Services.sysinfo.getProperty("hasWinPackageId");
+    if (Services.sysinfo.getProperty("hasWinPackageId", false)) {
+      return true;
+    }
+  } catch (e) {}
+  try {
+    return /\\WindowsApps\\/i.test(Services.dirsvc.get("XREExeF", Ci.nsIFile).path);
   } catch (e) {
     return false;
   }
