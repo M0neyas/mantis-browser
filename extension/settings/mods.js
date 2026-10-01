@@ -11,7 +11,7 @@
 // kromě pixelů). Žádný kód ani CSS – mod nemůže nic spustit. Přepínače zvuků mod nezapíná.
 
 const HEX = /^#[0-9a-f]{6}$/i;
-const THEME_IDS = ["mantis", "night", "neon", "ocean", "violet", "sunset", "day", "custom"];
+const THEME_IDS = ["mantis", "night", "neon", "synthwave", "ocean", "violet", "sunset", "day", "custom"];
 const PACK_IDS = ["soft", "keyboard", "typewriter", "bubbles", "custom"];
 const COLOR_KEYS = ["frame", "toolbar", "text", "field", "accent"];
 const SOUND_KINDS = ["key", "open", "close"];
@@ -153,7 +153,7 @@ $("sound-file").addEventListener("change", async event => {
 
 $("mod-export").addEventListener("click", async () => {
   const config = await browser.storage.local.get({
-    themePreset: "mantis", themeCustom: null, themeAccent: "",
+    themePreset: "mantis", themeCustom: null, themeAccent: "", themeGlow: false,
     soundPack: "soft", soundVolume: 40, soundCustom: null, newtabWallpaper: "",
   });
   const name = $("mod-name").value.trim().slice(0, 60) || t("settings_modNameDefault");
@@ -162,7 +162,7 @@ $("mod-export").addEventListener("click", async () => {
     version: 1,
     name,
     created: new Date().toISOString().slice(0, 10),
-    theme: { preset: config.themePreset, custom: config.themeCustom, accent: config.themeAccent },
+    theme: { preset: config.themePreset, custom: config.themeCustom, accent: config.themeAccent, glow: config.themeGlow },
     sounds: {
       pack: config.soundPack,
       volume: config.soundVolume,
@@ -204,6 +204,9 @@ async function readMod(file) {
     delete changes.themePreset; // vlastní motiv bez platných barev → motiv nechat
   }
   changes.themeAccent = HEX.test(theme.accent || "") ? theme.accent.toLowerCase() : "";
+  if (typeof theme.glow === "boolean") {
+    changes.themeGlow = theme.glow;
+  }
 
   const sounds = mod.sounds || {};
   if (PACK_IDS.includes(sounds.pack)) {

@@ -67,8 +67,8 @@ showCpuFailed();
 // ---------- Vzhled (logika v ../appearance.js) ----------
 
 async function showTheme() {
-  const { themePreset, themeAccent, themeCustom } =
-    await browser.storage.local.get({ themePreset: "mantis", themeAccent: "", themeCustom: null });
+  const { themePreset, themeAccent, themeCustom, themeGlow } =
+    await browser.storage.local.get({ themePreset: "mantis", themeAccent: "", themeCustom: null, themeGlow: false });
   const presets = await browser.runtime.sendMessage({ themePresets: true });
   const preset = themePreset in presets || themePreset === "custom" ? themePreset : "mantis";
   document.getElementById("theme-preset").value = preset;
@@ -80,10 +80,17 @@ async function showTheme() {
     ? themeAccent
     : (preset === "custom" ? themeCustom?.accent : presets[preset]?.accent) || "#22c55e";
   color.disabled = !custom;
+  document.getElementById("theme-glow").checked = themeGlow;
 }
 
 document.getElementById("theme-preset").addEventListener("change", event => {
-  browser.storage.local.set({ themePreset: event.currentTarget.value });
+  const themePreset = event.currentTarget.value;
+  // Synthwave bez záře nedává smysl → zapne ji (vypnout jde zvlášť)
+  browser.storage.local.set(themePreset === "synthwave" ? { themePreset, themeGlow: true } : { themePreset });
+});
+
+document.getElementById("theme-glow").addEventListener("change", event => {
+  browser.storage.local.set({ themeGlow: event.currentTarget.checked });
 });
 
 document.getElementById("theme-accent-custom").addEventListener("change", event => {
@@ -483,7 +490,7 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (changes.perfCpuFailed) {
     showCpuFailed();
   }
-  if (changes.themePreset || changes.themeAccent || changes.themeCustom) {
+  if (changes.themePreset || changes.themeAccent || changes.themeCustom || changes.themeGlow) {
     showTheme();
   }
   if (changes.newtabWallpaper) {

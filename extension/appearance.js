@@ -3,10 +3,12 @@
 //    + barva zvýraznění (--mb-accent v theme/userChrome.css) přes mantisPrefs.setAccent.
 //    „Kudlanka“ = výchozí vzhled Mantisu (motiv se zruší, zvýraznění zelené).
 //    „Vlastní“ (custom) = pět barev od uživatele (themeCustom), světlý/tmavý podle pozadí.
+//  - Neonová záře (themeGlow): svítící rámeček aktivní karty a adresního řádku, přechod
+//    zvýraznění → glow motivu (mantisPrefs.setGlow, CSS v theme/userChrome.css).
 //  - Vlastní barva zvýraznění přebije barvu motivu.
 //  - Zvuky psaní a karet (mantisPrefs.setSounds): sady generované v prohlížeči nebo vlastní
 //    krátké soubory (soundCustom). Co se píše, se nečte.
-// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu), themeCustom,
+// storage.local (synchronizuje se): themePreset, themeAccent ("" = podle motivu), themeCustom, themeGlow,
 // soundTyping, soundTabs, soundVolume (0–100), soundPack. Jen místní (velké): tapeta nové karty
 // (newtabWallpaper) a vlastní zvuky (soundCustom { key, open, close } – data: URL).
 // Balíčky .mantis-mod (export/import všeho výše) řeší settings/mods.js.
@@ -14,6 +16,7 @@
 const APPEARANCE_DEFAULTS = {
   themePreset: "mantis",
   themeAccent: "",
+  themeGlow: false,
   soundTyping: false,
   soundTabs: false,
   soundVolume: 40,
@@ -35,16 +38,20 @@ function customPreset(custom) {
   return { ...Object.fromEntries(keys.map(key => [key, custom[key]])), scheme: light ? "light" : "dark" };
 }
 
-// frame = pozadí okna a karet, toolbar = lišty a vybraná karta, text, field = adresní řádek
+// frame = pozadí okna a karet, toolbar = lišty a vybraná karta, text, field = adresní řádek,
+// glow = druhá barva neonové záře (přechod od accent)
 const THEME_PRESETS = {
   mantis: null,
-  night: { scheme: "dark", frame: "#101214", toolbar: "#181b1f", text: "#e8eaed", field: "#23272c", accent: "#22c55e" },
-  neon: { scheme: "dark", frame: "#0e0a12", toolbar: "#1a1220", text: "#f6e9f1", field: "#2a1a31", accent: "#ff2e63" },
-  ocean: { scheme: "dark", frame: "#0a1624", toolbar: "#0f2135", text: "#e2f1ff", field: "#16304b", accent: "#38bdf8" },
-  violet: { scheme: "dark", frame: "#130e20", toolbar: "#1e1631", text: "#efe9ff", field: "#2b2046", accent: "#a78bfa" },
-  sunset: { scheme: "dark", frame: "#1a0f0a", toolbar: "#261710", text: "#fff0e6", field: "#3a2317", accent: "#fb923c" },
-  day: { scheme: "light", frame: "#e9eee9", toolbar: "#f7faf7", text: "#15261b", field: "#ffffff", accent: "#16a34a" },
+  night: { scheme: "dark", frame: "#101214", toolbar: "#181b1f", text: "#e8eaed", field: "#23272c", accent: "#22c55e", glow: "#38bdf8" },
+  neon: { scheme: "dark", frame: "#0e0a12", toolbar: "#1a1220", text: "#f6e9f1", field: "#2a1a31", accent: "#ff2e63", glow: "#ff9f1c" },
+  synthwave: { scheme: "dark", frame: "#1a0b2e", toolbar: "#2a1145", text: "#ffe8fb", field: "#241040", accent: "#ff3fa4", glow: "#22d3ee" },
+  ocean: { scheme: "dark", frame: "#0a1624", toolbar: "#0f2135", text: "#e2f1ff", field: "#16304b", accent: "#38bdf8", glow: "#2dd4bf" },
+  violet: { scheme: "dark", frame: "#130e20", toolbar: "#1e1631", text: "#efe9ff", field: "#2b2046", accent: "#a78bfa", glow: "#f472b6" },
+  sunset: { scheme: "dark", frame: "#1a0f0a", toolbar: "#261710", text: "#fff0e6", field: "#3a2317", accent: "#fb923c", glow: "#f43f5e" },
+  day: { scheme: "light", frame: "#e9eee9", toolbar: "#f7faf7", text: "#15261b", field: "#ffffff", accent: "#16a34a", glow: "#0ea5e9" },
 };
+// Kudlanka (bez motivu): zelená → limetková
+const MANTIS_GLOW = "#a3e635";
 
 function themeFromPreset(p) {
   // průhledná varianta barvy textu (rámečky, najetí myší) – rgba(), ne color-mix(): Firefox
@@ -103,6 +110,9 @@ async function appearanceApply() {
   }
   const accent = HEX.test(config.themeAccent) ? config.themeAccent : preset?.accent || "";
   await browser.mantisPrefs.setAccent(accent);
+  // vlastní motiv nemá druhou barvu → záře jednobarevná (barvou zvýraznění)
+  const glow = config.themePreset === "custom" ? accent : preset?.glow || MANTIS_GLOW;
+  await browser.mantisPrefs.setGlow(config.themeGlow ? glow : "");
   await browser.mantisPrefs.setSounds({
     typing: config.soundTyping,
     tabs: config.soundTabs,

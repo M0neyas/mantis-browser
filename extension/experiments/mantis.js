@@ -554,8 +554,10 @@ function setSounds({ typing, tabs, volume, pack, custom }) {
 // ---------- Vzhledy: barva zvýraznění (themes.js) ----------
 // Přepíše proměnnou --mb-accent z theme/userChrome.css přímo na oknech prohlížeče (ne
 // stylem pro celou aplikaci – ten by viděly i weby a šla by podle něj poznat barva).
-// Jen barva #rrggbb, prázdná = výchozí zelená.
+// Jen barva #rrggbb, prázdná = výchozí zelená. Stejně neonová záře (atribut mantisglow,
+// --mb-glow = druhá barva přechodu), prázdná = vypnuto.
 let accentColor = "";
+let glowColor = "";
 let accentListening = false;
 
 function accentApply(win) {
@@ -568,6 +570,13 @@ function accentApply(win) {
   } else {
     root.style.removeProperty("--mb-accent");
   }
+  if (glowColor) {
+    root.style.setProperty("--mb-glow", glowColor);
+    root.setAttribute("mantisglow", "true");
+  } else {
+    root.style.removeProperty("--mb-glow");
+    root.removeAttribute("mantisglow");
+  }
 }
 
 const accentWindowObserver = {
@@ -578,15 +587,17 @@ const accentWindowObserver = {
   },
 };
 
-function setAccent(color) {
+function setAccent(color, glow = glowColor) {
   accentColor = /^#[0-9a-f]{6}$/i.test(color || "") ? color : "";
+  glowColor = /^#[0-9a-f]{6}$/i.test(glow || "") ? glow : "";
   for (const win of Services.wm.getEnumerator("navigator:browser")) {
     accentApply(win);
   }
-  if (accentColor && !accentListening) {
+  const needed = !!(accentColor || glowColor);
+  if (needed && !accentListening) {
     Services.ww.registerNotification(accentWindowObserver);
     accentListening = true;
-  } else if (!accentColor && accentListening) {
+  } else if (!needed && accentListening) {
     Services.ww.unregisterNotification(accentWindowObserver);
     accentListening = false;
   }
@@ -601,7 +612,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { cpuShutdown(); } catch (e) {}
     try { setNetworkLimit(0); } catch (e) {}
     try { setSounds({ typing: false, tabs: false, volume: 0 }); } catch (e) {}
-    try { setAccent(""); } catch (e) {}
+    try { setAccent("", ""); } catch (e) {}
   }
 
   getAPI(context) {
@@ -796,6 +807,10 @@ this.mantisPrefs = class extends ExtensionAPI {
         // Barva zvýraznění #rrggbb, "" = výchozí zelená
         async setAccent(color) {
           setAccent(String(color || ""));
+        },
+
+        async setGlow(color) {
+          setAccent(accentColor, String(color || ""));
         },
       },
     };

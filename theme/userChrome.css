@@ -280,6 +280,44 @@
   }
 }
 
+/* ---------- Neonová záře (Nastavení Mantis → Vzhled) ----------
+ * Atribut mantisglow a proměnnou --mb-glow (druhá barva přechodu) nastavuje rozšíření
+ * (mantisPrefs.setGlow) jen na oknech prohlížeče. Aktivní karta a rozbalený adresní řádek
+ * dostanou svítící rámeček s přechodem --mb-accent → --mb-glow. Rámeček kreslí ::after
+ * s maskou (přechod jako border-image nejde zaoblit). */
+
+:root[mantisglow] {
+  --mb-glow-gradient: linear-gradient(90deg, var(--mb-accent), var(--mb-glow, var(--mb-accent)));
+  --mb-glow-shadow:
+    0 0 6px color-mix(in srgb, var(--mb-accent) 55%, transparent),
+    0 0 14px color-mix(in srgb, var(--mb-glow, var(--mb-accent)) 35%, transparent);
+}
+
+:root[mantisglow] .tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background,
+:root[mantisglow] #urlbar:is([focused], [open]) :is(.urlbar-background, #urlbar-background) {
+  position: relative;
+  box-shadow: var(--mb-glow-shadow) !important;
+  outline: none !important;
+}
+
+:root[mantisglow] .tabbrowser-tab:is([selected], [visuallyselected], [multiselected]) .tab-background::after,
+:root[mantisglow] #urlbar:is([focused], [open]) :is(.urlbar-background, #urlbar-background)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: var(--mb-glow-gradient);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Najetí myší na ostatní karty: jen slabý nádech barvy */
+:root[mantisglow] .tabbrowser-tab:not([selected], [visuallyselected], [multiselected]):hover .tab-background {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mb-accent) 35%, transparent) !important;
+}
+
 /* ---------- Tlačítka na liště ---------- */
 
 .toolbarbutton-1 {

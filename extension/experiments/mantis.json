@@ -134,6 +134,13 @@
         "async": true,
         "description": "Barva zvýraznění oken prohlížeče (#rrggbb), prázdný řetězec = výchozí zelená.",
         "parameters": [{ "name": "color", "type": "string" }]
+      },
+      {
+        "name": "setGlow",
+        "type": "function",
+        "async": true,
+        "description": "Neonová záře kolem aktivní karty a adresního řádku: druhá barva přechodu (#rrggbb), prázdný řetězec = vypnuto.",
+        "parameters": [{ "name": "color", "type": "string" }]
       }
     ]
   }
