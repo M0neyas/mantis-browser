@@ -194,7 +194,7 @@
   "settings_sensitiveNote": {"message": "Pozor: otevřené karty se po restartu obnoví i s historií tlačítka Zpět a cookies (přihlášení) se ukládají dál. Pro úplné soukromí použijte anonymní okno nebo pravý klik → <i>Zapomenout web</i>."},
   "settings_extensions": {"message": "Rozšíření"},
   "settings_recommended": {"message": "Doporučená rozšíření"},
-  "settings_recommendedHint": {"message": "Bitwarden, kontejnery karet, český slovník, Consent-O-Matic, Dark Reader, YouTube Windowed FullScreen a TTV LOL PRO – nic se neinstaluje samo, stránka je nabídne k přidání jedním kliknutím."},
+  "settings_recommendedHint": {"message": "Bitwarden, kontejnery karet, český slovník, Consent-O-Matic, Dark Reader, Hlídač shopů, YouTube Windowed FullScreen a TTV LOL PRO – nic se neinstaluje samo, stránka je nabídne k přidání jedním kliknutím."},
   "settings_updates": {"message": "Aktualizace"},
   "settings_updatesMantis": {"message": "Nové verze Mantis Browseru"},
   "settings_updatesMantisHint": {"message": "Jednou denně se podívá na moneyas.cz; když vyjde nová verze, ukáže upozornění a odkaz ke stažení na nové kartě."},
