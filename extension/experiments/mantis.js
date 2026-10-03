@@ -911,6 +911,113 @@ function setAccent(color, glow = glowColor) {
   }
 }
 
+// ---------- Hlasitost karty (mixér) ----------
+// BrowsingContext.mediaVolume z patches/tab-volume.patch (0–2): Gecko ztiší/zesílí video, audio
+// i Web Audio celé karty, web nic nevidí. Panel s posuvníky je v okně prohlížeče (ne na webu).
+
+const VOLUME_PANEL_ID = "mantis-volume-panel";
+const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+function tabVolumeOf(tab) {
+  const bc = tab?.linkedBrowser?.browsingContext;
+  return bc && typeof bc.mediaVolume === "number" ? bc.mediaVolume : null;
+}
+
+function setNativeTabVolume(tab, percent) {
+  const bc = tab?.linkedBrowser?.browsingContext;
+  if (!bc || typeof bc.mediaVolume !== "number") {
+    return false;
+  }
+  const value = Number.isFinite(percent) ? Math.min(200, Math.max(0, Math.round(percent))) : 100;
+  bc.mediaVolume = value / 100;
+  return true;
+}
+
+function volumeRow(doc, tab, localize) {
+  const row = doc.createElementNS(HTML_NS, "div");
+  row.style.cssText = "display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; align-items: center; gap: 4px 8px;";
+  const icon = doc.createElementNS(HTML_NS, "img");
+  icon.style.cssText = "width: 16px; height: 16px;";
+  const image = tab.getAttribute("image");
+  if (image) {
+    icon.src = image;
+  }
+  const title = doc.createElementNS(HTML_NS, "span");
+  title.textContent = tab.label;
+  title.style.cssText = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
+  const value = doc.createElementNS(HTML_NS, "button");
+  value.title = localize("volume_reset");
+  value.style.cssText = "min-width: 4.5em; margin: 0; padding: 2px 6px; border: none; border-radius: 4px; background: transparent; color: inherit; font: inherit; font-variant-numeric: tabular-nums; text-align: end; cursor: pointer;";
+  const slider = doc.createElementNS(HTML_NS, "input");
+  slider.type = "range";
+  slider.min = "0";
+  slider.max = "200";
+  slider.step = "5";
+  slider.setAttribute("aria-label", tab.label);
+  slider.style.cssText = "grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--mb-accent, AccentColor);";
+  const show = percent => {
+    slider.value = String(percent);
+    value.textContent = localize("volume_level", [String(percent)]);
+    value.style.color = percent > 100 ? "var(--mb-accent, AccentColor)" : "inherit";
+  };
+  show(Math.round((tabVolumeOf(tab) ?? 1) * 100));
+  slider.addEventListener("input", () => {
+    setNativeTabVolume(tab, Number(slider.value));
+    show(Number(slider.value));
+  });
+  value.addEventListener("click", () => {
+    setNativeTabVolume(tab, 100);
+    show(100);
+  });
+  row.append(icon, title, value, slider);
+  return { row, slider };
+}
+
+function showTabVolume(tab, localize) {
+  const win = tab.ownerDocument.defaultView;
+  const doc = win.document;
+  let panel = doc.getElementById(VOLUME_PANEL_ID);
+  if (!panel) {
+    panel = doc.createXULElement("panel");
+    panel.id = VOLUME_PANEL_ID;
+    panel.setAttribute("type", "arrow");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("noautofocus", "true");
+    const box = doc.createElementNS(HTML_NS, "div");
+    box.className = "mantis-volume-box";
+    box.style.cssText = "display: flex; flex-direction: column; gap: 12px; width: 300px; padding: 12px 14px; font: menu;";
+    panel.append(box);
+    (doc.getElementById("mainPopupSet") || doc.documentElement).append(panel);
+    panel.addEventListener("popuphidden", () => box.replaceChildren());
+  }
+  const box = panel.querySelector(".mantis-volume-box");
+  const heading = text => {
+    const h = doc.createElementNS(HTML_NS, "div");
+    h.textContent = text;
+    h.style.cssText = "font-weight: 600;";
+    return h;
+  };
+  const main = volumeRow(doc, tab, localize);
+  box.replaceChildren(heading(localize("volume_title")), main.row);
+  // mixér: další karty, které hrají nebo mají změněnou hlasitost
+  const others = win.gBrowser.tabs.filter(t => t !== tab &&
+    (t.hasAttribute("soundplaying") || Math.abs((tabVolumeOf(t) ?? 1) - 1) > 0.001));
+  if (others.length) {
+    box.append(heading(localize("volume_others")), ...others.slice(0, 8).map(t => volumeRow(doc, t, localize).row));
+  }
+  panel.setAttribute("aria-label", localize("volume_title"));
+  const anchor = tab.visible !== false && !tab.hidden && tab.getBoundingClientRect().width > 0
+    ? tab : win.gBrowser.tabContainer;
+  panel.addEventListener("popupshown", () => main.slider.focus(), { once: true });
+  panel.openPopup(anchor, "after_start");
+}
+
+function removeVolumePanels() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    win.document.getElementById(VOLUME_PANEL_ID)?.remove();
+  }
+}
+
 this.mantisPrefs = class extends ExtensionAPI {
   onShutdown(isAppShutdown) {
     if (isAppShutdown) {
@@ -922,6 +1029,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { setSounds({ typing: false, tabs: false, volume: 0 }); } catch (e) {}
     try { setAccent("", ""); } catch (e) {}
     try { setEcoMode("off"); } catch (e) {}
+    try { removeVolumePanels(); } catch (e) {}
   }
 
   getAPI(context) {
@@ -1096,20 +1204,22 @@ this.mantisPrefs = class extends ExtensionAPI {
           return tabStats(context.extension);
         },
 
-        // Hlasitost karty (mixér): pole BrowsingContext.mediaVolume z patche
-        // patches/tab-volume.patch – platí pro video, audio i Web Audio, weby ho nevidí.
-        // null = build bez patche (nabídka se pak neukáže).
+        // Hlasitost karty (mixér) v % (0–200); null/false = build bez patches/tab-volume.patch
         async getTabVolume(tabId) {
-          const bc = context.extension.tabManager.get(tabId).nativeTab.linkedBrowser?.browsingContext;
-          return bc && typeof bc.mediaVolume === "number" ? Math.round(bc.mediaVolume * 100) : null;
+          const volume = tabVolumeOf(context.extension.tabManager.get(tabId).nativeTab);
+          return volume === null ? null : Math.round(volume * 100);
         },
 
         async setTabVolume(tabId, percent) {
-          const bc = context.extension.tabManager.get(tabId).nativeTab.linkedBrowser?.browsingContext;
-          if (!bc || typeof bc.mediaVolume !== "number") {
+          return setNativeTabVolume(context.extension.tabManager.get(tabId).nativeTab, percent);
+        },
+
+        async showTabVolume(tabId) {
+          const tab = context.extension.tabManager.get(tabId).nativeTab;
+          if (tabVolumeOf(tab) === null) {
             return false;
           }
-          bc.mediaVolume = Math.min(100, Math.max(0, Math.round(percent))) / 100;
+          showTabVolume(tab, (key, subs = []) => context.extension.localizeMessage(key, subs));
           return true;
         },
 

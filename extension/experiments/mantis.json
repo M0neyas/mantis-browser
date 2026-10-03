@@ -100,18 +100,25 @@
         "name": "getTabVolume",
         "type": "function",
         "async": true,
-        "description": "Hlasitost karty v % (0–100), null když build nemá patch tab-volume.",
+        "description": "Hlasitost karty v % (0–200), null když build nemá patch tab-volume.",
         "parameters": [{ "name": "tabId", "type": "integer", "minimum": 0 }]
       },
       {
         "name": "setTabVolume",
         "type": "function",
         "async": true,
-        "description": "Nastaví hlasitost karty v % (0–100). false, když build nemá patch tab-volume.",
+        "description": "Nastaví hlasitost karty v % (0–200). false, když build nemá patch tab-volume.",
         "parameters": [
           { "name": "tabId", "type": "integer", "minimum": 0 },
-          { "name": "percent", "type": "integer", "minimum": 0, "maximum": 100 }
+          { "name": "percent", "type": "integer", "minimum": 0, "maximum": 200 }
         ]
+      },
+      {
+        "name": "showTabVolume",
+        "type": "function",
+        "async": true,
+        "description": "Otevře u karty panel s posuvníkem hlasitosti (0–200 %) a dalšími kartami se zvukem. false bez patche tab-volume.",
+        "parameters": [{ "name": "tabId", "type": "integer", "minimum": 0 }]
       },
       {
         "name": "minimizeMemory",
