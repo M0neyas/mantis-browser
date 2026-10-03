@@ -97,6 +97,23 @@
         "parameters": []
       },
       {
+        "name": "getTabVolume",
+        "type": "function",
+        "async": true,
+        "description": "Hlasitost karty v % (0–100), null když build nemá patch tab-volume.",
+        "parameters": [{ "name": "tabId", "type": "integer", "minimum": 0 }]
+      },
+      {
+        "name": "setTabVolume",
+        "type": "function",
+        "async": true,
+        "description": "Nastaví hlasitost karty v % (0–100). false, když build nemá patch tab-volume.",
+        "parameters": [
+          { "name": "tabId", "type": "integer", "minimum": 0 },
+          { "name": "percent", "type": "integer", "minimum": 0, "maximum": 100 }
+        ]
+      },
+      {
         "name": "minimizeMemory",
         "type": "function",
         "async": true,

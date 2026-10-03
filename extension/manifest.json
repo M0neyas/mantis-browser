@@ -45,6 +45,7 @@
       "background.js",
       "vpn.js",
       "forget.js",
+      "volume.js",
       "sensitive.js",
       "doh.js",
       "sync.js",

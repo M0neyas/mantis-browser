@@ -1,0 +1,126 @@
+diff -ruN a/docshell/base/BrowsingContext.cpp b/docshell/base/BrowsingContext.cpp
+--- a/docshell/base/BrowsingContext.cpp	2026-10-03 19:21:51.945589679 +0200
++++ b/docshell/base/BrowsingContext.cpp	2026-10-03 19:21:51.953589679 +0200
+@@ -465,6 +465,7 @@
+   }();
+ 
+   fields.Get<IDX_FullZoom>() = parentBC ? parentBC->FullZoom() : 1.0f;
++  fields.Get<IDX_MediaVolume>() = 1.0f;
+   fields.Get<IDX_TextZoom>() = parentBC ? parentBC->TextZoom() : 1.0f;
+ 
+   bool allowContentRetargeting =
+@@ -3642,6 +3643,16 @@
+   PreOrderWalk([&](BrowsingContext* aContext) {
+     nsPIDOMWindowOuter* win = aContext->GetDOMWindow();
+     if (win) {
++      win->RefreshMediaElementsVolume();
++    }
++  });
++}
++
++void BrowsingContext::DidSet(FieldIndex<IDX_MediaVolume>) {
++  MOZ_ASSERT(IsTop(), "Set media volume on non top-level context!");
++  PreOrderWalk([&](BrowsingContext* aContext) {
++    nsPIDOMWindowOuter* win = aContext->GetDOMWindow();
++    if (win) {
+       win->RefreshMediaElementsVolume();
+     }
+   });
+diff -ruN a/docshell/base/BrowsingContext.h b/docshell/base/BrowsingContext.h
+--- a/docshell/base/BrowsingContext.h	2026-10-03 19:21:51.945589679 +0200
++++ b/docshell/base/BrowsingContext.h	2026-10-03 19:21:51.953589679 +0200
+@@ -139,7 +139,7 @@
+   FIELD(IsPopupSpam, bool)                                                    \
+   /* Hold the audio muted state and should be used on top level browsing      \
+    * contexts only */                                                         \
+-  FIELD(Muted, bool)                                                          \
++  FIELD(Muted, bool)                                                            /* Mantis: tab volume 0.0-1.0 (volume mixer), top level only, set by chrome */  FIELD(MediaVolume, float)                                                   \
+   /* Hold the pinned/app-tab state and should be used on top level browsing   \
+    * contexts only */                                                         \
+   FIELD(IsAppTab, bool)                                                       \
+@@ -672,6 +672,7 @@
+   bool FullscreenAllowed() const;
+ 
+   float FullZoom() const { return GetFullZoom(); }
++  float MediaVolume() const { return GetMediaVolume(); }
+   float TextZoom() const { return GetTextZoom(); }
+ 
+   float OverrideDPPX() const { return Top()->GetOverrideDPPX(); }
+@@ -1437,6 +1438,15 @@
+   }
+   void DidSet(FieldIndex<IDX_Muted>);
+ 
++  // Mantis: tab volume, only the parent process may set it on a top-level
++  // context; content processes just apply it (see RefreshMediaElementsVolume).
++  bool CanSet(FieldIndex<IDX_MediaVolume>, const float& aValue,
++              ContentParent* aSource) {
++    return XRE_IsParentProcess() && !aSource && IsTop() && aValue >= 0.0f &&
++           aValue <= 1.0f;
++  }
++  void DidSet(FieldIndex<IDX_MediaVolume>);
++
+   bool CanSet(FieldIndex<IDX_IsAppTab>, const bool& aValue,
+               ContentParent* aSource);
+ 
+diff -ruN a/docshell/base/CanonicalBrowsingContext.cpp b/docshell/base/CanonicalBrowsingContext.cpp
+--- a/docshell/base/CanonicalBrowsingContext.cpp	2026-10-03 19:21:51.945589679 +0200
++++ b/docshell/base/CanonicalBrowsingContext.cpp	2026-10-03 19:21:51.953589679 +0200
+@@ -304,6 +304,7 @@
+   Transaction txn;
+   txn.SetBrowserId(GetBrowserId());
+   txn.SetIsAppTab(GetIsAppTab());
++  txn.SetMediaVolume(GetMediaVolume());
+   txn.SetIsCaptivePortalTab(GetIsCaptivePortalTab());
+   txn.SetHasSiblings(GetHasSiblings());
+   txn.SetTopLevelCreatedByWebContent(GetTopLevelCreatedByWebContent());
+diff -ruN a/dom/audiochannel/AudioChannelService.cpp b/dom/audiochannel/AudioChannelService.cpp
+--- a/dom/audiochannel/AudioChannelService.cpp	2026-10-03 19:21:51.949589679 +0200
++++ b/dom/audiochannel/AudioChannelService.cpp	2026-10-03 19:21:51.953589679 +0200
+@@ -8,6 +8,7 @@
+ #include "mozilla/Preferences.h"
+ #include "mozilla/Services.h"
+ #include "mozilla/StaticPtr.h"
++#include "mozilla/dom/BrowsingContext.h"
+ #include "mozilla/dom/Document.h"
+ #include "nsComponentManagerUtils.h"
+ #include "nsContentUtils.h"
+@@ -236,6 +237,11 @@
+     // If there is no parent, or we are the toplevel we don't continue.
+   } while (window && window != aWindow);
+ 
++  // Mantis: tab volume (volume mixer) of the top-level browsing context
++  if (BrowsingContext* bc = aWindow->GetBrowsingContext()) {
++    config.mVolume *= bc->Top()->GetMediaVolume();
++  }
++
+   return config;
+ }
+ 
+diff -ruN a/dom/base/nsGlobalWindowOuter.cpp b/dom/base/nsGlobalWindowOuter.cpp
+--- a/dom/base/nsGlobalWindowOuter.cpp	2026-10-03 19:21:51.949589679 +0200
++++ b/dom/base/nsGlobalWindowOuter.cpp	2026-10-03 19:21:51.953589679 +0200
+@@ -3081,7 +3081,9 @@
+   RefPtr<AudioChannelService> service = AudioChannelService::GetOrCreate();
+   if (service) {
+     // TODO: RefreshAgentsVolume can probably be simplified further.
+-    service->RefreshAgentsVolume(this, 1.0f, GetAudioMuted());
++    BrowsingContext* bc = GetBrowsingContext();
++    service->RefreshAgentsVolume(this, bc ? bc->Top()->GetMediaVolume() : 1.0f,
++                                 GetAudioMuted());
+   }
+ }
+ 
+diff -ruN a/dom/chrome-webidl/BrowsingContext.webidl b/dom/chrome-webidl/BrowsingContext.webidl
+--- a/dom/chrome-webidl/BrowsingContext.webidl	2026-10-03 19:21:51.953589679 +0200
++++ b/dom/chrome-webidl/BrowsingContext.webidl	2026-10-03 19:21:51.953589679 +0200
+@@ -177,6 +177,10 @@
+ 
+   [SetterThrows] attribute float fullZoom;
+ 
++  // Mantis: tab volume 0.0-1.0 for all media and Web Audio in this tab (top
++  // level, parent process only). Pages can't see it.
++  [SetterThrows] attribute float mediaVolume;
++
+   [SetterThrows] attribute float textZoom;
+ 
+   // Override the dots-per-CSS-pixel scaling factor in this BrowsingContext

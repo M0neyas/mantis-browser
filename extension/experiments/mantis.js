@@ -1096,6 +1096,23 @@ this.mantisPrefs = class extends ExtensionAPI {
           return tabStats(context.extension);
         },
 
+        // Hlasitost karty (mixér): pole BrowsingContext.mediaVolume z patche
+        // patches/tab-volume.patch – platí pro video, audio i Web Audio, weby ho nevidí.
+        // null = build bez patche (nabídka se pak neukáže).
+        async getTabVolume(tabId) {
+          const bc = context.extension.tabManager.get(tabId).nativeTab.linkedBrowser?.browsingContext;
+          return bc && typeof bc.mediaVolume === "number" ? Math.round(bc.mediaVolume * 100) : null;
+        },
+
+        async setTabVolume(tabId, percent) {
+          const bc = context.extension.tabManager.get(tabId).nativeTab.linkedBrowser?.browsingContext;
+          if (!bc || typeof bc.mediaVolume !== "number") {
+            return false;
+          }
+          bc.mediaVolume = Math.min(100, Math.max(0, Math.round(percent))) / 100;
+          return true;
+        },
+
         async minimizeMemory() {
           return minimizeMemory();
         },
