@@ -76,11 +76,12 @@ diff -ruN a/docshell/base/CanonicalBrowsingContext.cpp b/docshell/base/Canonical
 diff -ruN a/dom/audiochannel/AudioChannelService.cpp b/dom/audiochannel/AudioChannelService.cpp
 --- a/dom/audiochannel/AudioChannelService.cpp	2026-10-03 19:21:51.949589679 +0200
 +++ b/dom/audiochannel/AudioChannelService.cpp	2026-10-03 19:21:51.953589679 +0200
-@@ -8,6 +8,7 @@
+@@ -8,6 +8,8 @@
  #include "mozilla/Preferences.h"
  #include "mozilla/Services.h"
  #include "mozilla/StaticPtr.h"
 +#include "mozilla/dom/BrowsingContext.h"
++#include "nsPIDOMWindowInlines.h"
  #include "mozilla/dom/Document.h"
  #include "nsComponentManagerUtils.h"
  #include "nsContentUtils.h"

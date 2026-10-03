@@ -51,7 +51,7 @@ a vestavěnou VPN.
 Repozitář obsahuje jen vlastní vrstvu nad LibreWolfem – zdrojové kódy Firefoxu/LibreWolfu
 si build skripty stahují samy:
 
-- `patches/` – úpravy zdrojového kódu
+- `patches/` – úpravy zdrojového kódu Firefoxu (`tab-volume.patch`: hlasitost karty pro mixér)
 - `branding/` – logo, nápisy a obrázky instalátoru (zdroj všech ikon)
 - `settings/` – výchozí nastavení a policies
 - `theme/` – vzhled (`userChrome.css`, zapečený do prohlížeče)
