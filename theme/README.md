@@ -15,7 +15,8 @@ Přesun tlačítek do lišty záložek CSS neumí – je to nastavení rozložen
 (`browser.uiCustomization.state` v profilu). Ručně: pravý klik na lištu →
 Přizpůsobit lištu… → přetáhnout tlačítka (stahování, rozšíření, uBlock)
 z horní lišty do lišty záložek. Tlačítko ☰ ani 🧩 (rozšíření) přesunout nejde;
-🧩 je proto v CSS schované. Nově připnutá rozšíření se objeví nahoře –
+🧩 zůstává nahoře za adresním řádkem – přes něj se doplňky připínají a odepínají.
+Nově připnutá rozšíření se v obyčejném LibreWolfu objeví nahoře –
 je potřeba je přetáhnout dolů stejně.
 Ve vlastním buildu nastavíme výchozí rozložení patchem a připnutá rozšíření
 budou rovnou chodit do spodní lišty.

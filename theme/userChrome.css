@@ -354,12 +354,10 @@
   transition: background-color var(--mb-ease);
 }
 
-/* Tlačítko rozšíření (🧩) schované – Firefox ho nedovolí přesunout z horního
- * řádku a rozšíření jsou připnutá ve spodní liště. Správa rozšíření:
- * ☰ → Rozšíření a motivy. */
-#unified-extensions-button {
-  display: none !important;
-}
+/* Tlačítko rozšíření (🧩) zůstává v horním řádku za adresou (Firefox ho jinam
+ * přesunout nedovolí) – jen přes něj jde doplněk připnout/odepnout (připnuté jdou
+ * do spodní lišty, úprava v prepare-source.sh), otevřít nepřipnutý doplněk a spravovat
+ * jeho oprávnění. */
 
 /* ---------- Druhý řádek: záložky vlevo, doplňky vpravo ----------
  * Tlačítka (stahování, rozšíření, uBlock…) jsou přesunutá do lišty záložek
