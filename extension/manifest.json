@@ -27,13 +27,38 @@
     "contextualIdentities",
     "clipboardWrite",
     "theme",
+    "tabHide",
+    "webRequest",
+    "webRequestBlocking",
     "<all_urls>"
   ],
   "commands": {
     "copy-without-diacritics": {
       "suggested_key": { "default": "Ctrl+Shift+U" },
       "description": "__MSG_tools_unaccentCommand__"
+    },
+    "command-palette": {
+      "suggested_key": { "default": "Ctrl+Shift+Space" },
+      "description": "__MSG_palette_command__"
+    },
+    "workspace-next": {
+      "suggested_key": { "default": "Ctrl+Alt+PageDown" },
+      "description": "__MSG_ws_commandNext__"
+    },
+    "workspace-previous": {
+      "suggested_key": { "default": "Ctrl+Alt+PageUp" },
+      "description": "__MSG_ws_commandPrevious__"
+    },
+    "_execute_sidebar_action": {
+      "suggested_key": { "default": "Alt+Shift+M" },
+      "description": "__MSG_sidebar_command__"
     }
+  },
+  "sidebar_action": {
+    "default_title": "__MSG_sidebar_title__",
+    "default_panel": "sidebar/sidebar.html",
+    "default_icon": "icons/messengers.svg",
+    "open_at_install": false
   },
   "chrome_url_overrides": {
     "newtab": "newtab/newtab.html"
@@ -55,7 +80,7 @@
       "eshops.js",
       "tabsleep.js",
       "performance.js",
-      "appearance.js"
+      "appearance.js", "workspaces.js", "messengers.js", "palette.js"
     ],
     "persistent": true
   },

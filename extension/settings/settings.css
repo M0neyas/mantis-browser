@@ -235,6 +235,38 @@ input[type="range"] {
 
 .sound-item > span { flex: 1; }
 
+/* Pracovní prostory */
+.ws-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ws-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ws-item .ws-icon {
+  flex: none;
+  width: 3.2em;
+  text-align: center;
+}
+
+.ws-item .ws-name {
+  flex: 1;
+}
+
+.ws-item input[type="color"] {
+  width: 36px;
+  height: 30px;
+  padding: 2px;
+}
+
 /* Žrouti karet (Výkon) */
 .hot-tabs {
   display: flex;

@@ -350,6 +350,33 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mb-glow-start, var(--mb-accent)) 35%, transparent) !important;
 }
 
+/* ---------- Pracovní prostory: tlačítko vlevo od karet (extension/workspaces.js) ----------
+ * Firefox na liště ukazuje jen ikony – tady místo tečky popisek „🏠 Domov“ a barva prostoru
+ * jako proužek pod ním (--mb-ws-color nastavuje experiment). */
+#mantis-workspaces-button > .toolbarbutton-icon {
+  display: none !important;
+}
+
+#mantis-workspaces-button > .toolbarbutton-text {
+  display: flex !important;
+  align-items: center;
+  min-height: 0 !important;
+  padding: 4px 9px !important;
+  border-radius: var(--toolbarbutton-border-radius);
+  font-size: 12px !important;
+  white-space: nowrap;
+  box-shadow: inset 0 -2px 0 var(--mb-ws-color, var(--mb-accent));
+}
+
+#mantis-workspaces-button:hover > .toolbarbutton-text {
+  background-color: var(--toolbarbutton-hover-background, var(--mb-hover));
+}
+
+#mantis-workspaces-button[open] > .toolbarbutton-text,
+#mantis-workspaces-button:hover:active > .toolbarbutton-text {
+  background-color: var(--toolbarbutton-active-background, var(--mb-selected));
+}
+
 /* ---------- Tlačítka na liště ---------- */
 
 .toolbarbutton-1 {

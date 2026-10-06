@@ -200,6 +200,69 @@
         "async": true,
         "description": "Neonová záře kolem aktivní karty a adresního řádku: druhá barva přechodu (#rrggbb), \"auto\" = obě barvy podle barvy lišty, prázdný řetězec = vypnuto.",
         "parameters": [{ "name": "color", "type": "string" }]
+      },
+      {
+        "name": "showPalette",
+        "type": "function",
+        "async": true,
+        "description": "Otevře paletu příkazů v okně (ID okna) se zástupným textem; dotazy chodí přes onPaletteInput.",
+        "parameters": [{ "name": "windowId", "type": "integer" }, { "name": "placeholder", "type": "string" }]
+      },
+      {
+        "name": "setPaletteResults",
+        "type": "function",
+        "async": true,
+        "description": "Výsledky palety pro dotaz requestId: [{id, title, detail?, url?, icon?}].",
+        "parameters": [
+          { "name": "requestId", "type": "integer" },
+          { "name": "items", "type": "array", "items": { "type": "object", "additionalProperties": { "type": "any" } } }
+        ]
+      },
+      {
+        "name": "setWorkspaces",
+        "type": "function",
+        "async": true,
+        "description": "Pracovní prostory pro tlačítko v liště karet: seznam [{id, name, icon, color}], aktivní prostor podle ID okna, texty {label, tooltip, add, edit}.",
+        "parameters": [
+          { "name": "list", "type": "array", "items": { "type": "object", "additionalProperties": { "type": "any" } } },
+          { "name": "active", "type": "object", "additionalProperties": { "type": "string" } },
+          { "name": "texts", "type": "object", "additionalProperties": { "type": "string" } }
+        ]
+      },
+      {
+        "name": "toggleSidebar",
+        "type": "function",
+        "async": true,
+        "description": "Otevře/zavře boční panel rozšíření (messengery) v okně – i bez kliknutí (paleta, zkratka).",
+        "parameters": [{ "name": "windowId", "type": "integer" }]
+      }
+    ],
+    "events": [
+      {
+        "name": "onPaletteInput",
+        "type": "function",
+        "description": "Text v paletě se změnil: (text, requestId, windowId).",
+        "parameters": [
+          { "name": "text", "type": "string" },
+          { "name": "requestId", "type": "integer" },
+          { "name": "windowId", "type": "integer" }
+        ]
+      },
+      {
+        "name": "onPaletteChoose",
+        "type": "function",
+        "description": "Vybraná položka palety: (id, windowId).",
+        "parameters": [{ "name": "id", "type": "string" }, { "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "onWorkspaceAction",
+        "type": "function",
+        "description": "Volba v nabídce prostorů: (action switch|new|edit, windowId, workspaceId).",
+        "parameters": [
+          { "name": "action", "type": "string" },
+          { "name": "windowId", "type": "integer" },
+          { "name": "id", "type": "string" }
+        ]
       }
     ]
   }

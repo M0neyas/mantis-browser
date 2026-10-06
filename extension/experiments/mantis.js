@@ -1018,6 +1018,297 @@ function removeVolumePanels() {
   }
 }
 
+// ---------- Události pro rozšíření (paleta příkazů, pracovní prostory) ----------
+// Prvky v okně prohlížeče (panel palety, tlačítko prostorů) hlásí volby rozšíření přes
+// události mantisPrefs.onPaletteInput / onPaletteChoose / onWorkspaceAction.
+
+var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
+const mantisListeners = { paletteInput: new Set(), paletteChoose: new Set(), workspaceAction: new Set() };
+
+function mantisEmit(name, ...args) {
+  for (const listener of mantisListeners[name]) {
+    try {
+      listener(...args);
+    } catch (e) {
+      console.error("Mantis:", e);
+    }
+  }
+}
+
+function mantisEvent(context, name) {
+  return new ExtensionCommon.EventManager({
+    context,
+    name: `mantisPrefs.${name}`,
+    register: fire => {
+      const listener = (...args) => fire.async(...args);
+      const key = name.charAt(2).toLowerCase() + name.slice(3); // onPaletteInput → paletteInput
+      mantisListeners[key].add(listener);
+      return () => mantisListeners[key].delete(listener);
+    },
+  }).api();
+}
+
+// ---------- Paleta příkazů ----------
+// Jedno pole uprostřed nahoře (jako ve Vivaldi/Arcu): karty, záložky, historie, prostory
+// a příkazy Mantisu. Výsledky dodává rozšíření (setPaletteResults), panel je jen zobrazuje.
+// Ikony stránek přes page-icon: (favicony z historie prohlížeče, nic se nestahuje).
+
+const PALETTE_ID = "mantis-palette";
+const palette = { panel: null, windowId: null, requestId: 0, items: [], selected: 0 };
+
+function paletteSelect(index) {
+  const list = palette.panel?.querySelector(".mantis-palette-list");
+  if (!list || !palette.items.length) {
+    return;
+  }
+  palette.selected = (index + palette.items.length) % palette.items.length;
+  for (const [i, row] of [...list.children].entries()) {
+    const on = i === palette.selected;
+    row.setAttribute("aria-selected", String(on));
+    row.style.background = on ? "color-mix(in srgb, var(--mb-accent, AccentColor) 22%, transparent)" : "transparent";
+    if (on) {
+      row.scrollIntoView({ block: "nearest" });
+    }
+  }
+}
+
+function paletteChoose(index) {
+  const item = palette.items[index];
+  if (!item) {
+    return;
+  }
+  palette.panel?.hidePopup();
+  mantisEmit("paletteChoose", item.id, palette.windowId);
+}
+
+function paletteQuery(text) {
+  palette.requestId++;
+  mantisEmit("paletteInput", text, palette.requestId, palette.windowId);
+}
+
+function showPalette(win, windowId, placeholder) {
+  const doc = win.document;
+  let panel = doc.getElementById(PALETTE_ID);
+  if (!panel) {
+    panel = doc.createXULElement("panel");
+    panel.id = PALETTE_ID;
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("noautofocus", "true");
+    panel.style.cssText = "--panel-padding: 0; --panel-background: transparent; --panel-border-color: transparent; --panel-shadow: none;";
+    const box = doc.createElementNS(HTML_NS, "div");
+    box.style.cssText = "width: 640px; padding: 8px; border: 1px solid var(--panel-border-color, var(--border-color, ThreeDShadow)); border-radius: 14px; background: var(--background-color-box, var(--toolbar-background-color, Menu)); color: var(--text-color, var(--toolbar-color, MenuText)); box-shadow: 0 12px 40px rgb(0 0 0 / 0.35); font: menu; font-size: 13.5px;";
+    const input = doc.createElementNS(HTML_NS, "input");
+    input.className = "mantis-palette-input";
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-controls", "mantis-palette-list");
+    input.setAttribute("aria-autocomplete", "list");
+    input.style.cssText = "box-sizing: border-box; width: 100%; margin: 0; padding: 10px 12px; border: none; border-radius: 9px; outline: none; background: var(--toolbar-field-background-color-focus, var(--toolbar-field-focus-background-color, Field)); color: var(--toolbar-field-text-color-focus, var(--toolbar-field-color, FieldText)); font: inherit; font-size: 15px;";
+    const list = doc.createElementNS(HTML_NS, "ul");
+    list.id = "mantis-palette-list";
+    list.className = "mantis-palette-list";
+    list.setAttribute("role", "listbox");
+    list.style.cssText = "max-height: 430px; margin: 6px 0 0; padding: 0; overflow-y: auto; list-style: none;";
+    box.append(input, list);
+    panel.append(box);
+    (doc.getElementById("mainPopupSet") || doc.documentElement).append(panel);
+    input.addEventListener("input", () => paletteQuery(input.value));
+    input.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        paletteSelect(palette.selected + (event.key === "ArrowDown" ? 1 : -1));
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        paletteChoose(palette.selected);
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        panel.hidePopup();
+      }
+    });
+    panel.addEventListener("popupshown", () => input.focus());
+    panel.addEventListener("popuphidden", () => {
+      palette.items = [];
+      list.replaceChildren();
+    });
+  }
+  palette.panel = panel;
+  palette.windowId = windowId;
+  const input = panel.querySelector(".mantis-palette-input");
+  input.value = "";
+  input.placeholder = placeholder;
+  input.setAttribute("aria-label", placeholder);
+  panel.setAttribute("aria-label", placeholder);
+  const x = Math.round(win.mozInnerScreenX + (win.innerWidth - 640) / 2);
+  const y = Math.round(win.mozInnerScreenY + Math.min(90, win.innerHeight / 8));
+  panel.openPopupAtScreen(x, y, false);
+  paletteQuery("");
+}
+
+// items: [{ id, title, detail?, url? (ikona stránky), icon? (emoji) }]
+function setPaletteResults(requestId, items) {
+  const panel = palette.panel;
+  if (requestId !== palette.requestId || !panel || panel.state === "closed") {
+    return; // mezitím se psalo dál, nebo je paleta zavřená
+  }
+  const doc = panel.ownerDocument;
+  const list = panel.querySelector(".mantis-palette-list");
+  palette.items = items.slice(0, 14);
+  list.replaceChildren(...palette.items.map((item, index) => {
+    const row = doc.createElementNS(HTML_NS, "li");
+    row.setAttribute("role", "option");
+    row.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 8px; cursor: default;";
+    const icon = doc.createElementNS(HTML_NS, "span");
+    icon.style.cssText = "display: flex; flex: none; justify-content: center; width: 20px; font-size: 14px;";
+    if (item.url && /^(https?|file):/.test(item.url)) {
+      const img = doc.createElementNS(HTML_NS, "img");
+      img.src = "page-icon:" + item.url;
+      img.style.cssText = "width: 16px; height: 16px;";
+      img.addEventListener("error", () => img.replaceWith(item.icon || "🌐"), { once: true });
+      icon.append(img);
+    } else {
+      icon.textContent = item.icon || "•";
+    }
+    const title = doc.createElementNS(HTML_NS, "span");
+    title.textContent = item.title;
+    title.style.cssText = "overflow: hidden; white-space: nowrap; text-overflow: ellipsis;";
+    const detail = doc.createElementNS(HTML_NS, "span");
+    detail.textContent = item.detail || "";
+    detail.style.cssText = "flex: none; max-width: 40%; margin-inline-start: auto; overflow: hidden; opacity: 0.65; font-size: 12px; white-space: nowrap; text-overflow: ellipsis;";
+    row.append(icon, title, detail);
+    row.addEventListener("mousemove", () => {
+      if (palette.selected !== index) {
+        paletteSelect(index);
+      }
+    });
+    row.addEventListener("click", () => paletteChoose(index));
+    return row;
+  }));
+  paletteSelect(0);
+}
+
+function removePalettes() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    win.document.getElementById(PALETTE_ID)?.remove();
+  }
+  palette.panel = null;
+}
+
+// ---------- Pracovní prostory: tlačítko v liště karet ----------
+// Logika (které karty jsou v jakém prostoru, tabs.hide/show) je v rozšíření (workspaces.js);
+// tady jen tlačítko vlevo od karet s názvem aktivního prostoru a nabídka pro přepnutí.
+
+const WS_WIDGET_ID = "mantis-workspaces-button";
+const ws = { list: [], active: new Map(), texts: {}, created: false };
+
+function wsDot(color) {
+  const safe = /^#[0-9a-f]{6}$/i.test(color || "") ? color : "#22c55e";
+  return "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5" fill="${safe}"/></svg>`);
+}
+
+function wsWindowId(win) {
+  return ws.windowIds?.get(win) ?? null;
+}
+
+function wsUpdateButton(node) {
+  const win = node.ownerDocument.defaultView;
+  const current = ws.list.find(w => w.id === ws.active.get(wsWindowId(win))) || ws.list[0];
+  if (!current) {
+    return;
+  }
+  node.setAttribute("label", `${current.icon || ""} ${current.name}`.trim());
+  node.setAttribute("tooltiptext", ws.texts.tooltip || current.name);
+  node.setAttribute("image", wsDot(current.color));
+  node.style.setProperty("--mb-ws-color", /^#[0-9a-f]{6}$/i.test(current.color || "") ? current.color : "");
+}
+
+function wsUpdateAll() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    const node = win.document.getElementById(WS_WIDGET_ID);
+    if (node) {
+      wsUpdateButton(node);
+    }
+  }
+}
+
+function wsOpenMenu(button) {
+  const win = button.ownerDocument.defaultView;
+  const doc = win.document;
+  const windowId = wsWindowId(win);
+  let popup = doc.getElementById("mantis-workspaces-menu");
+  if (!popup) {
+    popup = doc.createXULElement("menupopup");
+    popup.id = "mantis-workspaces-menu";
+    (doc.getElementById("mainPopupSet") || doc.documentElement).append(popup);
+  }
+  const item = (label, action, id, checked) => {
+    const menuitem = doc.createXULElement("menuitem");
+    menuitem.setAttribute("label", label);
+    if (checked !== undefined) {
+      menuitem.setAttribute("type", "radio");
+      if (checked) {
+        menuitem.setAttribute("checked", "true");
+      }
+    }
+    menuitem.addEventListener("command", () => mantisEmit("workspaceAction", action, windowId, id ?? ""));
+    return menuitem;
+  };
+  const activeId = ws.active.get(windowId) || ws.list[0]?.id;
+  popup.replaceChildren(
+    ...ws.list.map(w => item(`${w.icon || ""} ${w.name}`.trim(), "switch", w.id, w.id === activeId)),
+    doc.createXULElement("menuseparator"),
+    item(ws.texts.add || "+", "new"),
+    item(ws.texts.edit || "…", "edit"),
+  );
+  popup.openPopup(button, "after_start");
+}
+
+function wsEnsureWidget() {
+  if (ws.created) {
+    wsUpdateAll();
+    return;
+  }
+  const { CustomizableUI } = ChromeUtils.importESModule("moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs");
+  CustomizableUI.createWidget({
+    id: WS_WIDGET_ID,
+    type: "button",
+    label: ws.texts.label || "Workspaces",
+    tooltiptext: ws.texts.tooltip || "",
+    defaultArea: CustomizableUI.AREA_TABSTRIP,
+    onCreated: node => {
+      wsUpdateButton(node);
+      node.addEventListener("command", () => wsOpenMenu(node));
+    },
+  });
+  ws.created = true;
+  // Jednou na začátek lišty karet (uživatel ho pak může přesunout nebo odebrat)
+  if (!Services.prefs.getBoolPref("mantis.workspaces.placed", false)) {
+    CustomizableUI.addWidgetToArea(WS_WIDGET_ID, CustomizableUI.AREA_TABSTRIP, 0);
+    Services.prefs.setBoolPref("mantis.workspaces.placed", true);
+  }
+  wsUpdateAll();
+}
+
+function wsRemoveWidget() {
+  if (!ws.created) {
+    return;
+  }
+  const { CustomizableUI } = ChromeUtils.importESModule("moz-src:///browser/components/customizableui/CustomizableUI.sys.mjs");
+  CustomizableUI.destroyWidget(WS_WIDGET_ID);
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    win.document.getElementById("mantis-workspaces-menu")?.remove();
+  }
+  ws.created = false;
+}
+
+// ---------- Boční panel (messengery) ----------
+// sidebarAction.open() rozšíření smí jen z kliknutí – paleta a klávesová zkratka to nejsou.
+
+function toggleExtensionSidebar(win, extensionId) {
+  const sidebarId = `${ExtensionCommon.makeWidgetId(extensionId)}-sidebar-action`;
+  const controller = win.SidebarController || win.SidebarUI;
+  controller?.toggle(sidebarId);
+}
+
 this.mantisPrefs = class extends ExtensionAPI {
   onShutdown(isAppShutdown) {
     if (isAppShutdown) {
@@ -1030,6 +1321,8 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { setAccent("", ""); } catch (e) {}
     try { setEcoMode("off"); } catch (e) {}
     try { removeVolumePanels(); } catch (e) {}
+    try { removePalettes(); } catch (e) {}
+    try { wsRemoveWidget(); } catch (e) {}
   }
 
   getAPI(context) {
@@ -1272,6 +1565,44 @@ this.mantisPrefs = class extends ExtensionAPI {
 
         async setGlow(color) {
           setAccent(accentColor, String(color || ""));
+        },
+
+        onPaletteInput: mantisEvent(context, "onPaletteInput"),
+        onPaletteChoose: mantisEvent(context, "onPaletteChoose"),
+        onWorkspaceAction: mantisEvent(context, "onWorkspaceAction"),
+
+        async showPalette(windowId, placeholder) {
+          const win = context.extension.windowManager.get(windowId, context).window;
+          showPalette(win, windowId, String(placeholder || ""));
+        },
+
+        async setPaletteResults(requestId, items) {
+          setPaletteResults(requestId, (items || []).map(item => ({
+            id: String(item.id),
+            title: String(item.title ?? ""),
+            detail: item.detail ? String(item.detail) : "",
+            url: item.url ? String(item.url) : "",
+            icon: item.icon ? String(item.icon) : "",
+          })));
+        },
+
+        // Seznam prostorů [{id, name, icon, color}], aktivní prostor podle ID okna, texty tlačítka
+        async setWorkspaces(list, active, texts) {
+          ws.list = (list || []).map(w => ({ id: String(w.id), name: String(w.name), icon: String(w.icon || ""), color: String(w.color || "") }));
+          ws.active = new Map(Object.entries(active || {}).map(([id, wsId]) => [Number(id), String(wsId)]));
+          ws.texts = texts || {};
+          ws.windowIds = new Map();
+          for (const win of Services.wm.getEnumerator("navigator:browser")) {
+            try {
+              ws.windowIds.set(win, context.extension.windowManager.wrapWindow(win).id);
+            } catch (e) {} // anonymní okno bez povolení
+          }
+          wsEnsureWidget();
+        },
+
+        async toggleSidebar(windowId) {
+          const win = context.extension.windowManager.get(windowId, context).window;
+          toggleExtensionSidebar(win, context.extension.id);
         },
       },
     };

@@ -37,6 +37,12 @@ a vestavěnou VPN.
 - **Bezpečnější nákupy** – varování na e-shopech ze seznamu rizikových e-shopů České obchodní
   inspekce a převod cen v cizí měně na koruny podle kurzu ČNB (označit cenu → pravý klik).
 - **Klid a úspora** – weby se neptají na upozornění ani polohu, nepoužívané karty se uspí.
+- **Pracovní prostory** – oddělené sady karet v jednom okně (Práce / Doma…), přepnutí tlačítkem
+  vlevo od karet nebo `Ctrl+Alt+PageDown / PageUp`.
+- **Paleta příkazů** – `Ctrl+Shift+Mezerník`: karty, záložky, historie, prostory i příkazy Mantisu
+  (uspat karty, VPN, úsporný režim…) v jednom poli, bez diakritiky.
+- **Messengery v bočním panelu** – WhatsApp, Messenger, Discord, Instagram, Spotify vedle stránky
+  (`Alt+Shift+M`).
 - **Připravený k použití** – čeština i angličtina, doporučená rozšíření jedním kliknutím (Bitwarden,
   kontejnery karet, český slovník, Consent-O-Matic, Dark Reader, Hlídač shopů,
   YouTube Windowed FullScreen, TTV LOL PRO – nic se neinstaluje samo),

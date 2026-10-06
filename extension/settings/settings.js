@@ -176,6 +176,98 @@ document.getElementById("sleep-background").addEventListener("click", async () =
   showHotTabs().catch(() => {});
 });
 
+// ---------- Pracovní prostory (logika v ../workspaces.js) ----------
+
+const WS_COLOR = /^#[0-9a-f]{6}$/i;
+
+async function showWorkspaces() {
+  const { workspaces } = await browser.storage.local.get({ workspaces: null });
+  const list = Array.isArray(workspaces) && workspaces.length
+    ? workspaces
+    : [{ id: "home", name: t("ws_defaultName"), icon: "🏠", color: "#22c55e" }];
+  const save = next => browser.storage.local.set({ workspaces: next });
+  document.getElementById("ws-list").replaceChildren(...list.map((w, index) => {
+    const row = document.createElement("li");
+    row.className = "ws-item";
+    const icon = document.createElement("input");
+    icon.type = "text";
+    icon.className = "ws-icon";
+    icon.value = w.icon || "";
+    icon.maxLength = 4;
+    icon.setAttribute("aria-label", t("settings_wsIcon"));
+    const name = document.createElement("input");
+    name.type = "text";
+    name.className = "ws-name";
+    name.value = w.name;
+    name.maxLength = 40;
+    name.setAttribute("aria-label", t("settings_wsName"));
+    const color = document.createElement("input");
+    color.type = "color";
+    color.value = WS_COLOR.test(w.color || "") ? w.color : "#22c55e";
+    color.setAttribute("aria-label", t("settings_wsColor"));
+    const update = () => save(list.map((item, i) => i !== index ? item : {
+      ...item,
+      icon: icon.value.trim().slice(0, 4),
+      name: name.value.trim().slice(0, 40) || item.name,
+      color: color.value,
+    }));
+    for (const input of [icon, name, color]) {
+      input.addEventListener("change", update);
+    }
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "secondary";
+    remove.textContent = t("settings_wsRemove");
+    remove.disabled = list.length < 2;
+    remove.title = list.length < 2 ? t("settings_wsRemoveLast") : t("settings_wsRemoveHint");
+    // karty smazaného prostoru přesune do prvního (workspaces.js)
+    remove.addEventListener("click", () => browser.runtime.sendMessage({ wsRemove: w.id }));
+    row.append(icon, name, color, remove);
+    return row;
+  }));
+}
+
+document.getElementById("ws-add").addEventListener("click", async () => {
+  const { workspaces } = await browser.storage.local.get({ workspaces: null });
+  const list = Array.isArray(workspaces) && workspaces.length
+    ? workspaces
+    : [{ id: "home", name: t("ws_defaultName"), icon: "🏠", color: "#22c55e" }];
+  const colors = ["#22c55e", "#38bdf8", "#f472b6", "#fb923c", "#a78bfa", "#facc15", "#f43f5e", "#2dd4bf"];
+  const icons = ["🏠", "💼", "🎮", "🎵", "🛒", "📚", "✈️", "💬"];
+  if (list.length >= 12) {
+    return;
+  }
+  await browser.storage.local.set({ workspaces: [...list, {
+    id: Math.random().toString(36).slice(2, 10),
+    name: t("ws_newName", String(list.length + 1)),
+    icon: icons[list.length % icons.length],
+    color: colors[list.length % colors.length],
+  }] });
+});
+
+showWorkspaces();
+
+// ---------- Messengery v bočním panelu (../messengers.js, ../sidebar/) ----------
+
+async function showMessengers() {
+  const { services, enabled } = await browser.runtime.sendMessage({ messengerServices: true });
+  document.getElementById("messenger-list").replaceChildren(...services.map(service => {
+    const label = document.createElement("label");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = enabled.includes(service.id);
+    box.addEventListener("change", async () => {
+      const current = (await browser.runtime.sendMessage({ messengerServices: true })).enabled;
+      const next = box.checked ? [...new Set([...current, service.id])] : current.filter(id => id !== service.id);
+      await browser.storage.local.set({ sidebarServices: next });
+    });
+    label.append(box, ` ${service.name}`);
+    return label;
+  }));
+}
+
+showMessengers();
+
 // Úsporný režim (performance.js → mantisPrefs.setEcoMode)
 async function showEcoState() {
   const state = await browser.mantisPrefs.ecoState();
@@ -635,6 +727,12 @@ browser.storage.onChanged.addListener((changes, area) => {
   }
   if (changes.themePreset || changes.themeAccent || changes.themeCustom || changes.themeGlow || changes.themeGlowColors) {
     showTheme();
+  }
+  if (changes.workspaces) {
+    showWorkspaces();
+  }
+  if (changes.sidebarServices) {
+    showMessengers();
   }
   if (changes.newtabWallpaper) {
     showWallpaper();
