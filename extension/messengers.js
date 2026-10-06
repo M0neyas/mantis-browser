@@ -3,20 +3,23 @@
 // Weby rámce zakazují (X-Frame-Options, CSP frame-ancestors) – kvůli clickjackingu na cizích
 // webech. Tady je rámec náš vlastní panel, takže zákaz zrušíme JEN pro rámce, jejichž
 // nadřazený dokument je stránka panelu Mantisu. Na ostatních webech zůstává ochrana beze změny.
-// Panel otevře zkratka Alt+Shift+M (manifest „_execute_sidebar_action“), paleta příkazů nebo
-// Zobrazit → Postranní lišta. storage.local (sync): sidebarServices = ID zapnutých služeb.
+// Najetím k levému okraji stránky vyjede plovoucí lišta s ikonami služeb (mantisPrefs.setSidebarRail –
+// překrývá stránku, nic neodsune); kliknutí na službu teprve otevře panel, který stránku zúží.
+// Panel otevře i zkratka Alt+Shift+M (manifest „_execute_sidebar_action“), paleta příkazů nebo
+// Zobrazit → Postranní lišta. storage.local (sync): sidebarServices = ID zapnutých služeb,
+// sidebarRail = lišta u okraje (výchozí zapnuto); jen místně sidebarLast = poslední služba.
 
 const SIDEBAR_PAGE = browser.runtime.getURL("sidebar/sidebar.html");
 
 // Služby: jen oficiální webové verze (https), žádné vlastní adresy – panel ruší ochranu
 // rámců, proto jen pro tyto weby a jen uvnitř panelu. domains = weby služby včetně
-// přihlášení (Messenger se přihlašuje přes facebook.com).
+// přihlášení (Messenger se přihlašuje přes facebook.com). Loga v icons/services/<id>.svg (Simple Icons, CC0).
 const MESSENGER_SERVICES = [
-  { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", domains: ["whatsapp.com"], color: "#25d366", letter: "W" },
-  { id: "messenger", name: "Messenger", url: "https://www.messenger.com/", domains: ["messenger.com", "facebook.com"], color: "#0866ff", letter: "M" },
-  { id: "discord", name: "Discord", url: "https://discord.com/app", domains: ["discord.com"], color: "#5865f2", letter: "D" },
-  { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com"], color: "#e1306c", letter: "I" },
-  { id: "spotify", name: "Spotify", url: "https://open.spotify.com/", domains: ["spotify.com"], color: "#1db954", letter: "S" },
+  { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", domains: ["whatsapp.com"], color: "#25d366" },
+  { id: "messenger", name: "Messenger", url: "https://www.messenger.com/", domains: ["messenger.com", "facebook.com"], color: "#0866ff" },
+  { id: "discord", name: "Discord", url: "https://discord.com/app", domains: ["discord.com"], color: "#5865f2" },
+  { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com"], color: "#e1306c" },
+  { id: "spotify", name: "Spotify", url: "https://open.spotify.com/", domains: ["spotify.com"], color: "#1db954" },
 ];
 const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify"];
 const MESSENGER_DOMAINS = MESSENGER_SERVICES.flatMap(s => s.domains);
@@ -83,6 +86,33 @@ browser.webRequest.onBeforeSendHeaders.addListener(details => {
     header.name.toLowerCase() === "sec-fetch-dest" ? { name: header.name, value: "document" } : header);
   return { requestHeaders };
 }, { urls: ["https://*/*"], types: ["sub_frame"] }, ["blocking", "requestHeaders"]);
+
+// Lišta u okraje: zapnuté služby, nebo nic (vypnuto / žádná služba)
+async function messengerRailPush() {
+  const { sidebarServices, sidebarRail } = await browser.storage.local.get({ sidebarServices: MESSENGER_DEFAULTS, sidebarRail: true });
+  const services = sidebarRail
+    ? MESSENGER_SERVICES.filter(s => sidebarServices.includes(s.id))
+      .map(({ domains, ...service }) => ({ ...service, icon: browser.runtime.getURL(`icons/services/${service.id}.svg`) }))
+    : [];
+  await browser.mantisPrefs.setSidebarRail(services, { title: t("sidebar_title"), settings: t("sidebar_settings") });
+}
+
+browser.mantisPrefs.onSidebarRailChoose.addListener(async (id, windowId) => {
+  if (id === "settings") {
+    await browser.tabs.create({ windowId, url: browser.runtime.getURL("settings/settings.html#messengers") });
+    return;
+  }
+  await browser.storage.local.set({ sidebarLast: id }); // stránka panelu přepne na tuto službu
+  await browser.mantisPrefs.showSidebar(windowId);
+});
+
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && (changes.sidebarServices || changes.sidebarRail)) {
+    messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
+  }
+});
+browser.windows.onCreated.addListener(() => messengerRailPush().catch(() => {}));
+messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
 
 // Stránka panelu si bere seznam služeb odsud (jeden zdroj pravdy)
 browser.runtime.onMessage.addListener(msg => {

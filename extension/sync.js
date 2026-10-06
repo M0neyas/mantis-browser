@@ -25,6 +25,7 @@ const SYNC_KEYS = [
   "themeAccent",
   "themeGlow", // neonová záře
   "themeGlowColors",
+  "sidebarRail",
   "sidebarServices", // služby v bočním panelu (prostory jsou jen místní – karty se liší)
   "themeCustom", // vlastní motiv (5 barev); vlastní zvuky (soundCustom) jen místně – velké
   "soundPack",

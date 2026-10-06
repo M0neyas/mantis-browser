@@ -375,6 +375,8 @@
   "settings_wsRemoveLast": {"message": "Aspoň jeden prostor musí zůstat."},
   "settings_messengers": {"message": "Messengery v bočním panelu"},
   "settings_messengersList": {"message": "Služby v panelu"},
+  "settings_sidebarRail": {"message": "Lišta u levého okraje"},
+  "settings_sidebarRailHint": {"message": "Najetím myší k levému okraji stránky se ukážou ikony služeb přes stránku; teprve kliknutí otevře panel, který stránku zúží."},
   "settings_messengersHint": {"message": "Panel otevře <b>Alt+Shift+M</b>, paleta příkazů nebo Zobrazit → Postranní lišta. Služby běží jako jejich webové verze; přihlášení v panelu je oddělené od přihlášení v kartách. Jen pro tyto weby a jen v panelu Mantis vypíná zákaz zobrazení v rámci."},
   "settings_ramLimit": {"message": "Omezit paměť"},
   "settings_ramLimitHint": {"message": "Když Mantis zabere víc paměti, uspí nejdéle nepoužívané karty (po kliknutí se znovu načtou). Aktivní, připnuté a hrající karty ani weby z výjimek uspávání se neuspí, takže limit může být krátce překročen."},

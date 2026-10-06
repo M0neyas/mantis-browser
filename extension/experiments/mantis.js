@@ -1023,7 +1023,7 @@ function removeVolumePanels() {
 // události mantisPrefs.onPaletteInput / onPaletteChoose / onWorkspaceAction.
 
 var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
-const mantisListeners = { paletteInput: new Set(), paletteChoose: new Set(), workspaceAction: new Set() };
+const mantisListeners = { paletteInput: new Set(), paletteChoose: new Set(), workspaceAction: new Set(), sidebarRailChoose: new Set() };
 
 function mantisEmit(name, ...args) {
   for (const listener of mantisListeners[name]) {
@@ -1304,9 +1304,134 @@ function wsRemoveWidget() {
 // sidebarAction.open() rozšíření smí jen z kliknutí – paleta a klávesová zkratka to nejsou.
 
 function toggleExtensionSidebar(win, extensionId) {
-  const sidebarId = `${ExtensionCommon.makeWidgetId(extensionId)}-sidebar-action`;
   const controller = win.SidebarController || win.SidebarUI;
-  controller?.toggle(sidebarId);
+  controller?.toggle(extensionSidebarId(extensionId));
+}
+
+function extensionSidebarId(extensionId) {
+  return `${ExtensionCommon.makeWidgetId(extensionId)}-sidebar-action`;
+}
+
+// Messengery potřebují víc místa než výchozích ~220 px panelu; širší (roztažený) panel nechat
+const SIDEBAR_MIN_WIDTH = 420;
+
+async function showExtensionSidebar(win, extensionId) {
+  const controller = win.SidebarController || win.SidebarUI;
+  const id = extensionSidebarId(extensionId);
+  if (!(controller?.isOpen && controller.currentID === id)) {
+    await controller?.show(id);
+  }
+  const box = win.document.getElementById("sidebar-box");
+  if (box && box.getBoundingClientRect().width < SIDEBAR_MIN_WIDTH) {
+    box.style.width = `${SIDEBAR_MIN_WIDTH}px`;
+  }
+}
+
+// ---------- Lišta messengerů u levého okraje (překryv) ----------
+// Najetím myší k levému okraji stránky vyjede plovoucí lišta s ikonami služeb – PŘES stránku,
+// nic neodsune. Teprve kliknutí na službu otevře boční panel (sidebar_action), který stránku
+// zúží. Při otevřeném panelu, celé obrazovce a úpravě lišt se lišta neukazuje.
+
+const RAIL_ID = "mantis-messenger-rail";
+const rail = { services: [], texts: {}, windowIdOf: null, extensionId: "" };
+
+function railOpen(win, root, open) {
+  if (open) {
+    const controller = win.SidebarController || win.SidebarUI;
+    const docked = controller?.isOpen && controller.currentID === extensionSidebarId(rail.extensionId);
+    const doc = win.document;
+    if (docked || doc.fullscreenElement || win.fullScreen || doc.documentElement.hasAttribute("customizing")) {
+      return;
+    }
+  }
+  win.clearTimeout(root._mantisHide);
+  root.toggleAttribute("open", open);
+  const nav = root.querySelector(".mantis-rail");
+  nav.style.transform = open ? "translate(0, -50%)" : "translate(calc(-100% - 12px), -50%)";
+  nav.style.opacity = open ? "1" : "0";
+  nav.style.pointerEvents = open ? "auto" : "none";
+}
+
+function railBuild(win) {
+  const doc = win.document;
+  if (doc.readyState !== "complete") {
+    win.addEventListener("load", () => railBuild(win), { once: true });
+    return;
+  }
+  const box = doc.getElementById("tabbrowser-tabbox");
+  let root = doc.getElementById(RAIL_ID);
+  if (!box || !rail.services.length) {
+    root?.remove();
+    return;
+  }
+  if (!root) {
+    root = doc.createElementNS(HTML_NS, "div");
+    root.id = RAIL_ID;
+    root.style.cssText = "position: absolute; inset: 0 auto 0 0; width: 0; z-index: 10; pointer-events: none;";
+    // neviditelný pruh u okraje, který lištu vysune
+    const edge = doc.createElementNS(HTML_NS, "div");
+    edge.style.cssText = "position: absolute; inset: 0 auto 0 0; width: 4px; pointer-events: auto;";
+    const nav = doc.createElementNS(HTML_NS, "nav");
+    nav.className = "mantis-rail";
+    nav.style.cssText = "position: absolute; top: 50%; left: 8px; display: flex; flex-direction: column; gap: 8px; padding: 8px; border: 1px solid var(--panel-border-color, var(--border-color, ThreeDShadow)); border-radius: 16px; background: var(--background-color-box, var(--toolbar-background-color, Menu)); color: var(--text-color, var(--toolbar-color, MenuText)); box-shadow: 0 10px 30px rgb(0 0 0 / 0.35); transition: transform 160ms ease, opacity 160ms ease;";
+    root.append(edge, nav);
+    if (win.getComputedStyle(box).position === "static") {
+      box.style.position = "relative";
+    }
+    box.append(root);
+    edge.addEventListener("mouseenter", () => railOpen(win, root, true));
+    root.addEventListener("mouseleave", () => {
+      win.clearTimeout(root._mantisHide);
+      root._mantisHide = win.setTimeout(() => railOpen(win, root, false), 350);
+    });
+    nav.addEventListener("mouseenter", () => win.clearTimeout(root._mantisHide));
+  }
+  const nav = root.querySelector(".mantis-rail");
+  const button = (label, icon, color, id) => {
+    const b = doc.createElementNS(HTML_NS, "button");
+    b.type = "button";
+    b.title = label;
+    b.setAttribute("aria-label", label);
+    b.style.cssText = "display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: none; border-radius: 11px; background: color-mix(in srgb, currentColor 7%, transparent); color: inherit; font: 15px/1 system-ui, sans-serif; cursor: pointer; transition: background-color 120ms ease;";
+    if (/^moz-extension:\/\/[^/]+\/icons\/services\/[a-z]+\.svg$/.test(icon)) {
+      const img = doc.createElementNS(HTML_NS, "img");
+      img.src = icon;
+      img.alt = "";
+      img.style.cssText = "width: 20px; height: 20px; pointer-events: none;";
+      b.append(img);
+    } else {
+      b.textContent = icon;
+    }
+    const hover = /^#[0-9a-f]{6}$/i.test(color) ? `color-mix(in srgb, ${color} 22%, transparent)` : "color-mix(in srgb, currentColor 14%, transparent)";
+    b.addEventListener("mouseenter", () => { b.style.background = hover; });
+    b.addEventListener("mouseleave", () => { b.style.background = "color-mix(in srgb, currentColor 7%, transparent)"; });
+    b.addEventListener("click", () => {
+      railOpen(win, root, false);
+      const windowId = rail.windowIdOf?.(win);
+      if (windowId !== undefined && windowId !== null) {
+        mantisEmit("sidebarRailChoose", id, windowId);
+      }
+    });
+    return b;
+  };
+  nav.replaceChildren(
+    ...rail.services.map(s => button(s.name, s.icon, s.color, s.id)),
+    button(rail.texts.settings || "⚙", "⚙", "", "settings"),
+  );
+  nav.setAttribute("aria-label", rail.texts.title || "");
+  railOpen(win, root, false);
+}
+
+function railUpdateAll() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    railBuild(win);
+  }
+}
+
+function removeRails() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    win.document.getElementById(RAIL_ID)?.remove();
+  }
 }
 
 this.mantisPrefs = class extends ExtensionAPI {
@@ -1323,6 +1448,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { removeVolumePanels(); } catch (e) {}
     try { removePalettes(); } catch (e) {}
     try { wsRemoveWidget(); } catch (e) {}
+    try { removeRails(); } catch (e) {}
   }
 
   getAPI(context) {
@@ -1603,6 +1729,30 @@ this.mantisPrefs = class extends ExtensionAPI {
         async toggleSidebar(windowId) {
           const win = context.extension.windowManager.get(windowId, context).window;
           toggleExtensionSidebar(win, context.extension.id);
+        },
+
+        async showSidebar(windowId) {
+          const win = context.extension.windowManager.get(windowId, context).window;
+          await showExtensionSidebar(win, context.extension.id);
+        },
+
+        onSidebarRailChoose: mantisEvent(context, "onSidebarRailChoose"),
+
+        // Plovoucí lišta u levého okraje: služby [{id, name, icon (moz-extension URL loga), color}], prázdné = vypnuto
+        async setSidebarRail(services, texts) {
+          rail.services = (services || []).map(s => ({
+            id: String(s.id), name: String(s.name), icon: String(s.icon || ""), color: String(s.color || ""),
+          }));
+          rail.texts = texts || {};
+          rail.extensionId = context.extension.id;
+          rail.windowIdOf = win => {
+            try {
+              return context.extension.windowManager.wrapWindow(win).id;
+            } catch (e) {
+              return null; // anonymní okno bez povolení
+            }
+          };
+          railUpdateAll();
         },
       },
     };

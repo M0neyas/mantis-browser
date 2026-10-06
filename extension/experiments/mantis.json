@@ -235,9 +235,32 @@
         "async": true,
         "description": "Otevře/zavře boční panel rozšíření (messengery) v okně – i bez kliknutí (paleta, zkratka).",
         "parameters": [{ "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "showSidebar",
+        "type": "function",
+        "async": true,
+        "description": "Otevře boční panel rozšíření (messengery) v okně, pokud ještě není otevřený.",
+        "parameters": [{ "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "setSidebarRail",
+        "type": "function",
+        "async": true,
+        "description": "Plovoucí lišta messengerů u levého okraje: služby [{id, name, icon, color}] (prázdné pole = vypnuto), texty {title, settings}.",
+        "parameters": [
+          { "name": "services", "type": "array", "items": { "type": "object", "additionalProperties": { "type": "any" } } },
+          { "name": "texts", "type": "object", "additionalProperties": { "type": "string" } }
+        ]
       }
     ],
     "events": [
+      {
+        "name": "onSidebarRailChoose",
+        "type": "function",
+        "description": "Kliknutí na službu v liště u okraje: (id služby nebo \"settings\", windowId).",
+        "parameters": [{ "name": "id", "type": "string" }, { "name": "windowId", "type": "integer" }]
+      },
       {
         "name": "onPaletteInput",
         "type": "function",

@@ -375,6 +375,8 @@
   "settings_wsRemoveLast": {"message": "At least one workspace has to stay."},
   "settings_messengers": {"message": "Messengers in the sidebar"},
   "settings_messengersList": {"message": "Services in the sidebar"},
+  "settings_sidebarRail": {"message": "Bar at the left edge"},
+  "settings_sidebarRailHint": {"message": "Move the mouse to the left edge of the page to show the service icons over the page; only clicking one opens the sidebar, which narrows the page."},
   "settings_messengersHint": {"message": "Open the sidebar with <b>Alt+Shift+M</b>, the command palette or View → Sidebar. The services run as their web versions; signing in to the sidebar is separate from your tabs. Only for these sites and only inside the Mantis sidebar, the ban on being shown in a frame is lifted."},
   "settings_ramLimit": {"message": "Limit memory"},
   "settings_ramLimitHint": {"message": "When Mantis uses more memory, the tabs unused for the longest are put to sleep (they reload when clicked). Active, pinned and playing tabs and sites excluded from tab sleeping are kept, so the limit can be exceeded briefly."},

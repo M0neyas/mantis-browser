@@ -20,6 +20,7 @@ const STORE_DEFAULTS = {
   netLimit: false,
   soundTyping: false, // zvuky (appearance.js)
   soundTabs: false,
+  sidebarRail: true, // lišta messengerů u okraje (messengers.js)
 };
 
 // Číselné volby (výběr nebo posuvník, data-store-number) – výchozí hodnoty jako v performance.js

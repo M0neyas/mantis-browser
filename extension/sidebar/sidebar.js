@@ -18,7 +18,10 @@ function serviceButton(service) {
   button.title = service.name;
   button.setAttribute("aria-label", service.name);
   button.style.setProperty("--service-color", service.color);
-  button.textContent = service.letter;
+  const logo = document.createElement("img");
+  logo.src = `../icons/services/${service.id}.svg`;
+  logo.alt = "";
+  button.append(logo);
   button.addEventListener("click", () => open(service));
   button.dataset.id = service.id;
   return button;
@@ -80,5 +83,10 @@ render();
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.sidebarServices) {
     render();
+  }
+  // kliknutí na službu v liště u okraje okna (../messengers.js)
+  if (area === "local" && changes.sidebarLast?.newValue && changes.sidebarLast.newValue !== current) {
+    const button = rail.querySelector(`.service[data-id="${CSS.escape(changes.sidebarLast.newValue)}"]`);
+    button?.click();
   }
 });
