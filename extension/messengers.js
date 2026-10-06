@@ -20,8 +20,10 @@ const MESSENGER_SERVICES = [
   { id: "discord", name: "Discord", url: "https://discord.com/app", domains: ["discord.com"], color: "#5865f2" },
   { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com"], color: "#e1306c" },
   { id: "spotify", name: "Spotify", url: "https://open.spotify.com/", domains: ["spotify.com"], color: "#1db954" },
+  // Poznámky nejsou web – kreslí je stránka panelu (sidebar/notes.js)
+  { id: "notes", name: t("notes_title"), kind: "notes", domains: [], color: "#eab308" },
 ];
-const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify"];
+const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify", "notes"];
 const MESSENGER_DOMAINS = MESSENGER_SERVICES.flatMap(s => s.domains);
 
 function messengerDomain(host) {
@@ -113,6 +115,25 @@ browser.storage.onChanged.addListener((changes, area) => {
 });
 browser.windows.onCreated.addListener(() => messengerRailPush().catch(() => {}));
 messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
+
+// Označený text → nová poznámka s odkazem na stránku, panel se otevře na poznámkách
+const NOTES_MENU = "mantis-add-note";
+browser.menus.create({ id: NOTES_MENU, title: t("notes_menu"), contexts: ["selection"] });
+
+browser.menus.onClicked.addListener((info, tab) => {
+  if (info.menuItemId !== NOTES_MENU) {
+    return;
+  }
+  // panel otevřít hned – sidebarAction.open() smí jen přímo z kliknutí
+  browser.sidebarAction.open().catch(() => {});
+  (async () => {
+    const { notes } = await browser.storage.local.get({ notes: [] });
+    const now = Date.now();
+    const page = /^https?:/.test(tab?.url || "") ? { url: tab.url, title: (tab.title || "").slice(0, 120) } : {};
+    const note = { id: Math.random().toString(36).slice(2, 10), text: String(info.selectionText || "").slice(0, 20000), ...page, created: now, updated: now };
+    await browser.storage.local.set({ sidebarLast: "notes", notes: [note, ...(Array.isArray(notes) ? notes : [])].slice(0, 500) });
+  })().catch(e => console.error("Mantis – poznámky:", e));
+});
 
 // Stránka panelu si bere seznam služeb odsud (jeden zdroj pravdy)
 browser.runtime.onMessage.addListener(msg => {

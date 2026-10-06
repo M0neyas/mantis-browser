@@ -105,6 +105,141 @@ iframe[hidden] {
   display: none;
 }
 
+/* ---------- Poznámky (notes.js) ---------- */
+.notes {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.notes[hidden] {
+  display: none;
+}
+
+.notes header,
+.notes-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.notes header b {
+  flex: 1;
+  font-size: 14px;
+}
+
+.notes header[hidden],
+.notes-list[hidden],
+.notes-editor[hidden],
+.notes-empty[hidden],
+.notes-source[hidden] {
+  display: none;
+}
+
+.notes-button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--tile);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+
+.notes-button:hover {
+  background: var(--tile-hover);
+}
+
+.notes-button.danger {
+  margin-inline-start: auto;
+  color: #dc2626;
+}
+
+@media (prefers-color-scheme: dark) {
+  .notes-button.danger { color: #f87171; }
+}
+
+.notes-list {
+  flex: 1;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.notes-list button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.notes-list button:hover {
+  background: var(--tile);
+}
+
+.note-title {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.note-meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notes-empty {
+  margin: 16px;
+  color: var(--muted);
+}
+
+.notes-editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.notes-source {
+  overflow: hidden;
+  min-width: 0;
+  color: var(--accent);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.notes-editor textarea {
+  flex: 1;
+  margin: 0;
+  padding: 12px;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--fg);
+  font: 14px/1.5 system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
+}
+
 #empty {
   margin: 24px 16px;
   color: var(--muted);

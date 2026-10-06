@@ -244,6 +244,25 @@ main:has(#clock:not([hidden])) .logo {
   text-overflow: ellipsis;
 }
 
+/* ---------- Statistiky ochrany (../stats.js) ---------- */
+
+#stats {
+  margin: -12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+#stats b {
+  color: var(--accent-fg);
+  font-weight: 600;
+}
+
+body.wallpaper #stats {
+  color: #fff;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 0.6);
+}
+
 /* ---------- Dlaždice ---------- */
 
 #sites {

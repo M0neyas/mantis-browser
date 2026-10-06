@@ -80,7 +80,7 @@
       "eshops.js",
       "tabsleep.js",
       "performance.js",
-      "appearance.js", "workspaces.js", "messengers.js", "palette.js"
+      "appearance.js", "workspaces.js", "messengers.js", "stats.js", "savedsessions.js", "palette.js"
     ],
     "persistent": true
   },

@@ -348,6 +348,12 @@
     </label>
 
     <label class="option">
+      <span><b data-i18n="settings_newtabStats"></b>
+        <span class="hint" data-i18n="settings_newtabStatsHint"></span></span>
+      <input type="checkbox" class="switch" data-store="newtabStats">
+    </label>
+
+    <label class="option">
       <span><b data-i18n="settings_background"></b>
         <span class="hint" data-i18n="settings_backgroundHint"></span></span>
       <input type="checkbox" class="switch" data-store="newtabBackground">
@@ -428,6 +434,23 @@
       <ol class="ws-list" id="ws-list"></ol>
       <span class="hot-tabs-actions">
         <button type="button" class="secondary" id="ws-add" data-i18n="settings_wsAdd"></button>
+      </span>
+    </div>
+  </section>
+
+  <section id="sessions">
+    <h2 data-i18n="settings_sessions"></h2>
+
+    <div class="option column">
+      <span>
+        <b data-i18n="settings_sessionsList"></b>
+        <span class="hint" data-i18n-html="settings_sessionsHint"></span>
+      </span>
+      <ol class="ws-list" id="sess-list"></ol>
+      <span class="hint" id="sess-empty" hidden data-i18n="settings_sessionsEmpty"></span>
+      <span class="hot-tabs-actions">
+        <button type="button" class="secondary" id="sess-save" data-i18n="settings_sessSave"></button>
+        <span class="hint" id="sess-status" role="status"></span>
       </span>
     </div>
   </section>

@@ -221,7 +221,7 @@ browser.mantisPrefs.onWorkspaceAction.addListener((action, windowId, id) => {
 
 browser.commands.onCommand.addListener(async command => {
   if (command === "workspace-next" || command === "workspace-previous") {
-    const win = await browser.windows.getLastFocused({ windowTypes: ["normal"] });
+    const win = await browser.windows.getLastFocused();
     wsStep(win.id, command === "workspace-next" ? 1 : -1);
   }
 });

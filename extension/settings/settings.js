@@ -21,6 +21,7 @@ const STORE_DEFAULTS = {
   soundTyping: false, // zvuky (appearance.js)
   soundTabs: false,
   sidebarRail: true, // lišta messengerů u okraje (messengers.js)
+  newtabStats: true, // statistiky ochrany na nové kartě (stats.js)
 };
 
 // Číselné volby (výběr nebo posuvník, data-store-number) – výchozí hodnoty jako v performance.js
@@ -247,6 +248,52 @@ document.getElementById("ws-add").addEventListener("click", async () => {
 });
 
 showWorkspaces();
+
+// ---------- Uložené relace (logika v ../savedsessions.js) ----------
+
+async function showSessions() {
+  const { savedSessions } = await browser.storage.local.get({ savedSessions: [] });
+  const list = Array.isArray(savedSessions) ? savedSessions : [];
+  document.getElementById("sess-empty").hidden = list.length > 0;
+  document.getElementById("sess-list").replaceChildren(...list.map(session => {
+    const row = document.createElement("li");
+    row.className = "ws-item";
+    const name = document.createElement("input");
+    name.type = "text";
+    name.className = "ws-name";
+    name.value = session.name;
+    name.maxLength = 80;
+    name.setAttribute("aria-label", t("settings_sessName"));
+    name.addEventListener("change", async () => {
+      const { savedSessions: current } = await browser.storage.local.get({ savedSessions: [] });
+      await browser.storage.local.set({ savedSessions: current.map(s => s.id !== session.id ? s : { ...s, name: name.value.trim().slice(0, 80) || s.name }) });
+    });
+    const info = document.createElement("span");
+    info.className = "hint";
+    info.textContent = t("settings_sessInfo", String(session.tabs.length),
+      new Date(session.created).toLocaleDateString(uiLocale(), { day: "numeric", month: "numeric", year: "numeric" }));
+    const restore = document.createElement("button");
+    restore.type = "button";
+    restore.textContent = t("settings_sessOpen");
+    restore.addEventListener("click", () => browser.runtime.sendMessage({ sessRestore: session.id }));
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "secondary";
+    remove.textContent = t("settings_wsRemove");
+    remove.addEventListener("click", () => browser.runtime.sendMessage({ sessRemove: session.id }));
+    row.append(name, info, restore, remove);
+    return row;
+  }));
+}
+
+document.getElementById("sess-save").addEventListener("click", async () => {
+  const session = await browser.runtime.sendMessage({ sessSave: true });
+  document.getElementById("sess-status").textContent = session
+    ? t("settings_sessSaved", String(session.tabs.length))
+    : t("settings_sessNothing");
+});
+
+showSessions();
 
 // ---------- Messengery v bočním panelu (../messengers.js, ../sidebar/) ----------
 
@@ -734,6 +781,9 @@ browser.storage.onChanged.addListener((changes, area) => {
   }
   if (changes.sidebarServices) {
     showMessengers();
+  }
+  if (changes.savedSessions) {
+    showSessions();
   }
   if (changes.newtabWallpaper) {
     showWallpaper();

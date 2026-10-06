@@ -80,6 +80,8 @@ function paletteCommands() {
       run: async windowId => browser.mantisPrefs.showTabVolume((await activeTab(windowId))?.id) },
     { id: "duplicate", icon: "📄", title: t("palette_duplicate"), words: "duplicate duplikovat",
       run: async windowId => browser.tabs.duplicate((await activeTab(windowId))?.id) },
+    { id: "saveSession", icon: "💾", title: t("palette_saveSession"), words: "session relace ulozit save",
+      run: windowId => sessSave(windowId) }, // savedsessions.js
     { id: "reopen", icon: "↩️", title: t("palette_reopen"), words: "reopen undo zavrena obnovit",
       run: async () => {
         const [last] = await browser.sessions.getRecentlyClosed({ maxResults: 1 });
@@ -114,6 +116,14 @@ async function paletteResults(text, windowId) {
     if (w.id !== currentWs && paletteMatch(words, w.name, "prostor workspace")) {
       add({ id: `ws:${w.id}`, icon: w.icon || "🗂️", title: t("palette_workspace", w.name), detail: t("palette_kindWorkspace") },
         () => wsSwitch(windowId, w.id));
+    }
+  }
+
+  // Uložené relace (savedsessions.js)
+  if (words.length) {
+    for (const session of (await sessList()).filter(s => paletteMatch(words, s.name, "relace session")).slice(0, 4)) {
+      add({ id: `sess:${session.id}`, icon: "🗂️", title: t("palette_session", session.name),
+        detail: t("palette_kindSession", String(session.tabs.length)) }, () => sessRestore(session.id));
     }
   }
 
@@ -179,7 +189,7 @@ browser.mantisPrefs.onPaletteChoose.addListener(id => {
 
 browser.commands.onCommand.addListener(async command => {
   if (command === "command-palette") {
-    const win = await browser.windows.getLastFocused({ windowTypes: ["normal"] });
+    const win = await browser.windows.getLastFocused();
     await browser.mantisPrefs.showPalette(win.id, t("palette_placeholder"));
   }
 });

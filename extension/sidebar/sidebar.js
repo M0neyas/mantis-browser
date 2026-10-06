@@ -2,7 +2,7 @@
 // Vlevo lišta s ikonami, vpravo služba v rámci. Rámec se vytvoří při prvním otevření
 // služby a pak zůstává (přepnutí neztratí rozepsanou zprávu ani přehrávání Spotify).
 // Rámce jsou sandbox bez allow-top-navigation: web nemůže přesměrovat stránku panelu.
-/* global t, applyI18n */
+/* global t, applyI18n, createNotesView */
 
 applyI18n();
 
@@ -29,12 +29,17 @@ function serviceButton(service) {
 
 function open(service) {
   let frame = frameOf.get(service.id);
+  if (!frame && service.kind === "notes") {
+    frame = createNotesView(); // notes.js
+    frames.append(frame);
+    frameOf.set(service.id, frame);
+  }
   if (!frame) {
     frame = document.createElement("iframe");
     frame.src = service.url;
     frame.title = service.name;
     frame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals");
-    frame.setAttribute("allow", "autoplay; encrypted-media; clipboard-read; clipboard-write; microphone; camera");
+    frame.setAttribute("allow", "microphone; camera"); // hovory; autoplay/encrypted-media/clipboard Firefox v allow nezná (jen varování)
     frames.append(frame);
     frameOf.set(service.id, frame);
   }

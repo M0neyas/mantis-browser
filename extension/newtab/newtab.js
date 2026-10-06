@@ -370,6 +370,30 @@ document.getElementById("settings").addEventListener("click", () => {
   browser.runtime.openOptionsPage();
 });
 
+// ---------- Statistiky ochrany (počítá ../stats.js, jen v tomto počítači) ----------
+
+// ~50 ms na zablokovaný požadavek (odhad, jak ho používá Brave)
+const STATS_MS_PER_BLOCK = 50;
+
+async function renderStats() {
+  const { newtabStats } = await browser.storage.local.get({ newtabStats: true });
+  if (!newtabStats) {
+    return;
+  }
+  const stats = await browser.runtime.sendMessage({ protectionStats: true });
+  if (!stats?.week) {
+    return;
+  }
+  const el = document.getElementById("stats");
+  const count = document.createElement("b");
+  count.textContent = stats.week.toLocaleString(uiLocale());
+  const minutes = Math.round(stats.week * STATS_MS_PER_BLOCK / 60000);
+  const [before, after] = t("newtab_stats", "\u0000").split("\u0000");
+  el.replaceChildren(before, count, after, minutes >= 1 ? t("newtab_statsSaved", String(minutes)) : "");
+  el.hidden = false;
+}
+
 renderLook();
+renderStats();
 renderSites();
 renderUpdate();

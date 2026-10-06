@@ -41,8 +41,9 @@ a vestavěnou VPN.
   vlevo od karet nebo `Ctrl+Alt+PageDown / PageUp`.
 - **Paleta příkazů** – `Ctrl+Shift+Mezerník`: karty, záložky, historie, prostory i příkazy Mantisu
   (uspat karty, VPN, úsporný režim…) v jednom poli, bez diakritiky.
-- **Messengery v bočním panelu** – WhatsApp, Messenger, Discord, Instagram, Spotify vedle stránky
-  (`Alt+Shift+M`).
+- **Messengery a poznámky v bočním panelu** – WhatsApp, Messenger, Discord, Instagram, Spotify
+  a poznámky vedle stránky (lišta u levého okraje, `Alt+Shift+M`).
+- **Uložené relace** a **statistiky ochrany** na nové kartě (kolik reklam a sledovačů se zablokovalo).
 - **Připravený k použití** – čeština i angličtina, doporučená rozšíření jedním kliknutím (Bitwarden,
   kontejnery karet, český slovník, Consent-O-Matic, Dark Reader, Hlídač shopů,
   YouTube Windowed FullScreen, TTV LOL PRO – nic se neinstaluje samo),
