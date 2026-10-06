@@ -214,7 +214,7 @@ browser.tabs.onCreated.addListener(async tab => {
 //  - jinak (Seznam všech karet, jiné rozšíření) uživatel chce tu kartu → přepnout na její prostor.
 // tabs.onActivated přijde před tabs.onRemoved – rozhoduje se až ve frontě po krátké chvíli.
 const wsRemovedAt = new Map(); // okno → čas posledního zavření karty
-const WS_CLOSE_WINDOW_MS = 1500;
+const WS_CLOSE_WINDOW_MS = 1000; // úmyslný výběr jiné karty hned po zavření by se jinak vrátil
 
 browser.tabs.onRemoved.addListener((tabId, { windowId, isWindowClosing }) => {
   if (!isWindowClosing) {
@@ -228,14 +228,17 @@ browser.tabs.onActivated.addListener(({ tabId, windowId }) => {
     if (list.length < 2) {
       return;
     }
+    const current = await wsOfWindow(windowId, list);
+    if (await wsOfTab(tabId, list) === current) {
+      return; // běžné přepnutí karty v prostoru – bez čekání (fronta se nezdržuje)
+    }
     await new Promise(resolve => setTimeout(resolve, 100)); // zavírání karty ať doběhne
     const tab = await browser.tabs.get(tabId).catch(() => null);
     if (!tab?.active || tab.pinned) {
       return; // mezitím aktivní jiná karta, nebo připnutá (ve všech prostorech)
     }
     const own = await wsOfTab(tabId, list);
-    const current = await wsOfWindow(windowId, list);
-    if (own === current) {
+    if (own === await wsOfWindow(windowId, list)) {
       return;
     }
     const afterClose = Date.now() - (wsRemovedAt.get(windowId) || 0) < WS_CLOSE_WINDOW_MS;
