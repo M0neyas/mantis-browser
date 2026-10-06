@@ -88,11 +88,13 @@ async function wsApply(windowId, wsId) {
   if (hide.length) {
     await browser.tabs.hide(hide);
   }
-  await wsPush();
 }
 
 function wsSwitch(windowId, wsId) {
-  return wsQueue(() => wsApply(windowId, wsId));
+  return wsQueue(async () => {
+    await wsApply(windowId, wsId);
+    await wsPush();
+  });
 }
 
 async function wsStep(windowId, step) {
@@ -116,6 +118,8 @@ async function wsCreate(windowId, name) {
   await wsSave([...list, workspace]);
   if (windowId !== undefined) {
     await wsSwitch(windowId, workspace.id);
+  } else {
+    await wsQueue(wsPush); // jen tlačítko a nabídka (vlastní zápis storage.onChanged přeskočí)
   }
   return workspace;
 }
@@ -133,7 +137,7 @@ async function wsRemove(wsId) {
     }
   }
   await wsSave(rest);
-  await wsRefreshAll();
+  await wsRefreshAll(); // vlastní zápis storage.onChanged přeskočí
 }
 
 // Karta do jiného prostoru (nabídka karty); aktivní karta se před schováním vystřídá
@@ -142,15 +146,18 @@ function wsMoveTab(tab, wsId) {
     const list = await wsList();
     await browser.sessions.setTabValue(tab.id, WS_TAB_KEY, wsId);
     await wsApply(tab.windowId, await wsOfWindow(tab.windowId, list));
+    await wsPush();
   });
 }
 
-async function wsRefreshAll() {
-  const list = await wsList();
-  for (const win of await browser.windows.getAll({ windowTypes: ["normal"] })) {
-    await wsQueue(async () => wsApply(win.id, await wsOfWindow(win.id, list)));
-  }
-  await wsPush();
+function wsRefreshAll() {
+  return wsQueue(async () => {
+    const list = await wsList();
+    for (const win of await browser.windows.getAll({ windowTypes: ["normal"] })) {
+      await wsApply(win.id, await wsOfWindow(win.id, list));
+    }
+    await wsPush();
+  });
 }
 
 // Tlačítko v liště a podnabídka „Přesunout do prostoru“
@@ -200,6 +207,43 @@ browser.tabs.onCreated.addListener(async tab => {
   }
 });
 
+// Aktivovaná karta z jiného prostoru:
+//  - po zavření poslední karty prostoru Firefox vybere schovanou kartu jiného prostoru (a místo
+//    zavření okna přidá novou kartu – closeWindowWithLastTab vypíná experiment) → zůstat
+//    v prostoru okna (jeho nová karta),
+//  - jinak (Seznam všech karet, jiné rozšíření) uživatel chce tu kartu → přepnout na její prostor.
+// tabs.onActivated přijde před tabs.onRemoved – rozhoduje se až ve frontě po krátké chvíli.
+const wsRemovedAt = new Map(); // okno → čas posledního zavření karty
+const WS_CLOSE_WINDOW_MS = 1500;
+
+browser.tabs.onRemoved.addListener((tabId, { windowId, isWindowClosing }) => {
+  if (!isWindowClosing) {
+    wsRemovedAt.set(windowId, Date.now());
+  }
+});
+
+browser.tabs.onActivated.addListener(({ tabId, windowId }) => {
+  wsQueue(async () => {
+    const list = await wsList();
+    if (list.length < 2) {
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100)); // zavírání karty ať doběhne
+    const tab = await browser.tabs.get(tabId).catch(() => null);
+    if (!tab?.active || tab.pinned) {
+      return; // mezitím aktivní jiná karta, nebo připnutá (ve všech prostorech)
+    }
+    const own = await wsOfTab(tabId, list);
+    const current = await wsOfWindow(windowId, list);
+    if (own === current) {
+      return;
+    }
+    const afterClose = Date.now() - (wsRemovedAt.get(windowId) || 0) < WS_CLOSE_WINDOW_MS;
+    await wsApply(windowId, afterClose ? current : own);
+    await wsPush();
+  });
+});
+
 // Karta přetažená do jiného okna přejde do jeho prostoru
 browser.tabs.onAttached.addListener(async (tabId, { newWindowId }) => {
   const list = await wsList();
@@ -207,7 +251,7 @@ browser.tabs.onAttached.addListener(async (tabId, { newWindowId }) => {
   await browser.tabs.show(tabId).catch(() => {});
 });
 
-browser.windows.onCreated.addListener(() => wsPush().catch(() => {}));
+browser.windows.onCreated.addListener(() => wsQueue(wsPush));
 
 browser.mantisPrefs.onWorkspaceAction.addListener((action, windowId, id) => {
   if (action === "switch") {
@@ -229,8 +273,12 @@ browser.commands.onCommand.addListener(async command => {
 // Nastavení Mantis (settings/settings.js) mění seznam přes storage
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.workspaces) {
-    wsCache = wsValid(changes.workspaces.newValue) ? changes.workspaces.newValue : null;
-    wsRefreshAll().catch(e => console.error("Mantis – prostory:", e));
+    const next = wsValid(changes.workspaces.newValue) ? changes.workspaces.newValue : null;
+    if (next && JSON.stringify(next) === JSON.stringify(wsCache)) {
+      return; // vlastní zápis (wsSave) – stav už je zařízený
+    }
+    wsCache = next;
+    wsRefreshAll();
   }
 });
 
@@ -238,8 +286,15 @@ browser.runtime.onMessage.addListener(msg => {
   if (msg?.wsRemove) {
     return wsRemove(String(msg.wsRemove));
   }
+  // Nastavení Mantis: seznam (i výchozí, dokud není uložený) a nový prostor bez přepnutí
+  if (msg?.wsList) {
+    return wsList();
+  }
+  if (msg?.wsCreate) {
+    return wsCreate(undefined);
+  }
   return undefined;
 });
 
 // Po startu: schovat karty neaktivních prostorů (obnova relace je vrací viditelné)
-wsRefreshAll().catch(e => console.error("Mantis – prostory:", e));
+wsRefreshAll();

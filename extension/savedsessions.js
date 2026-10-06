@@ -4,7 +4,8 @@
 // storage.local (jen tento počítač): savedSessions [{ id, name, created, tabs: [{ url, title, pinned }] }].
 
 const SESS_MAX = 50;
-const SESS_URL = /^(https?|file):/;
+// jen http(s): file: rozšíření otevřít nesmí (windows.create/tabs.create ho odmítne)
+const SESS_URL = /^https?:/;
 
 async function sessList() {
   const { savedSessions } = await browser.storage.local.get({ savedSessions: [] });

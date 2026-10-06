@@ -1288,6 +1288,25 @@ function wsEnsureWidget() {
   wsUpdateAll();
 }
 
+// Firefox zavře okno se zavřením poslední VIDITELNÉ karty (Tabbrowser #isLastTabInWindow
+// schované nepočítá) – i se schovanými kartami ostatních prostorů. S víc prostory proto
+// browser.tabs.closeWindowWithLastTab = false: místo zavření okna nová karta ve stejném prostoru.
+// Jen pokud ho uživatel sám nevypnul; značka mantis.workspaces.keepWindow = nastavil Mantis.
+const WS_LAST_TAB_PREF = "browser.tabs.closeWindowWithLastTab";
+const WS_KEEP_MARK = "mantis.workspaces.keepWindow";
+
+function wsKeepWindow(on) {
+  if (on) {
+    if (Services.prefs.getBoolPref(WS_LAST_TAB_PREF, true)) {
+      Services.prefs.setBoolPref(WS_LAST_TAB_PREF, false);
+      Services.prefs.setBoolPref(WS_KEEP_MARK, true);
+    }
+  } else if (Services.prefs.getBoolPref(WS_KEEP_MARK, false)) {
+    Services.prefs.clearUserPref(WS_LAST_TAB_PREF);
+    Services.prefs.clearUserPref(WS_KEEP_MARK);
+  }
+}
+
 function wsRemoveWidget() {
   if (!ws.created) {
     return;
@@ -1448,6 +1467,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { removeVolumePanels(); } catch (e) {}
     try { removePalettes(); } catch (e) {}
     try { wsRemoveWidget(); } catch (e) {}
+    try { wsKeepWindow(false); } catch (e) {}
     try { removeRails(); } catch (e) {}
   }
 
@@ -1717,13 +1737,14 @@ this.mantisPrefs = class extends ExtensionAPI {
           ws.list = (list || []).map(w => ({ id: String(w.id), name: String(w.name), icon: String(w.icon || ""), color: String(w.color || "") }));
           ws.active = new Map(Object.entries(active || {}).map(([id, wsId]) => [Number(id), String(wsId)]));
           ws.texts = texts || {};
-          ws.windowIds = new Map();
+          ws.windowIds = new WeakMap(); // zavřená okna nedržet v paměti
           for (const win of Services.wm.getEnumerator("navigator:browser")) {
             try {
               ws.windowIds.set(win, context.extension.windowManager.wrapWindow(win).id);
             } catch (e) {} // anonymní okno bez povolení
           }
           wsEnsureWidget();
+          wsKeepWindow(ws.list.length > 1);
         },
 
         async toggleSidebar(windowId) {

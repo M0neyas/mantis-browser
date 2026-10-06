@@ -183,10 +183,7 @@ document.getElementById("sleep-background").addEventListener("click", async () =
 const WS_COLOR = /^#[0-9a-f]{6}$/i;
 
 async function showWorkspaces() {
-  const { workspaces } = await browser.storage.local.get({ workspaces: null });
-  const list = Array.isArray(workspaces) && workspaces.length
-    ? workspaces
-    : [{ id: "home", name: t("ws_defaultName"), icon: "🏠", color: "#22c55e" }];
+  const list = await browser.runtime.sendMessage({ wsList: true }); // i výchozí, dokud není uložený
   const save = next => browser.storage.local.set({ workspaces: next });
   document.getElementById("ws-list").replaceChildren(...list.map((w, index) => {
     const row = document.createElement("li");
@@ -229,22 +226,10 @@ async function showWorkspaces() {
   }));
 }
 
+// nový prostor založí workspaces.js (barvy, ikony, limit) – bez přepnutí okna
 document.getElementById("ws-add").addEventListener("click", async () => {
-  const { workspaces } = await browser.storage.local.get({ workspaces: null });
-  const list = Array.isArray(workspaces) && workspaces.length
-    ? workspaces
-    : [{ id: "home", name: t("ws_defaultName"), icon: "🏠", color: "#22c55e" }];
-  const colors = ["#22c55e", "#38bdf8", "#f472b6", "#fb923c", "#a78bfa", "#facc15", "#f43f5e", "#2dd4bf"];
-  const icons = ["🏠", "💼", "🎮", "🎵", "🛒", "📚", "✈️", "💬"];
-  if (list.length >= 12) {
-    return;
-  }
-  await browser.storage.local.set({ workspaces: [...list, {
-    id: Math.random().toString(36).slice(2, 10),
-    name: t("ws_newName", String(list.length + 1)),
-    icon: icons[list.length % icons.length],
-    color: colors[list.length % colors.length],
-  }] });
+  await browser.runtime.sendMessage({ wsCreate: true });
+  showWorkspaces(); // vlastní zápis workspaces.js storage.onChanged tady taky vyvolá, pro jistotu
 });
 
 showWorkspaces();

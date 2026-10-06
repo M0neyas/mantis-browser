@@ -5,7 +5,8 @@
 // Vše jen z tohoto počítače – nic se neodesílá.
 
 const PALETTE_MAX = 12;
-let paletteActions = new Map();
+let paletteActions = new Map(); // akce k právě zobrazeným výsledkům
+let paletteRequest = 0;
 
 // Bez diakritiky a velikosti písmen: „usp“ najde „Uspat“, „usporny“ najde „Úsporný“
 function paletteFold(text) {
@@ -97,6 +98,7 @@ async function paletteResults(text, windowId) {
   const words = paletteFold(text).split(/\s+/).filter(Boolean);
   const items = [];
   const seen = new Set();
+  const actions = new Map();
   const add = (item, run) => {
     if (item.url && seen.has(item.url)) {
       return;
@@ -105,9 +107,8 @@ async function paletteResults(text, windowId) {
       seen.add(item.url);
     }
     items.push(item);
-    paletteActions.set(item.id, run);
+    actions.set(item.id, run);
   };
-  paletteActions = new Map();
 
   // Pracovní prostory
   const list = await wsList();
@@ -153,11 +154,12 @@ async function paletteResults(text, windowId) {
       browser.bookmarks.search(text.trim()).catch(() => []),
       browser.history.search({ text: text.trim(), startTime: 0, maxResults: 30 }).catch(() => []),
     ]);
-    for (const bookmark of bookmarks.filter(b => b.url && /^(https?|file):/.test(b.url)).slice(0, 3)) {
+    // záložky a historie jen http(s) – file: rozšíření otevřít nesmí
+    for (const bookmark of bookmarks.filter(b => b.url && /^https?:/.test(b.url)).slice(0, 3)) {
       add({ id: `bm:${bookmark.id}`, url: bookmark.url, title: bookmark.title || bookmark.url, detail: t("palette_kindBookmark") },
         () => paletteOpenUrl(bookmark.url, windowId));
     }
-    for (const item of history.filter(h => /^(https?|file):/.test(h.url || ""))
+    for (const item of history.filter(h => /^https?:/.test(h.url || ""))
       .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0)).slice(0, 4)) {
       add({ id: `h:${item.id}`, url: item.url, title: item.title || item.url, detail: t("palette_kindHistory") },
         () => paletteOpenUrl(item.url, windowId));
@@ -172,12 +174,18 @@ async function paletteResults(text, windowId) {
           : { query: text.trim(), disposition: "NEW_TAB" });
       });
   }
-  return items.slice(0, PALETTE_MAX);
+  return { items: items.slice(0, PALETTE_MAX), actions };
 }
 
 browser.mantisPrefs.onPaletteInput.addListener(async (text, requestId, windowId) => {
+  paletteRequest = requestId;
   try {
-    await browser.mantisPrefs.setPaletteResults(requestId, await paletteResults(text, windowId));
+    const { items, actions } = await paletteResults(text, windowId);
+    if (requestId !== paletteRequest) {
+      return; // mezitím se psalo dál – zobrazí se novější výsledky
+    }
+    paletteActions = actions;
+    await browser.mantisPrefs.setPaletteResults(requestId, items);
   } catch (e) {
     console.error("Mantis – paleta:", e);
   }

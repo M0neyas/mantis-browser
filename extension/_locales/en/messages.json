@@ -365,7 +365,7 @@
   "sidebar_empty": {"message": "No app is turned on. Choose them in <b>Mantis Settings → Apps in the sidebar</b> (gear icon below)."},
   "settings_workspaces": {"message": "Workspaces"},
   "settings_workspacesList": {"message": "Workspaces"},
-  "settings_workspacesHint": {"message": "Separate sets of tabs in one window (e.g. Work / Home). Switch with the button left of the tabs, with <b>Ctrl+Alt+PageDown / PageUp</b> or from the command palette (<b>Ctrl+Shift+Space</b>). Tabs of other workspaces are only hidden. Pinned tabs are in every workspace; move a tab with right-click → Move to workspace."},
+  "settings_workspacesHint": {"message": "Separate sets of tabs in one window (e.g. Work / Home). Switch with the button left of the tabs, with <b>Ctrl+Alt+PageDown / PageUp</b> or from the command palette (<b>Ctrl+Shift+Space</b>). Tabs of other workspaces are only hidden. Pinned tabs are in every workspace; move a tab with right-click → Move to workspace. Closing the last tab of a workspace opens a new tab instead of closing the window."},
   "settings_wsAdd": {"message": "Add workspace"},
   "settings_wsIcon": {"message": "Workspace icon"},
   "settings_wsName": {"message": "Workspace name"},

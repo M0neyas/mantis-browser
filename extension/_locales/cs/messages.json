@@ -365,7 +365,7 @@
   "sidebar_empty": {"message": "Žádná aplikace není zapnutá. Vyberte je v <b>Nastavení Mantis → Aplikace v bočním panelu</b> (ozubené kolo dole)."},
   "settings_workspaces": {"message": "Pracovní prostory"},
   "settings_workspacesList": {"message": "Prostory"},
-  "settings_workspacesHint": {"message": "Oddělené sady karet v jednom okně (třeba Práce / Doma). Přepínání tlačítkem vlevo od karet, zkratkou <b>Ctrl+Alt+PageDown / PageUp</b> nebo z palety příkazů (<b>Ctrl+Shift+Mezerník</b>). Karty ostatních prostorů se jen schovají. Připnuté karty jsou ve všech prostorech; kartu přesunete pravým klikem → Přesunout do prostoru."},
+  "settings_workspacesHint": {"message": "Oddělené sady karet v jednom okně (třeba Práce / Doma). Přepínání tlačítkem vlevo od karet, zkratkou <b>Ctrl+Alt+PageDown / PageUp</b> nebo z palety příkazů (<b>Ctrl+Shift+Mezerník</b>). Karty ostatních prostorů se jen schovají. Připnuté karty jsou ve všech prostorech; kartu přesunete pravým klikem → Přesunout do prostoru. Zavřením poslední karty prostoru se otevře nová karta, okno se nezavře."},
   "settings_wsAdd": {"message": "Přidat prostor"},
   "settings_wsIcon": {"message": "Ikona prostoru"},
   "settings_wsName": {"message": "Název prostoru"},

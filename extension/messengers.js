@@ -31,10 +31,26 @@ function messengerDomain(host) {
   return MESSENGER_DOMAINS.some(domain => host === domain || host.endsWith("." + domain));
 }
 
+function hostOfUrl(url) {
+  try {
+    return new URL(url).hostname;
+  } catch (e) {
+    return "";
+  }
+}
+
+// Rámec patří panelu, jen když celý řetězec nadřazených dokumentů je panel → služba → služba…
+// (frameAncestors: první = přímý rodič, poslední = nejvyšší dokument). Stačilo by „panel je
+// někde nad“, mohl by cizí rámec uvnitř služby (reklama v TikToku) vložit Facebook bez ochrany
+// a klikání v něm podvrhnout (clickjacking).
 function inMantisSidebar(details) {
-  // přímý rámec panelu: documentUrl = stránka panelu; vnořené: některý z nadřazených
-  return (details.documentUrl || "").startsWith(SIDEBAR_PAGE) ||
-    (details.frameAncestors || []).some(frame => (frame.url || "").startsWith(SIDEBAR_PAGE));
+  const ancestors = details.frameAncestors;
+  if (!Array.isArray(ancestors) || !ancestors.length) {
+    return (details.documentUrl || "").startsWith(SIDEBAR_PAGE);
+  }
+  const top = ancestors[ancestors.length - 1];
+  return (top.url || "").startsWith(SIDEBAR_PAGE) &&
+    ancestors.slice(0, -1).every(frame => /^https:/.test(frame.url || "") && messengerDomain(hostOfUrl(frame.url)));
 }
 
 browser.webRequest.onHeadersReceived.addListener(details => {
@@ -113,6 +129,9 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && (changes.sidebarServices || changes.sidebarRail)) {
     messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
   }
+  if (area === "local" && changes.sidebarServices) {
+    notesMenuUpdate().catch(() => {});
+  }
 });
 browser.windows.onCreated.addListener(() => messengerRailPush().catch(() => {}));
 messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
@@ -120,6 +139,12 @@ messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e
 // Označený text → nová poznámka s odkazem na stránku, panel se otevře na poznámkách
 const NOTES_MENU = "mantis-add-note";
 browser.menus.create({ id: NOTES_MENU, title: t("notes_menu"), contexts: ["selection"] });
+
+async function notesMenuUpdate() {
+  const { sidebarServices } = await browser.storage.local.get({ sidebarServices: MESSENGER_DEFAULTS });
+  await browser.menus.update(NOTES_MENU, { visible: sidebarServices.includes("notes") });
+}
+notesMenuUpdate().catch(() => {});
 
 browser.menus.onClicked.addListener((info, tab) => {
   if (info.menuItemId !== NOTES_MENU) {

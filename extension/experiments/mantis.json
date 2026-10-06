@@ -222,7 +222,7 @@
         "name": "setWorkspaces",
         "type": "function",
         "async": true,
-        "description": "Pracovní prostory pro tlačítko v liště karet: seznam [{id, name, icon, color}], aktivní prostor podle ID okna, texty {label, tooltip, add, edit}.",
+        "description": "Pracovní prostory pro tlačítko v liště karet: seznam [{id, name, icon, color}], aktivní prostor podle ID okna, texty {label, tooltip, add, edit}. Při víc prostorech zavření poslední viditelné karty nezavře okno.",
         "parameters": [
           { "name": "list", "type": "array", "items": { "type": "object", "additionalProperties": { "type": "any" } } },
           { "name": "active", "type": "object", "additionalProperties": { "type": "string" } },

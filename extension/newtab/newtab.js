@@ -87,7 +87,8 @@ function hostOf(url) {
   }
 }
 
-const WEB_URL = /^(https?|file):/;
+const WEB_URL = /^(https?|file):/; // karty (přepnutí jde i na file:)
+const OPEN_URL = /^https?:/; // záložky a historie otevírá rozšíření – file: nesmí
 
 function matches(text, ...fields) {
   const words = text.toLowerCase().split(/\s+/).filter(Boolean);
@@ -149,11 +150,11 @@ async function buildSuggestions(text) {
         }
       } });
   }
-  for (const bookmark of bookmarks.filter(b => b.url && WEB_URL.test(b.url)).slice(0, 3)) {
+  for (const bookmark of bookmarks.filter(b => b.url && OPEN_URL.test(b.url)).slice(0, 3)) {
     add({ kind: "bookmark", url: bookmark.url, title: bookmark.title || bookmark.url, detail: hostOf(bookmark.url),
       run: () => browser.tabs.update({ url: bookmark.url }) });
   }
-  for (const item of history.filter(h => WEB_URL.test(h.url || ""))
+  for (const item of history.filter(h => OPEN_URL.test(h.url || ""))
     .sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0))) {
     if (items.length >= SUGGEST_MAX) {
       break;
