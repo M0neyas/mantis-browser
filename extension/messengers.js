@@ -13,10 +13,10 @@ const SIDEBAR_PAGE = browser.runtime.getURL("sidebar/sidebar.html");
 
 // Služby: jen oficiální webové verze (https), žádné vlastní adresy – panel ruší ochranu
 // rámců, proto jen pro tyto weby a jen uvnitř panelu. domains = weby služby včetně
-// přihlášení (Messenger se přihlašuje přes facebook.com). Loga v icons/services/<id>.svg (Simple Icons, CC0).
+// přihlášení. Messenger je od dubna 2026 jen na facebook.com/messages (messenger.com Meta zrušila). Loga v icons/services/<id>.svg (Simple Icons, CC0).
 const MESSENGER_SERVICES = [
   { id: "whatsapp", name: "WhatsApp", url: "https://web.whatsapp.com/", domains: ["whatsapp.com"], color: "#25d366" },
-  { id: "messenger", name: "Messenger", url: "https://www.messenger.com/", domains: ["messenger.com", "facebook.com"], color: "#0866ff" },
+  { id: "messenger", name: "Messenger", url: "https://www.facebook.com/messages/", domains: ["facebook.com", "messenger.com"], color: "#0866ff" },
   { id: "discord", name: "Discord", url: "https://discord.com/app", domains: ["discord.com"], color: "#5865f2" },
   { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com"], color: "#e1306c" },
   { id: "spotify", name: "Spotify", url: "https://open.spotify.com/", domains: ["spotify.com"], color: "#1db954" },
