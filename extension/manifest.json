@@ -71,6 +71,7 @@
       "vpn.js",
       "forget.js",
       "volume.js",
+      "home.js",
       "sensitive.js",
       "doh.js",
       "sync.js",
