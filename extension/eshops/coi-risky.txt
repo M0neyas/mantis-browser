@@ -1,5 +1,5 @@
 # Rizikové e-shopy podle České obchodní inspekce – Mantis na nich ukáže varování.
-# Vygenerováno scripts/update-eshop-list.sh (2026-10-04), 1298 položek.
+# Vygenerováno scripts/update-eshop-list.sh (2026-10-06), 1298 položek.
 # Zdroj: https://coi.gov.cz/pro-spotrebitele/rizikove-e-shopy/
 # Informace zveřejněná orgánem státní správy (Česká obchodní inspekce).
 # Formát: doména[/cesta]<TAB>datum zařazení ČOI
