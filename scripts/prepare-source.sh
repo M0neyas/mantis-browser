@@ -252,6 +252,34 @@ EOF
 replace browser/extensions/moz.build "DIRS += [" "DIRS += [
     \"$APP_NAME\","
 
+# Stránky vestavěného rozšíření Mantis jako vnitřní stránky prohlížeče: Firefox u stránek
+# rozšíření ukazuje v adresním řádku „Rozšíření (Mantis)“ (i na nové kartě – ochrana proti
+# podvrženým novým kartám cizích rozšíření). Jen pro Mantis: nová karta bez štítku (jako
+# about:newtab), ostatní stránky (nastavení, uvítání) s logem a názvem prohlížeče.
+# Cizí rozšíření beze změny.
+replace browser/components/urlbar/content/UrlbarInputBase.mjs \
+  '          lazy.ExtensionUtils.isExtensionUrl(uri) ||' \
+  '          (lazy.ExtensionUtils.isExtensionUrl(uri) && WebExtensionPolicy.getByURI(uri)?.id !== "mantis@mantis.browser") || // Mantis'
+replace browser/base/content/browser-siteIdentity.js \
+  '      !ExtensionUtils.isExtensionUrl(this._uri)' \
+  '      (!ExtensionUtils.isExtensionUrl(this._uri) || WebExtensionPolicy.getByURI(this._uri)?.id === "mantis@mantis.browser") // Mantis'
+replace browser/base/content/browser-siteIdentity.js \
+  '    } else if (this._pageExtensionPolicy) {
+      // This is a WebExtension page.' \
+  '    } else if (this._pageExtensionPolicy?.id === "mantis@mantis.browser") {
+      // Mantis: vlastní stránky jako vnitřní stránky prohlížeče
+      this._identityBox.className = "chromeUI";
+      icon_label = document.getElementById("bundle_brand").getString("brandShorterName");
+    } else if (this._pageExtensionPolicy) {
+      // This is a WebExtension page.'
+
+# Mantis ze seznamu na stránce Doplňky (about:addons) vynechat – je součástí prohlížeče jako
+# vestavěná rozšíření Firefoxu. Manifest „hidden“ nejde: skryté rozšíření nesmí mít tlačítka
+# (VPN, Otevřít v jiném prohlížeči). Klávesové zkratky Mantisu zůstávají ve správě zkratek.
+replace toolkit/mozapps/extensions/content/aboutaddons.mjs \
+  '!addon.hidden &&' \
+  '!addon.hidden && addon.id !== "mantis@mantis.browser" &&'
+
 # Výchozí rozložení lišt (settings/mantis.cfg) předpokládá tuto verzi CustomizableUI
 cui="$SRC_DIR/browser/components/customizableui/CustomizableUI.sys.mjs"
 grep -qE 'kVersion = 26;' "$cui" || warn "CustomizableUI už nemá kVersion 26 – zkontrolujte browser.uiCustomization.state v settings/mantis.cfg"
