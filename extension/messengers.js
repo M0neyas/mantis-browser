@@ -1,4 +1,4 @@
-// Messengery v bočním panelu (jako Opera): WhatsApp, Messenger, Discord… vedle stránky.
+// Aplikace v bočním panelu (jako Opera): WhatsApp, Messenger, Discord, Spotify, TikTok, poznámky vedle stránky.
 // Panel je sidebar/sidebar.html (sidebar_action), služby v něm běží v rámcích (iframe).
 // Weby rámce zakazují (X-Frame-Options, CSP frame-ancestors) – kvůli clickjackingu na cizích
 // webech. Tady je rámec náš vlastní panel, takže zákaz zrušíme JEN pro rámce, jejichž
@@ -20,10 +20,11 @@ const MESSENGER_SERVICES = [
   { id: "discord", name: "Discord", url: "https://discord.com/app", domains: ["discord.com"], color: "#5865f2" },
   { id: "instagram", name: "Instagram", url: "https://www.instagram.com/direct/inbox/", domains: ["instagram.com"], color: "#e1306c" },
   { id: "spotify", name: "Spotify", url: "https://open.spotify.com/", domains: ["spotify.com"], color: "#1db954" },
+  { id: "tiktok", name: "TikTok", url: "https://www.tiktok.com/", domains: ["tiktok.com"], color: "#ff0050" },
   // Poznámky nejsou web – kreslí je stránka panelu (sidebar/notes.js)
   { id: "notes", name: t("notes_title"), kind: "notes", domains: [], color: "#eab308" },
 ];
-const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify", "notes"];
+const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify", "tiktok", "notes"];
 const MESSENGER_DOMAINS = MESSENGER_SERVICES.flatMap(s => s.domains);
 
 function messengerDomain(host) {

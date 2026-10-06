@@ -38,7 +38,7 @@ function paletteCommands() {
   return [
     { id: "settings", icon: "⚙️", title: t("palette_settings"), words: "settings nastaveni",
       run: () => browser.runtime.openOptionsPage() },
-    { id: "sidebar", icon: "💬", title: t("palette_sidebar"), words: "whatsapp messenger discord instagram spotify chat",
+    { id: "sidebar", icon: "💬", title: t("palette_sidebar"), words: "aplikace apps whatsapp messenger discord instagram spotify tiktok chat poznamky notes",
       run: windowId => browser.mantisPrefs.toggleSidebar(windowId) },
     { id: "newWorkspace", icon: "➕", title: t("palette_newWorkspace"), words: "workspace prostor",
       run: windowId => wsCreate(windowId) },
