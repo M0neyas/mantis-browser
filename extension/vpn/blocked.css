@@ -1,0 +1,80 @@
+:root {
+  --bg: #f6f7f6;
+  --fg: #1a2e22;
+  --muted: #5b6b61;
+  --line: rgb(0 0 0 / 0.08);
+  --accent: #16a34a;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b22;
+    --fg: #ecefed;
+    --muted: #a3ada7;
+    --line: rgb(255 255 255 / 0.12);
+  }
+}
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.5 system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif;
+}
+
+main {
+  max-width: 560px;
+}
+
+h1 {
+  margin: 16px 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.url {
+  color: var(--muted);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0 8px;
+}
+
+button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.secondary {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--fg);
+  font-weight: 500;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}

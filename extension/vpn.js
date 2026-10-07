@@ -240,6 +240,23 @@ browser.proxy.onRequest.addListener(
   { urls: ["<all_urls>"] }
 );
 
+// Kill switch zablokoval načtení stránky (SOCKS na port 9 → „Proxy server odmítá spojení“):
+// místo nesrozumitelné chyby proxy ukázat stránku s vysvětlením a tlačítky Vypnout VPN /
+// Zkusit znovu (vpn/blocked.html). Jen hlavní dokument karty a jen když VPN opravdu blokuje.
+const BLOCKED_PAGE = browser.runtime.getURL("vpn/blocked.html");
+browser.webRequest.onErrorOccurred.addListener(
+  details => {
+    if (!vpn.blocked || details.tabId < 0 || !/PROXY/.test(details.error || "")) {
+      return;
+    }
+    browser.tabs.update(details.tabId, {
+      url: `${BLOCKED_PAGE}?url=${encodeURIComponent(details.url)}`,
+      loadReplace: true,
+    }).catch(() => {});
+  },
+  { urls: ["http://*/*", "https://*/*"], types: ["main_frame"] }
+);
+
 // ---------- Tlačítko ----------
 
 function updateButton() {
@@ -309,6 +326,10 @@ async function handleVpnMessage(msg) {
       break;
     case "off":
       await stop();
+      break;
+    case "retry":
+      // stránka vpn/blocked.html – znovu spustit VPN (s profilem), jinak jen zjistit stav
+      await run({ cmd: vpn.hasProfile ? "start" : "status" });
       break;
     case "setProfile":
       changingProfile = true;
