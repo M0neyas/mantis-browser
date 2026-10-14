@@ -1,5 +1,5 @@
 # Rizikové e-shopy podle České obchodní inspekce – Mantis na nich ukáže varování.
-# Vygenerováno scripts/update-eshop-list.sh (2026-10-08), 1298 položek.
+# Vygenerováno scripts/update-eshop-list.sh (2026-10-14), 1299 položek.
 # Zdroj: https://coi.gov.cz/pro-spotrebitele/rizikove-e-shopy/
 # Informace zveřejněná orgánem státní správy (Česká obchodní inspekce).
 # Formát: doména[/cesta]<TAB>datum zařazení ČOI
@@ -188,6 +188,7 @@ cisteucho.cz	2024-02-13
 citymall.club	2025-12-09
 clara-praha.cz	2025-12-24
 clarella.cz	2025-11-03
+clarkscz.cz	2026-10-05
 cleanseller.com	2025-11-20
 click.europebestshop.com	2023-01-11
 clogscz.com	2021-08-02
