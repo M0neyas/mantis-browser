@@ -19,6 +19,9 @@ const SYNC_KEYS = [
   "tabSleep", // uspávání karet
   "tabSleepMinutes",
   "tabSleepExceptions",
+  "dedupeTabs", // zdvojené karty
+  "ytSpeed", // YouTube
+  "ytHideShorts",
   "eshopWarning", // varování před rizikovými e-shopy (výjimky jsou jen místní)
   "currencyConvert",
   "themePreset", // vzhled (appearance.js); tapeta nové karty jen místně

@@ -69,6 +69,55 @@
       </label>
       <textarea id="tab-sleep-exceptions" rows="2" spellcheck="false"></textarea>
     </div>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_dedupe"></b>
+        <span class="hint" data-i18n="settings_dedupeHint"></span>
+      </span>
+      <input type="checkbox" class="switch" data-store="dedupeTabs">
+    </label>
+
+    <div class="option">
+      <span>
+        <b data-i18n="settings_split"></b>
+        <span class="hint" data-i18n-html="settings_splitHint"></span>
+      </span>
+    </div>
+  </section>
+
+  <section id="youtube">
+    <h2>YouTube</h2>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_ytSpeed"></b>
+        <span class="hint" data-i18n="settings_ytSpeedHint"></span>
+      </span>
+      <select data-store-number="ytSpeed" data-i18n-aria-label="settings_ytSpeed">
+        <option value="1" data-i18n="settings_ytSpeedNormal"></option>
+        <option value="1.25"></option>
+        <option value="1.5"></option>
+        <option value="1.75"></option>
+        <option value="2"></option>
+      </select>
+    </label>
+
+    <label class="option">
+      <span>
+        <b data-i18n="settings_ytHideShorts"></b>
+        <span class="hint" data-i18n="settings_ytHideShortsHint"></span>
+      </span>
+      <input type="checkbox" class="switch" data-store="ytHideShorts">
+    </label>
+
+    <div class="option">
+      <span>
+        <b>SponsorBlock</b>
+        <span class="hint" data-i18n="settings_ytSponsorBlockHint"></span>
+      </span>
+      <button type="button" id="yt-sponsorblock" data-i18n="welcome_add"></button>
+    </div>
   </section>
 
   <section id="performance">

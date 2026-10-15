@@ -1747,6 +1747,47 @@ this.mantisPrefs = class extends ExtensionAPI {
           wsKeepWindow(ws.list.length > 1);
         },
 
+        // Rozdělené zobrazení (vestavěné ve Firefoxu 156+, jen bez zkratky): toggle = rozdělit s výběrem
+        // karty (about:opentabs) / zrušit, previous = s naposledy použitou kartou, reverse = prohodit strany
+        async splitView(windowId, action) {
+          const win = context.extension.windowManager.get(windowId, context).window;
+          const g = win.gBrowser;
+          const tab = g?.selectedTab;
+          if (!tab || typeof g.addTabSplitView !== "function" ||
+              !Services.prefs.getBoolPref("browser.tabs.splitView.enabled", false)) {
+            return false;
+          }
+          if (action === "reverse") {
+            tab.splitview?.reverseTabs();
+            return !!tab.splitview;
+          }
+          if (tab.splitview) {
+            if (action === "toggle") {
+              tab.splitview.unsplitTabs();
+            }
+            return true;
+          }
+          if (tab.hidden || tab.pinned) {
+            return false;
+          }
+          if (action === "previous") {
+            const other = g.visibleTabs
+              .filter(t => t !== tab && !t.pinned && !t.splitview && !t.closing)
+              .sort((a, b) => b.lastAccessed - a.lastAccessed)[0];
+            if (!other) {
+              return false;
+            }
+            g.addTabSplitView([tab, other], { insertBefore: tab });
+            return true;
+          }
+          win.BrowserCommands.addTabSplitView();
+          return true;
+        },
+
+        async tabInSplitView(tabId) {
+          return !!context.extension.tabManager.get(tabId)?.nativeTab?.splitview;
+        },
+
         async toggleSidebar(windowId) {
           const win = context.extension.windowManager.get(windowId, context).window;
           toggleExtensionSidebar(win, context.extension.id);

@@ -1,0 +1,28 @@
+/* Skrytí Shorts na YouTube (zapíná youtube.js atributem na <html>). Více variant selektorů –
+   YouTube mění strukturu stránky. Odkaz /shorts/ sám (např. ve vyhledávání) zůstane funkční. */
+
+/* police na hlavní stránce, ve vyhledávání a u videa */
+html[data-mantis-no-shorts] ytd-rich-shelf-renderer[is-shorts],
+html[data-mantis-no-shorts] ytd-rich-section-renderer:has(ytd-rich-shelf-renderer[is-shorts]),
+html[data-mantis-no-shorts] ytd-rich-section-renderer:has(ytm-shorts-lockup-view-model),
+html[data-mantis-no-shorts] ytd-reel-shelf-renderer,
+html[data-mantis-no-shorts] grid-shelf-view-model:has(ytm-shorts-lockup-view-model),
+html[data-mantis-no-shorts] yt-horizontal-list-renderer:has(ytm-shorts-lockup-view-model),
+/* jednotlivá videa Shorts v seznamech */
+html[data-mantis-no-shorts] ytd-rich-item-renderer:has(a[href^="/shorts/"]),
+html[data-mantis-no-shorts] ytd-video-renderer:has(a[href^="/shorts/"]),
+html[data-mantis-no-shorts] ytd-grid-video-renderer:has(a[href^="/shorts/"]),
+html[data-mantis-no-shorts] ytd-compact-video-renderer:has(a[href^="/shorts/"]),
+html[data-mantis-no-shorts] yt-lockup-view-model:has(a[href^="/shorts/"]),
+/* položka Shorts v levém menu a na kanálu */
+html[data-mantis-no-shorts] ytd-guide-entry-renderer:has(a[title="Shorts"]),
+html[data-mantis-no-shorts] ytd-guide-entry-renderer:has(a[href^="/shorts"]),
+html[data-mantis-no-shorts] ytd-mini-guide-entry-renderer[aria-label="Shorts"],
+html[data-mantis-no-shorts] ytd-mini-guide-entry-renderer:has(a[href^="/shorts"]),
+html[data-mantis-no-shorts] yt-tab-shape[tab-title="Shorts"],
+/* mobilní web */
+html[data-mantis-no-shorts] ytm-reel-shelf-renderer,
+html[data-mantis-no-shorts] ytm-pivot-bar-item-renderer:has(.pivot-shorts),
+html[data-mantis-no-shorts] ytm-rich-section-renderer:has(ytm-shorts-lockup-view-model) {
+  display: none !important;
+}

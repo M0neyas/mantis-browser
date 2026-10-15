@@ -49,6 +49,10 @@
       "suggested_key": { "default": "Ctrl+Alt+PageUp" },
       "description": "__MSG_ws_commandPrevious__"
     },
+    "split-view": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "__MSG_split_command__"
+    },
     "_execute_sidebar_action": {
       "suggested_key": { "default": "Alt+Shift+M" },
       "description": "__MSG_sidebar_command__"
@@ -60,6 +64,14 @@
     "default_icon": "icons/messengers.svg",
     "open_at_install": false
   },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://m.youtube.com/*"],
+      "js": ["youtube/youtube.js"],
+      "css": ["youtube/youtube.css"],
+      "run_at": "document_start"
+    }
+  ],
   "chrome_url_overrides": {
     "newtab": "newtab/newtab.html"
   },
@@ -81,7 +93,7 @@
       "eshops.js",
       "tabsleep.js",
       "performance.js",
-      "appearance.js", "workspaces.js", "messengers.js", "stats.js", "savedsessions.js", "palette.js"
+      "appearance.js", "workspaces.js", "messengers.js", "stats.js", "savedsessions.js", "duplicates.js", "palette.js"
     ],
     "persistent": true
   },

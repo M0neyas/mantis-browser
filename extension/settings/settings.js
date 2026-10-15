@@ -22,6 +22,8 @@ const STORE_DEFAULTS = {
   soundTabs: false,
   sidebarRail: true, // lišta messengerů u okraje (messengers.js)
   newtabStats: true, // statistiky ochrany na nové kartě (stats.js)
+  dedupeTabs: true, // zdvojené karty (duplicates.js)
+  ytHideShorts: false, // YouTube (youtube/youtube.js)
 };
 
 // Číselné volby (výběr nebo posuvník, data-store-number) – výchozí hodnoty jako v performance.js
@@ -31,6 +33,7 @@ const STORE_NUMBER_DEFAULTS = {
   cpuLimitPercent: 50,
   netLimitKBps: 2048,
   soundVolume: 40,
+  ytSpeed: 1,
 };
 
 browser.storage.local.get(STORE_NUMBER_DEFAULTS).then(values => {
@@ -819,4 +822,35 @@ document.getElementById("update-install").addEventListener("click", async event 
   const reply = await browser.runtime.sendMessage({ installUpdate: true });
   button.disabled = false;
   status.textContent = reply?.error ? t("common_failed", reply.error) : t("settings_installerRunning");
+});
+
+// ---------- YouTube: rychlosti podle jazyka (1,5× / 1.5×); SponsorBlock jen nabídnout (Store 10.1.5 – nic se neinstaluje samo) ----------
+
+for (const option of document.querySelectorAll("[data-store-number=ytSpeed] option:not([data-i18n])")) {
+  option.textContent = `${Number(option.value).toLocaleString(uiLocale())}×`;
+}
+
+const SPONSORBLOCK_ID = "sponsorBlocker@ajay.app";
+const sponsorBlockButton = document.getElementById("yt-sponsorblock");
+
+async function showSponsorBlock() {
+  const installed = await browser.mantisPrefs.addonsInstalled([SPONSORBLOCK_ID]).catch(() => ({}));
+  if (installed[SPONSORBLOCK_ID]) {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = t("welcome_installed");
+    badge.id = "yt-sponsorblock";
+    document.getElementById("yt-sponsorblock").replaceWith(badge);
+  }
+}
+
+sponsorBlockButton.addEventListener("click", () => {
+  const amo = uiLocale().startsWith("cs") ? "cs" : "en-US";
+  browser.tabs.create({ url: `https://addons.mozilla.org/${amo}/firefox/addon/sponsorblock/` });
+});
+showSponsorBlock();
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    showSponsorBlock();
+  }
 });

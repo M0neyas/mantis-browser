@@ -81,6 +81,14 @@ function paletteCommands() {
       run: async windowId => browser.mantisPrefs.showTabVolume((await activeTab(windowId))?.id) },
     { id: "duplicate", icon: "📄", title: t("palette_duplicate"), words: "duplicate duplikovat",
       run: async windowId => browser.tabs.duplicate((await activeTab(windowId))?.id) },
+    { id: "closeDuplicates", icon: "🧺", title: t("palette_closeDuplicates"), words: "duplicate duplicity zdvojene zavrit close",
+      run: windowId => closeDuplicateTabs(windowId) }, // duplicates.js
+    { id: "split", icon: "◫", title: t("palette_split"), words: "split rozdelit vedle sebe side",
+      run: windowId => browser.mantisPrefs.splitView(windowId, "toggle") },
+    { id: "splitPrevious", icon: "◫", title: t("palette_splitPrevious"), words: "split rozdelit vedle sebe predchozi previous",
+      run: windowId => browser.mantisPrefs.splitView(windowId, "previous") },
+    { id: "splitReverse", icon: "⇄", title: t("palette_splitReverse"), words: "split rozdelit prohodit swap reverse",
+      run: windowId => browser.mantisPrefs.splitView(windowId, "reverse") },
     { id: "saveSession", icon: "💾", title: t("palette_saveSession"), words: "session relace ulozit save",
       run: windowId => sessSave(windowId) }, // savedsessions.js
     { id: "reopen", icon: "↩️", title: t("palette_reopen"), words: "reopen undo zavrena obnovit",
@@ -199,5 +207,8 @@ browser.commands.onCommand.addListener(async command => {
   if (command === "command-palette") {
     const win = await browser.windows.getLastFocused();
     await browser.mantisPrefs.showPalette(win.id, t("palette_placeholder"));
+  } else if (command === "split-view") {
+    const win = await browser.windows.getLastFocused();
+    await browser.mantisPrefs.splitView(win.id, "toggle");
   }
 });

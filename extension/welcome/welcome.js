@@ -13,6 +13,7 @@ const RECOMMENDED = [
   { key: "consentOMatic", id: "gdpr@cavi.au.dk", slug: "consent-o-matic", icon: "🍪" },
   { key: "darkReader", id: "addon@darkreader.org", slug: "darkreader", icon: "🌙" },
   { key: "hlidacShopu", id: "{d6f0f975-91a3-4d78-96f7-5f1859ad18b6}", slug: "hl%C3%ADda%C4%8D-shop%C5%AF", icon: "🏷️" },
+  { key: "sponsorBlock", id: "sponsorBlocker@ajay.app", slug: "sponsorblock", icon: "⏭️" },
   { key: "youtubeWindowed", id: "{59c55aed-bdb3-4f2f-b81d-27011a689be6}", slug: "youtube-window-fullscreen", icon: "🖥️" },
   { key: "ttvLolPro", id: "{76ef94a4-e3d0-4c6f-961a-d38a429a332b}", slug: "ttv-lol-pro", icon: "📺", warn: true },
 ];

@@ -230,6 +230,23 @@
         ]
       },
       {
+        "name": "splitView",
+        "type": "function",
+        "async": true,
+        "description": "Rozdělené zobrazení v okně: toggle (rozdělit s výběrem karty / zrušit), previous (s naposledy použitou kartou), reverse (prohodit strany). Vrací, jestli se něco stalo.",
+        "parameters": [
+          { "name": "windowId", "type": "integer" },
+          { "name": "action", "type": "string", "enum": ["toggle", "previous", "reverse"] }
+        ]
+      },
+      {
+        "name": "tabInSplitView",
+        "type": "function",
+        "async": true,
+        "description": "Je karta v rozděleném zobrazení?",
+        "parameters": [{ "name": "tabId", "type": "integer" }]
+      },
+      {
         "name": "toggleSidebar",
         "type": "function",
         "async": true,
