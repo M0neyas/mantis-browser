@@ -226,12 +226,11 @@
 /* ---------- Sbalený adresní řádek (jen jednořádkové rozložení) ----------
  * Pref mantis.urlbar.compact (Nastavení Mantis → Vzhled, výchozí zapnuto v settings/mantis.cfg):
  * adresní řádek je jen ikona lupy a karty mají víc místa. Najetím myší, kliknutím nebo
- * zkratkou (Ctrl+L, Alt+D, F6) se rozbalí PŘES karty – karty se nehýbou (kdyby ustupovaly,
- * uskakovaly by pod kurzorem a klik by trefil jinou kartu). Na nové kartě je adresní řádek
- * aktivní, takže je rozbalený.
- * Firefox 157 zrušil plovoucí vrstvu adresního řádku (breakout, .urlbar je v toku lišty
- * s flex: 1) → rozbalený #urlbar je tu position: absolute nad kartami, kontejner zůstává
- * 34 px. Firefox 156 (atribut breakout) má plovoucí vrstvu vlastní – stačí šířka. */
+ * zkratkou (Ctrl+L, Alt+D, F6) se rozbalí a karty ODSUNE (kontejner se rozšíří). Překrývání
+ * karet (position: absolute, 2026-10-07) uživatel nechtěl – „je to otravný“ (2026-10-15).
+ * Na nové kartě je adresní řádek aktivní, takže je rozbalený.
+ * Firefox 157 zrušil plovoucí vrstvu (breakout, .urlbar je v toku lišty s flex: 1) → pole
+ * vyplní rozšířený kontejner. Firefox 156 (breakout) potřebuje i šířku #urlbar. */
 
 @media (min-width: 900px) {
   @media -moz-pref("mantis.urlbar.compact") {
@@ -261,21 +260,17 @@
       transition: width var(--mb-ease) !important;
     }
 
+    :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) {
+      flex-basis: var(--mb-urlbar-expanded) !important;
+      width: var(--mb-urlbar-expanded) !important;
+      min-width: var(--mb-urlbar-expanded) !important;
+    }
+
     :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) #urlbar {
       width: var(--mb-urlbar-expanded) !important;
     }
 
-    /* Firefox 157: nad karty (vycentrovaný v kontejneru, který zůstává 34 px). Našeptávač je
-     * popover ukotvený k poli (anchor-name), jde s ním. */
-    :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) #urlbar:not([breakout]) {
-      position: absolute !important;
-      inset-inline-start: 0;
-      top: 50%;
-      translate: 0 -50%;
-      z-index: 3;
-    }
-
-    /* Rozbalený: neprůhledné pozadí a stín (ve Firefoxu 156 leží přes karty, jinak by prosvítaly).
+    /* Rozbalený: neprůhledné pozadí a stín (plovoucí vrstva Firefoxu 156 by jinak prosvítala).
      * Firefox 156 proměnné přejmenoval (--toolbar-field-background-color-focus místo
      * --toolbar-field-focus-background-color, --toolbar-background-color místo --toolbar-bgcolor) */
     :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) :is(.urlbar-background, #urlbar-background) {
