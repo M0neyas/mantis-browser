@@ -23,8 +23,20 @@ const MESSENGER_SERVICES = [
   { id: "tiktok", name: "TikTok", url: "https://www.tiktok.com/", domains: ["tiktok.com"], color: "#ff0050" },
   // Poznámky nejsou web – kreslí je stránka panelu (sidebar/notes.js)
   { id: "notes", name: t("notes_title"), kind: "notes", domains: [], color: "#eab308" },
+  // Výkon (sidebar/performance.js): využití a omezení paměti / procesoru / sítě přímo v panelu
+  { id: "performance", name: t("perf_title"), kind: "performance", domains: [], color: "#22c55e" },
 ];
-const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify", "tiktok", "notes"];
+const MESSENGER_DEFAULTS = ["whatsapp", "messenger", "discord", "spotify", "tiktok", "notes", "performance"];
+
+// Výkon přibyl 2026-10-15 – kdo už má vlastní výběr služeb, dostane ho jednou přidaný (pak jde vypnout)
+browser.storage.local.get({ sidebarServices: null, sidebarPerfAdded: false }).then(({ sidebarServices, sidebarPerfAdded }) => {
+  if (!sidebarPerfAdded) {
+    const next = Array.isArray(sidebarServices) && !sidebarServices.includes("performance")
+      ? { sidebarServices: [...sidebarServices, "performance"] } : {};
+    return browser.storage.local.set({ ...next, sidebarPerfAdded: true });
+  }
+  return undefined;
+}).catch(() => {});
 const MESSENGER_DOMAINS = MESSENGER_SERVICES.flatMap(s => s.domains);
 
 function messengerDomain(host) {

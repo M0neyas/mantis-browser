@@ -2,7 +2,7 @@
 // Vlevo lišta s ikonami, vpravo služba v rámci. Rámec se vytvoří při prvním otevření
 // služby a pak zůstává (přepnutí neztratí rozepsanou zprávu ani přehrávání Spotify).
 // Rámce jsou sandbox bez allow-top-navigation: web nemůže přesměrovat stránku panelu.
-/* global t, applyI18n, createNotesView */
+/* global t, applyI18n, createNotesView, createPerformanceView */
 
 applyI18n();
 
@@ -33,6 +33,13 @@ function open(service) {
     frame = createNotesView(); // notes.js
     frames.append(frame);
     frameOf.set(service.id, frame);
+  }
+  if (!frame && service.kind === "performance") {
+    frame = createPerformanceView(); // performance.js
+    frames.append(frame);
+    frameOf.set(service.id, frame);
+  } else if (frame?.refresh) {
+    frame.refresh(); // výkon: hned aktuální čísla, ne až za 2 s
   }
   if (!frame) {
     frame = document.createElement("iframe");

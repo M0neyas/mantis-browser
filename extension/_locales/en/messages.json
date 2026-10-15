@@ -515,5 +515,14 @@
   "settings_cat_performance": {"message": "Performance"},
   "settings_cat_privacy": {"message": "Privacy and security"},
   "settings_cat_vpn": {"message": "VPN"},
-  "settings_cat_web": {"message": "Websites and tools"}
+  "settings_cat_web": {"message": "Websites and tools"},
+  "perf_title": {"message": "Performance"},
+  "perf_more": {"message": "More settings"},
+  "perf_memory": {"message": "Memory"},
+  "perf_cpu": {"message": "Processor"},
+  "perf_ramHint": {"message": "Above the limit, the longest-unused tabs are put to sleep."},
+  "perf_cpuHint": {"message": "A cap for websites (experimental) – the browser window stays responsive."},
+  "perf_netHint": {"message": "Downloads and uploads of websites and files."},
+  "perf_sleepAll": {"message": "Sleep background tabs"},
+  "perf_ecoHint": {"message": "Fewer processes, max. 60 frames/s, tabs sleep after 15 min."}
 }

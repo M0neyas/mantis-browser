@@ -515,5 +515,14 @@
   "settings_cat_performance": {"message": "Výkon"},
   "settings_cat_privacy": {"message": "Soukromí a bezpečnost"},
   "settings_cat_vpn": {"message": "VPN"},
-  "settings_cat_web": {"message": "Weby a nástroje"}
+  "settings_cat_web": {"message": "Weby a nástroje"},
+  "perf_title": {"message": "Výkon"},
+  "perf_more": {"message": "Další nastavení"},
+  "perf_memory": {"message": "Paměť"},
+  "perf_cpu": {"message": "Procesor"},
+  "perf_ramHint": {"message": "Při překročení uspí nejdéle nepoužívané karty."},
+  "perf_cpuHint": {"message": "Strop pro weby (experimentální) – okno prohlížeče zůstane svižné."},
+  "perf_netHint": {"message": "Stahování i odesílání webů a souborů."},
+  "perf_sleepAll": {"message": "Uspat na pozadí"},
+  "perf_ecoHint": {"message": "Méně procesů, max. 60 snímků/s, uspávání karet po 15 min."}
 }

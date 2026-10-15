@@ -244,3 +244,176 @@ iframe[hidden] {
   margin: 24px 16px;
   color: var(--muted);
 }
+
+/* ---------- Výkon (performance.js) ---------- */
+.perf {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.perf[hidden] { display: none; }
+
+.perf header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.perf header b {
+  flex: 1;
+  font-size: 14px;
+}
+
+.perf-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.perf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--tile);
+}
+
+.perf-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.perf-meters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.perf-meters > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.perf-label {
+  color: var(--muted);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.perf-big {
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.perf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.perf-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.perf-hint[hidden] { display: none; }
+
+.perf-hint.warn { color: #dc2626; }
+
+@media (prefers-color-scheme: dark) {
+  .perf-hint.warn { color: #f87171; }
+}
+
+.perf select {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+
+.perf input.switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--tile-hover);
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.perf input.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  transition: translate 150ms ease;
+}
+
+.perf input.switch:checked { background: var(--accent); }
+.perf input.switch:checked::after { translate: 16px 0; }
+
+.perf :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.perf .notes-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.perf-hot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.perf-hot li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.perf-hot-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.perf-hot-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
