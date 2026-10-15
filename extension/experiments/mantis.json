@@ -240,6 +240,23 @@
         ]
       },
       {
+        "name": "focusMode",
+        "type": "function",
+        "async": true,
+        "description": "Režim soustředění v okně (schované lišty). on: true/false, null = přepnout. Vrací nový stav.",
+        "parameters": [
+          { "name": "windowId", "type": "integer" },
+          { "name": "on", "type": "boolean", "optional": true }
+        ]
+      },
+      {
+        "name": "setDownloadSorting",
+        "type": "function",
+        "async": true,
+        "description": "Řazení stažených souborů do podsložek podle přípony ({ přípona: složka }), null = vypnout.",
+        "parameters": [{ "name": "map", "type": "object", "additionalProperties": { "type": "string" }, "optional": true }]
+      },
+      {
         "name": "tabInSplitView",
         "type": "function",
         "async": true,

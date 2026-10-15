@@ -53,6 +53,10 @@
       "suggested_key": { "default": "Alt+Shift+S" },
       "description": "__MSG_split_command__"
     },
+    "focus-mode": {
+      "suggested_key": { "default": "Alt+Shift+F" },
+      "description": "__MSG_focus_command__"
+    },
     "_execute_sidebar_action": {
       "suggested_key": { "default": "Alt+Shift+M" },
       "description": "__MSG_sidebar_command__"
@@ -93,7 +97,7 @@
       "eshops.js",
       "tabsleep.js",
       "performance.js",
-      "appearance.js", "workspaces.js", "messengers.js", "stats.js", "savedsessions.js", "duplicates.js", "palette.js"
+      "appearance.js", "workspaces.js", "messengers.js", "stats.js", "savedsessions.js", "duplicates.js", "autopause.js", "qr.js", "downloads.js", "palette.js"
     ],
     "persistent": true
   },

@@ -1453,11 +1453,105 @@ function removeRails() {
   }
 }
 
+// ---------- Režim soustředění: lišty se schovají, najetím k hornímu okraji se ukážou ----------
+// Atribut mantisfocus na <html> okna + --mb-focus-toolbox-h (výška lišt) – styly v userChrome.css.
+
+function setFocusMode(win, on) {
+  const root = win.document.documentElement;
+  if (on) {
+    const toolbox = win.document.getElementById("navigator-toolbox");
+    root.style.setProperty("--mb-focus-toolbox-h", `${Math.ceil(toolbox?.getBoundingClientRect().height || 80)}px`);
+  }
+  root.toggleAttribute("mantisfocus", on);
+  return on;
+}
+
+function removeFocusModes() {
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    setFocusMode(win, false);
+  }
+}
+
+// ---------- Řazení stažených souborů do podsložek (Obrázky, Dokumenty…) ----------
+// Jen soubory, které skončí přímo ve složce pro stahování (ne „Uložit jako“ jinam), jen po
+// úspěšném stažení a ne ty, které se mají hned otevřít (PDF v prohlížeči, „Otevřít“ – cesta
+// by přestala platit). Soubor se přesune a stažení v seznamu i v historii dostane novou cestu.
+// Když přesun nejde (soubor zamčený antivirem…), zůstane, kde je.
+
+const dlSort = { map: null, view: null, since: 0, done: new WeakSet() };
+
+async function dlSortHandle(download) {
+  if (!dlSort.map || !download.succeeded || dlSort.done.has(download) || download.launchWhenSucceeded ||
+      download.source?.isPrivate || !(download.startTime >= dlSort.since)) {
+    return;
+  }
+  dlSort.done.add(download);
+  const path = download.target?.path;
+  if (!path) {
+    return;
+  }
+  const { Downloads } = ChromeUtils.importESModule("resource://gre/modules/Downloads.sys.mjs");
+  const dir = await Downloads.getPreferredDownloadsDirectory();
+  if (PathUtils.parent(path) !== dir) {
+    return;
+  }
+  const name = PathUtils.filename(path);
+  const ext = (name.match(/\.([^.]+)$/)?.[1] || "").toLowerCase();
+  const folder = dlSort.map[ext];
+  if (!folder || /[\\/:*?"<>|]/.test(folder)) {
+    return;
+  }
+  const destDir = PathUtils.join(dir, folder);
+  await IOUtils.makeDirectory(destDir, { ignoreExisting: true });
+  const base = name.slice(0, name.length - ext.length - 1);
+  let dest = PathUtils.join(destDir, name);
+  for (let n = 1; await IOUtils.exists(dest); n++) {
+    dest = PathUtils.join(destDir, `${base} (${n}).${ext}`);
+  }
+  try {
+    await IOUtils.move(path, dest, { noOverwrite: true });
+  } catch (e) {
+    return;
+  }
+  const { DownloadTarget } = ChromeUtils.importESModule("resource://gre/modules/DownloadCore.sys.mjs");
+  const target = new DownloadTarget();
+  target.path = dest;
+  target.exists = true;
+  target.size = download.target.size;
+  download.target = target;
+  download._notifyChange();
+  try {
+    const { DownloadHistory } = ChromeUtils.importESModule("resource://gre/modules/DownloadHistory.sys.mjs");
+    await DownloadHistory.addDownloadToHistory(download);
+  } catch (e) {
+    // seznam stažení má novou cestu i bez historie
+  }
+}
+
+async function setDownloadSorting(map) {
+  const { Downloads } = ChromeUtils.importESModule("resource://gre/modules/Downloads.sys.mjs");
+  const list = await Downloads.getList(Downloads.PUBLIC);
+  if (map && !dlSort.view) {
+    dlSort.since = new Date();
+    dlSort.view = {
+      onDownloadAdded: download => dlSortHandle(download).catch(e => console.error("Mantis – řazení stažených:", e)),
+      onDownloadChanged: download => dlSortHandle(download).catch(e => console.error("Mantis – řazení stažených:", e)),
+    };
+    await list.addView(dlSort.view);
+  } else if (!map && dlSort.view) {
+    await list.removeView(dlSort.view);
+    dlSort.view = null;
+  }
+  dlSort.map = map || null;
+}
+
 this.mantisPrefs = class extends ExtensionAPI {
   onShutdown(isAppShutdown) {
     if (isAppShutdown) {
       return;
     }
+    try { removeFocusModes(); } catch (e) {}
+    setDownloadSorting(null).catch(() => {});
     // rozšíření se vypíná/aktualizuje za běhu – nic nesmí zůstat viset
     try { cpuShutdown(); } catch (e) {}
     try { setNetworkLimit(0); } catch (e) {}
@@ -1782,6 +1876,20 @@ this.mantisPrefs = class extends ExtensionAPI {
           }
           win.BrowserCommands.addTabSplitView();
           return true;
+        },
+
+        // Režim soustředění: on = true/false, nebo null = přepnout. Vrací nový stav.
+        async focusMode(windowId, on) {
+          const win = context.extension.windowManager.get(windowId, context).window;
+          const next = typeof on === "boolean" ? on : !win.document.documentElement.hasAttribute("mantisfocus");
+          return setFocusMode(win, next);
+        },
+
+        // Řazení stažených: { přípona: "Složka" } nebo null = vypnout
+        async setDownloadSorting(map) {
+          const clean = map ? Object.fromEntries(Object.entries(map)
+            .filter(([ext, folder]) => /^[a-z0-9]{1,10}$/.test(ext) && typeof folder === "string" && folder.length <= 40)) : null;
+          await setDownloadSorting(clean);
         },
 
         async tabInSplitView(tabId) {

@@ -23,6 +23,8 @@ const STORE_DEFAULTS = {
   sidebarRail: true, // lišta messengerů u okraje (messengers.js)
   newtabStats: true, // statistiky ochrany na nové kartě (stats.js)
   dedupeTabs: true, // zdvojené karty (duplicates.js)
+  autoPause: true, // hraje jen jedna karta (autopause.js)
+  downloadSort: false, // řazení stažených (downloads.js)
   ytHideShorts: false, // YouTube (youtube/youtube.js)
 };
 

@@ -83,6 +83,10 @@ function paletteCommands() {
       run: async windowId => browser.tabs.duplicate((await activeTab(windowId))?.id) },
     { id: "closeDuplicates", icon: "🧺", title: t("palette_closeDuplicates"), words: "duplicate duplicity zdvojene zavrit close",
       run: windowId => closeDuplicateTabs(windowId) }, // duplicates.js
+    { id: "qr", icon: "▦", title: t("palette_qr"), words: "qr kod telefon mobil phone",
+      run: async windowId => showQr(await activeTab(windowId)) }, // qr.js
+    { id: "focus", icon: "🎯", title: t("palette_focus"), words: "focus soustredeni zen schovat listy",
+      run: windowId => browser.mantisPrefs.focusMode(windowId) },
     { id: "split", icon: "◫", title: t("palette_split"), words: "split rozdelit vedle sebe side",
       run: windowId => browser.mantisPrefs.splitView(windowId, "toggle") },
     { id: "splitPrevious", icon: "◫", title: t("palette_splitPrevious"), words: "split rozdelit vedle sebe predchozi previous",
@@ -210,5 +214,8 @@ browser.commands.onCommand.addListener(async command => {
   } else if (command === "split-view") {
     const win = await browser.windows.getLastFocused();
     await browser.mantisPrefs.splitView(win.id, "toggle");
+  } else if (command === "focus-mode") {
+    const win = await browser.windows.getLastFocused();
+    await browser.mantisPrefs.focusMode(win.id);
   }
 });

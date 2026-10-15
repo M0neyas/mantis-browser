@@ -20,6 +20,8 @@ const SYNC_KEYS = [
   "tabSleepMinutes",
   "tabSleepExceptions",
   "dedupeTabs", // zdvojené karty
+  "autoPause", // hraje jen jedna karta
+  "downloadSort", // řazení stažených do podsložek
   "ytSpeed", // YouTube
   "ytHideShorts",
   "eshopWarning", // varování před rizikovými e-shopy (výjimky jsou jen místní)

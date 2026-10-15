@@ -245,10 +245,14 @@
     }
 
     :root:not([customizing]) #urlbar-container {
+      --mb-urlbar-collapse-delay: 400ms;
       flex: 0 0 var(--mb-urlbar-collapsed) !important;
       width: var(--mb-urlbar-collapsed) !important;
       min-width: var(--mb-urlbar-collapsed) !important;
-      transition: flex-basis var(--mb-ease), width var(--mb-ease), min-width var(--mb-ease) !important;
+      /* sbalení se zpožděním – karty neuskočí pod kurzorem hned, jak myš na chvíli vyjede */
+      transition: flex-basis var(--mb-ease) var(--mb-urlbar-collapse-delay),
+        width var(--mb-ease) var(--mb-urlbar-collapse-delay),
+        min-width var(--mb-ease) var(--mb-urlbar-collapse-delay) !important;
     }
 
     /* Rozbalený: při najetí, s kurzorem v poli nebo s otevřeným našeptávačem */
@@ -257,7 +261,13 @@
     }
 
     :root:not([customizing]) #urlbar {
-      transition: width var(--mb-ease) !important;
+      transition: width var(--mb-ease) var(--mb-urlbar-collapse-delay) !important;
+    }
+
+    /* rozbalení bez čekání */
+    :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))),
+    :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) :is(#urlbar, .urlbar-input-container, #urlbar-input-container, .urlbar-background, #urlbar-background) {
+      transition-delay: 0s !important;
     }
 
     :root:not([customizing]) #urlbar-container:is(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) {
@@ -284,6 +294,7 @@
      * „skrytým“ fokusem (setHiddenFocus) bez atributu focused, rozbalí ho až :focus-within. */
     :root:not([customizing]) #urlbar-container:not(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) :is(.urlbar-input-container, #urlbar-input-container) {
       opacity: 0 !important;
+      transition: opacity 0s var(--mb-urlbar-collapse-delay) !important;
     }
 
     :root:not([customizing]) #urlbar-container:not(:hover, :focus-within, :has(#urlbar:is([focused], [open]))) :is(.urlbar-background, #urlbar-background) {
@@ -291,6 +302,8 @@
       -moz-context-properties: fill;
       fill: currentColor;
       fill-opacity: 0.8;
+      transition: background 0s var(--mb-urlbar-collapse-delay), box-shadow 0s var(--mb-urlbar-collapse-delay) !important;
+      transition-behavior: allow-discrete !important;
     }
 
     /* Rozbalený jen najetím (kurzor ještě není v poli): lupa zůstane na svém místě a je součástí
@@ -312,6 +325,31 @@
       text-align: start !important;
     }
   }
+}
+
+/* ---------- Režim soustředění (Alt+Shift+F, mantisPrefs.focusMode) ----------
+ * Lišty (karty, adresní řádek) odjedou nahoru a stránka zabere celé okno. Proužek 6 px u horního
+ * okraje zůstane – najetím myší se lišty vysunou přes stránku (nic neodsunou). Zůstanou vidět,
+ * dokud je v nich kurzor, fokus nebo otevřená nabídka. --mb-focus-toolbox-h = výška lišt. */
+
+:root[mantisfocus]:not([inDOMFullscreen], [customizing]) #navigator-toolbox {
+  position: relative !important;
+  z-index: 10 !important;
+  margin-bottom: calc(-1 * var(--mb-focus-toolbox-h, 80px)) !important;
+  translate: 0 calc(6px - var(--mb-focus-toolbox-h, 80px));
+  opacity: 0;
+  transition: translate 160ms ease 350ms, opacity 160ms ease 350ms;
+}
+
+:root[mantisfocus]:not([inDOMFullscreen], [customizing]) #navigator-toolbox:is(:hover, :focus-within, :has([open])) {
+  translate: 0 0;
+  opacity: 1;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.25) !important;
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[mantisfocus] #navigator-toolbox { transition-duration: 0s !important; }
 }
 
 /* ---------- Neonová záře (Nastavení Mantis → Vzhled) ----------

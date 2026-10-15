@@ -28,7 +28,7 @@ a { color: var(--accent-strong); }
 }
 
 .option.addon { justify-content: flex-start; }
-.option.addon > span { flex: 1; }
+.option.addon > span:not(.addon-icon) { flex: 1; }
 
 .warn {
   color: #b45309;
