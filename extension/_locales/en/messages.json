@@ -495,7 +495,7 @@
   "palette_splitPrevious": {"message": "Split with previous tab"},
   "palette_splitReverse": {"message": "Swap split view sides"},
   "settings_dedupe": {"message": "No duplicate tabs"},
-  "settings_dedupeHint": {"message": "When you open a page that is already open in the window, Mantis switches to the original tab and closes the new one. Only applies to new tabs; you can also close duplicate tabs from the command palette."},
+  "settings_dedupeHint": {"message": "When you open a page that is already open in the window, Mantis switches to the original tab and closes the new one. Only applies to new tabs in the foreground (a background tab stays); you can also close duplicate tabs from the command palette."},
   "settings_split": {"message": "Split view"},
   "settings_splitHint": {"message": "Two tabs side by side in one window: <b>Alt+Shift+S</b> (press again to unsplit), right-click a tab → <i>Add Split View</i>, or command palette → <i>Split with previous tab</i>. Drag the middle to resize."},
   "settings_ytSpeed": {"message": "Default video speed"},
@@ -538,7 +538,7 @@
   "settings_autoPause": {"message": "Only one tab plays"},
   "settings_autoPauseHint": {"message": "When you play a video or music, other playing tabs pause (where that isn't possible they're muted, and unmuted when you switch to them). Tabs in a call (microphone, camera) are not paused."},
   "settings_downloadSort": {"message": "Sort downloaded files"},
-  "settings_downloadSortHint": {"message": "Saves images, documents, videos, music, archives and programs into subfolders of the downloads folder. Files that open right after downloading and files saved elsewhere stay where they are."},
+  "settings_downloadSortHint": {"message": "Saves images, documents, videos, music, archives and programs into subfolders of the downloads folder. Works only when Mantis doesn't ask where to save (option below) – a location you pick is never changed. Files that open right after downloading stay where they are."},
   "settings_focus": {"message": "Focus mode"},
   "settings_focusHint": {"message": "<b>Alt+Shift+F</b> or the command palette hides tabs and toolbars – only the page stays. Move the mouse to the top edge to show them; the same shortcut brings them back."},
   "settings_qr": {"message": "Page QR code"},
@@ -548,5 +548,7 @@
   "downloads_folder_videos": {"message": "Videos"},
   "downloads_folder_music": {"message": "Music"},
   "downloads_folder_archives": {"message": "Archives"},
-  "downloads_folder_programs": {"message": "Programs"}
+  "downloads_folder_programs": {"message": "Programs"},
+  "settings_downloadNoAsk": {"message": "Save downloads straight to the downloads folder"},
+  "settings_downloadNoAskHint": {"message": "Off = Mantis asks where to save each file (sorting is not used then)."}
 }

@@ -160,7 +160,7 @@ function createPerformanceView() {
   }
 
   async function refreshUsage() {
-    const stats = await browser.runtime.sendMessage({ perfStats: true });
+    const stats = await browser.runtime.sendMessage({ perfStats: true, who: "sidebar" });
     memValue.textContent = perfMemory(stats.memoryMB);
     cpuValue.textContent = stats.cpuPercent === null ? "–" : `${stats.cpuPercent} %`;
     const state = await browser.mantisPrefs.ecoState();

@@ -495,7 +495,7 @@
   "palette_splitPrevious": {"message": "Rozdělit s předchozí kartou"},
   "palette_splitReverse": {"message": "Prohodit strany rozděleného zobrazení"},
   "settings_dedupe": {"message": "Nezdvojovat karty"},
-  "settings_dedupeHint": {"message": "Když otevřete stránku, která už je v okně otevřená, Mantis přepne na tu původní kartu a novou zavře. Platí jen pro nové karty; zavřít zdvojené karty jde i z palety příkazů."},
+  "settings_dedupeHint": {"message": "Když otevřete stránku, která už je v okně otevřená, Mantis přepne na tu původní kartu a novou zavře. Platí jen pro nové karty v popředí (otevřená na pozadí zůstane); zavřít zdvojené karty jde i z palety příkazů."},
   "settings_split": {"message": "Rozdělené zobrazení"},
   "settings_splitHint": {"message": "Dvě karty vedle sebe v jednom okně: <b>Alt+Shift+S</b> (podruhé zruší), pravý klik na kartu → <i>Přidat rozdělené zobrazení</i>, nebo paleta příkazů → <i>Rozdělit s předchozí kartou</i>. Šířku stran změníte tažením středu."},
   "settings_ytSpeed": {"message": "Výchozí rychlost videí"},
@@ -538,7 +538,7 @@
   "settings_autoPause": {"message": "Hraje jen jedna karta"},
   "settings_autoPauseHint": {"message": "Když pustíte video nebo hudbu, ostatní hrající karty se pozastaví (kde to nejde, ztlumí se – po přepnutí na ně se zase zesílí). Karty s hovorem (mikrofon, kamera) se nepozastavují."},
   "settings_downloadSort": {"message": "Třídit stažené soubory"},
-  "settings_downloadSortHint": {"message": "Obrázky, dokumenty, videa, hudbu, archivy a programy uloží do podsložek ve složce pro stahování. Soubory, které se po stažení hned otevírají, a soubory uložené jinam zůstanou, kde jsou."},
+  "settings_downloadSortHint": {"message": "Obrázky, dokumenty, videa, hudbu, archivy a programy uloží do podsložek ve složce pro stahování. Funguje, jen když se Mantis neptá, kam soubor uložit (volba níže) – vybrané místo se nikdy nemění. Soubory, které se po stažení hned otevírají, zůstanou, kde jsou."},
   "settings_focus": {"message": "Režim soustředění"},
   "settings_focusHint": {"message": "<b>Alt+Shift+F</b> nebo paleta příkazů schová karty a lišty – zůstane jen stránka. Najetím myší k hornímu okraji se lišty ukážou, stejnou zkratkou se vrátí."},
   "settings_qr": {"message": "QR kód stránky"},
@@ -548,5 +548,7 @@
   "downloads_folder_videos": {"message": "Videa"},
   "downloads_folder_music": {"message": "Hudba"},
   "downloads_folder_archives": {"message": "Archivy"},
-  "downloads_folder_programs": {"message": "Programy"}
+  "downloads_folder_programs": {"message": "Programy"},
+  "settings_downloadNoAsk": {"message": "Ukládat stažené soubory rovnou do složky pro stahování"},
+  "settings_downloadNoAskHint": {"message": "Vypnuto = u každého souboru se Mantis zeptá, kam ho uložit (třídění se pak nepoužije)."}
 }

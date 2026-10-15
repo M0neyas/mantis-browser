@@ -87,7 +87,7 @@
         "type": "function",
         "async": true,
         "description": "Paměť všech procesů Mantisu v MB a vytížení CPU od minulého volání v % výkonu počítače ({memoryMB, cpuPercent, processes}).",
-        "parameters": []
+        "parameters": [{ "name": "who", "type": "string", "optional": true, "description": "Kdo měří – každý má vlastní předchozí vzorek CPU" }]
       },
       {
         "name": "tabStats",

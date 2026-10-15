@@ -1,14 +1,20 @@
 // Zdvojené karty (jako Arc, Zen): když nová karta načte adresu, která už je v tomto okně otevřená
 // (stejný kontejner, viditelná karta), Mantis přepne na tu původní a novou zavře. Platí jen pro
-// nově otevřené karty – procházení v existující kartě se nehlídá. Výjimky: duplikování karty
-// (původní karta = otvírač), karty v rozděleném zobrazení, obnova relace po spuštění.
+// nově otevřené karty v popředí – procházení v existující kartě se nehlídá a karta otevřená na
+// pozadí (prostřední tlačítko) zůstane, jinak by klik vypadal, že nic neudělal. Výjimky:
+// duplikování karty (původní karta = otvírač), karty v rozděleném zobrazení a obnovené karty –
+// po spuštění, obnovení zavřeného okna / karty, uložená relace (víc karet naráz v jednom okně).
 // Paleta: „Zavřít zdvojené karty“ v okně. storage.local: dedupeTabs (výchozí zapnuto).
 
 const DEDUPE_WATCH_MS = 120000; // jak dlouho po otevření karty hlídat první adresu (psaní do nové karty)
 const DEDUPE_REDIRECT_MS = 3000; // po první adrese ještě hlídat přesměrování (t.co → cíl)
 const DEDUPE_STARTUP_MS = 15000; // po spuštění se obnovují karty – nehlídat
 const dedupeStarted = Date.now();
+const DEDUPE_RESTORE_MS = 1500; // karty vzniklé tak rychle po sobě / po obnovení = obnova, ne otevření
 const dedupePending = new Map(); // tabId → { created, firstUrlAt }
+const dedupeLastCreated = new Map(); // windowId → { time, tabId } poslední nové karty
+const dedupeNewWindows = new Map(); // windowId → kdy vzniklo okno
+let dedupeLastRestore = 0; // poslední změna seznamu zavřených karet/oken (obnovení Ctrl+Shift+T)
 let dedupeEnabled = true;
 
 browser.storage.local.get({ dedupeTabs: true }).then(({ dedupeTabs }) => { dedupeEnabled = dedupeTabs; });
@@ -24,9 +30,30 @@ function dedupeKey(tab) {
   return `${tab.cookieStoreId || ""}\n${tab.url}`;
 }
 
+browser.windows.onCreated.addListener(win => dedupeNewWindows.set(win.id, Date.now()));
+browser.windows.onRemoved.addListener(windowId => {
+  dedupeNewWindows.delete(windowId);
+  dedupeLastCreated.delete(windowId);
+});
+browser.sessions.onChanged.addListener(() => { dedupeLastRestore = Date.now(); });
+
 browser.tabs.onCreated.addListener(tab => {
-  if (dedupeEnabled && Date.now() - dedupeStarted > DEDUPE_STARTUP_MS) {
-    dedupePending.set(tab.id, { created: Date.now(), firstUrlAt: 0 });
+  const now = Date.now();
+  const previous = dedupeLastCreated.get(tab.windowId);
+  dedupeLastCreated.set(tab.windowId, { time: now, tabId: tab.id });
+  const restoring =
+    now - dedupeStarted < DEDUPE_STARTUP_MS ||
+    now - (dedupeNewWindows.get(tab.windowId) || 0) < DEDUPE_RESTORE_MS ||
+    now - dedupeLastRestore < DEDUPE_RESTORE_MS ||
+    (previous && now - previous.time < DEDUPE_RESTORE_MS);
+  if (restoring) {
+    if (previous && now - previous.time < DEDUPE_RESTORE_MS) {
+      dedupePending.delete(previous.tabId); // i ta první z dávky
+    }
+    return;
+  }
+  if (dedupeEnabled) {
+    dedupePending.set(tab.id, { created: now, firstUrlAt: 0 });
   }
 });
 
@@ -61,9 +88,10 @@ browser.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (!current || current.url !== tab.url) {
     return; // mezitím přešla jinam
   }
-  if (current.active) {
-    await browser.tabs.update(existing.id, { active: true });
+  if (!current.active) {
+    return; // otevřená na pozadí – nechat, uživatel ji chtěl mít navíc
   }
+  await browser.tabs.update(existing.id, { active: true });
   await browser.tabs.remove(tabId);
 }, { properties: ["url"] });
 

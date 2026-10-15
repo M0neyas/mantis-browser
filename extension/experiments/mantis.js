@@ -25,6 +25,8 @@ const ALLOWED_PREFS = {
   // Šifrované DNS (doh.js)
   "network.trr.mode": "int",
   "network.trr.uri": "string",
+  // Ptát se, kam uložit stažený soubor (false) – třídění stažených (downloads.js) jen při true
+  "browser.download.useDownloadDir": "bool",
 };
 
 // Instalátor z aktualizace: jen tento název souboru a jen ze složky pro stahování
@@ -149,10 +151,12 @@ function sha256Hex(bytes) {
 // ---------- Výkon: statistiky, omezení CPU a sítě (performance.js) ----------
 // Stav je na úrovni modulu – sdílí ho všechny stránky rozšíření a uklidí onShutdown.
 
-let lastCpuSample = null; // { time, cpuNs } pro výpočet vytížení mezi dvěma voláními
+// { time, cpuNs } pro výpočet vytížení mezi dvěma voláními – zvlášť pro každého, kdo měří
+// (nastavení, boční panel, limit paměti), jinak by si intervaly navzájem zkracovali
+const lastCpuSamples = new Map();
 let cpuCores = 0;
 
-async function processStats() {
+async function processStats(who = "default") {
   if (!cpuCores) {
     try {
       cpuCores = (await Services.sysinfo.processInfo).count || 1; // logické procesory
@@ -166,11 +170,12 @@ async function processStats() {
   const cpuNs = all.reduce((sum, p) => sum + (p.cpuTime || 0), 0);
   const now = Date.now();
   let cpuPercent = null;
+  const lastCpuSample = lastCpuSamples.get(who);
   if (lastCpuSample && now > lastCpuSample.time) {
     const busyMs = (cpuNs - lastCpuSample.cpuNs) / 1e6;
     cpuPercent = Math.max(0, Math.min(100, (busyMs / (now - lastCpuSample.time) / cpuCores) * 100));
   }
-  lastCpuSample = { time: now, cpuNs };
+  lastCpuSamples.set(who, { time: now, cpuNs });
   return {
     memoryMB: Math.round(memory / 1048576),
     cpuPercent: cpuPercent === null ? null : Math.round(cpuPercent),
@@ -1456,11 +1461,29 @@ function removeRails() {
 // ---------- Režim soustředění: lišty se schovají, najetím k hornímu okraji se ukážou ----------
 // Atribut mantisfocus na <html> okna + --mb-focus-toolbox-h (výška lišt) – styly v userChrome.css.
 
+const focusResizeHandlers = new WeakMap();
+
+function focusMeasure(win) {
+  const toolbox = win.document.getElementById("navigator-toolbox");
+  // translate výšku nemění – měří se skutečná výška lišt i ve schovaném stavu
+  win.document.documentElement.style.setProperty("--mb-focus-toolbox-h",
+    `${Math.ceil(toolbox?.getBoundingClientRect().height || 80)}px`);
+}
+
 function setFocusMode(win, on) {
   const root = win.document.documentElement;
+  const handler = focusResizeHandlers.get(win);
   if (on) {
-    const toolbox = win.document.getElementById("navigator-toolbox");
-    root.style.setProperty("--mb-focus-toolbox-h", `${Math.ceil(toolbox?.getBoundingClientRect().height || 80)}px`);
+    focusMeasure(win);
+    if (!handler) {
+      // pod 900 px se lišty zalomí do dvou řádků → jiná výška
+      const onResize = () => focusMeasure(win);
+      win.addEventListener("resize", onResize);
+      focusResizeHandlers.set(win, onResize);
+    }
+  } else if (handler) {
+    win.removeEventListener("resize", handler);
+    focusResizeHandlers.delete(win);
   }
   root.toggleAttribute("mantisfocus", on);
   return on;
@@ -1477,6 +1500,9 @@ function removeFocusModes() {
 // úspěšném stažení a ne ty, které se mají hned otevřít (PDF v prohlížeči, „Otevřít“ – cesta
 // by přestala platit). Soubor se přesune a stažení v seznamu i v historii dostane novou cestu.
 // Když přesun nejde (soubor zamčený antivirem…), zůstane, kde je.
+// Nic se nepřesouvá, když se prohlížeč ptá, kam soubor uložit (browser.download.useDownloadDir
+// = false, výchozí v LibreWolfu) – místo uložení pak uživatel vybral sám. A nikdy instalátor
+// aktualizace Mantisu (launchInstaller ho hledá přímo ve složce pro stahování).
 
 const dlSort = { map: null, view: null, since: 0, done: new WeakSet() };
 
@@ -1496,6 +1522,9 @@ async function dlSortHandle(download) {
     return;
   }
   const name = PathUtils.filename(path);
+  if (INSTALLER_NAME.test(name) || !Services.prefs.getBoolPref("browser.download.useDownloadDir", true)) {
+    return;
+  }
   const ext = (name.match(/\.([^.]+)$/)?.[1] || "").toLowerCase();
   const folder = dlSort.map[ext];
   if (!folder || /[\\/:*?"<>|]/.test(folder)) {
@@ -1696,11 +1725,18 @@ this.mantisPrefs = class extends ExtensionAPI {
           if (!allowedDirs.includes(PathUtils.normalize(file.parent.path).toLowerCase())) {
             fail("err_installerFolder");
           }
-          const actual = sha256Hex(await IOUtils.read(file.path));
-          if (!/^[0-9a-f]{64}$/i.test(sha256) || actual !== sha256.toLowerCase()) {
+          // Bajty se načtou jednou, ověří a zapíšou do nové složky s náhodným názvem – spustí se
+          // přesně to, co prošlo kontrolou (soubor ve Stažených by šel mezi kontrolou a spuštěním vyměnit)
+          const bytes = await IOUtils.read(file.path);
+          if (!/^[0-9a-f]{64}$/i.test(sha256) || sha256Hex(bytes) !== sha256.toLowerCase()) {
             fail("err_installerHash");
           }
-          file.launch();
+          const dir = await IOUtils.createUniqueDirectory(PathUtils.tempDir, "mantis-update", 0o700);
+          const copy = PathUtils.join(dir, file.leafName);
+          await IOUtils.write(copy, bytes, { mode: "create" });
+          const verified = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsIFile);
+          verified.initWithPath(copy);
+          verified.launch();
         },
 
         // Nainstalované prohlížeče kromě Mantisu (bez cest k programům)
@@ -1729,8 +1765,8 @@ this.mantisPrefs = class extends ExtensionAPI {
         // ---------- Výkon a vzhled ----------
 
         // Paměť všech procesů Mantisu (MB) a vytížení CPU od minulého volání (% celého počítače)
-        async processStats() {
-          return processStats();
+        async processStats(who) {
+          return processStats(typeof who === "string" ? who.slice(0, 20) : "default");
         },
 
         async tabStats() {

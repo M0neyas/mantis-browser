@@ -33,7 +33,7 @@ async function perfRamCheck() {
   if (!config.ramLimit) {
     return;
   }
-  const stats = await browser.mantisPrefs.processStats();
+  const stats = await browser.mantisPrefs.processStats("ramLimit");
   if (stats.memoryMB <= config.ramLimitMB) {
     return;
   }
@@ -86,7 +86,7 @@ browser.storage.onChanged.addListener((changes, area) => {
 // Nastavení Mantis ukazuje živé využití
 browser.runtime.onMessage.addListener(msg => {
   if (msg?.perfStats) {
-    return browser.mantisPrefs.processStats();
+    return browser.mantisPrefs.processStats(String(msg.who || "settings"));
   }
   return undefined;
 });

@@ -55,7 +55,7 @@ function formatMemory(mb) {
 }
 
 async function showPerfUsage() {
-  const stats = await browser.runtime.sendMessage({ perfStats: true });
+  const stats = await browser.runtime.sendMessage({ perfStats: true, who: "settings" });
   const memory = formatMemory(stats.memoryMB);
   document.getElementById("perf-usage").textContent = stats.cpuPercent === null
     ? t("settings_perfUsageMemory", memory)
