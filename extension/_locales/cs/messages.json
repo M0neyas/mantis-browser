@@ -505,5 +505,15 @@
   "settings_ytHideShortsHint": {"message": "Schová police a odkazy na Shorts na hlavní stránce, ve vyhledávání, u videí i v levém menu."},
   "settings_ytSponsorBlockHint": {"message": "Rozšíření, které ve videích přeskočí sponzorované části, upomínky na odběr a podobně (úseky označují sami diváci). Open source, mezi doporučenými rozšířeními Mozilly; ID videí posílá na server SponsorBlocku."},
   "welcome_addon_sponsorBlock_name": {"message": "SponsorBlock"},
-  "welcome_addon_sponsorBlock_text": {"message": "Na YouTube přeskočí sponzorované části videí, upomínky na odběr a podobně – úseky označují sami diváci. ID sledovaných videí posílá na server SponsorBlocku."}
+  "welcome_addon_sponsorBlock_text": {"message": "Na YouTube přeskočí sponzorované části videí, upomínky na odběr a podobně – úseky označují sami diváci. ID sledovaných videí posílá na server SponsorBlocku."},
+  "settings_navLabel": {"message": "Kategorie nastavení"},
+  "settings_searchPlaceholder": {"message": "Hledat v nastavení"},
+  "settings_searchEmpty": {"message": "Nic nenalezeno. Zkuste jiné slovo."},
+  "settings_cat_general": {"message": "Obecné"},
+  "settings_cat_appearance": {"message": "Vzhled a zvuky"},
+  "settings_cat_tabs": {"message": "Karty a panel"},
+  "settings_cat_performance": {"message": "Výkon"},
+  "settings_cat_privacy": {"message": "Soukromí a bezpečnost"},
+  "settings_cat_vpn": {"message": "VPN"},
+  "settings_cat_web": {"message": "Weby a nástroje"}
 }

@@ -25,7 +25,7 @@
 * { box-sizing: border-box; }
 
 body {
-  max-width: 680px;
+  max-width: 980px;
   margin: 0 auto;
   padding: 40px 16px 64px;
   background: var(--bg);
@@ -60,6 +60,106 @@ h2 {
 
 section {
   margin-bottom: 24px;
+  scroll-margin-top: 16px;
+}
+
+/* ---------- Kategorie vlevo, obsah vpravo (nav.js) ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 680px);
+  gap: 32px;
+  align-items: start;
+}
+
+nav {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#settings-search {
+  width: 100%;
+  padding: 7px 10px 7px 32px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card) url("../icons/search.svg") 10px center / 14px no-repeat;
+  color: var(--fg);
+  font: inherit;
+}
+
+#settings-search:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(34 197 94 / 0.18);
+}
+
+#nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+button.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg);
+  font-weight: 500;
+  text-align: start;
+}
+
+button.nav-item:hover { background: var(--line); }
+
+button.nav-item.active {
+  background: rgb(34 197 94 / 0.15);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+button.nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 15px;
+}
+
+section.off,
+.search-miss { display: none !important; }
+
+#search-empty { padding: 8px 4px; }
+
+/* Při hledání chybí sousední řádky – každý výsledek jako samostatná karta */
+body.searching section > .option {
+  border-top: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+body.searching section > .option + .option { margin-top: 6px; }
+
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  nav {
+    position: static;
+  }
+
+  #nav-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  button.nav-item { flex: none; }
 }
 
 .option {
@@ -197,7 +297,8 @@ button:disabled { opacity: 0.6; cursor: progress; }
 }
 
 @media (prefers-color-scheme: dark) {
-  .badge { color: #4ade80; }
+  .badge,
+  button.nav-item.active { color: #4ade80; }
 }
 
 /* Barva zvýraznění a hlasitost (Vzhled, Zvuky) */

@@ -16,7 +16,16 @@
     </div>
   </header>
 
-  <section>
+  <div class="layout">
+  <nav id="nav" data-i18n-aria-label="settings_navLabel">
+    <input type="search" id="settings-search" data-i18n-placeholder="settings_searchPlaceholder" data-i18n-aria-label="settings_searchPlaceholder" autocomplete="off">
+    <div id="nav-list" role="tablist"></div>
+  </nav>
+
+  <main id="content">
+    <p id="search-empty" class="hint" hidden data-i18n="settings_searchEmpty"></p>
+
+  <section id="browsing" data-category="general">
     <h2 data-i18n="settings_browsing"></h2>
 
     <label class="option">
@@ -86,7 +95,7 @@
     </div>
   </section>
 
-  <section id="youtube">
+  <section id="youtube" data-category="web">
     <h2>YouTube</h2>
 
     <label class="option">
@@ -120,7 +129,7 @@
     </div>
   </section>
 
-  <section id="performance">
+  <section id="performance" data-category="performance">
     <h2 data-i18n="settings_performance"></h2>
 
     <div class="option">
@@ -213,7 +222,7 @@
     </label>
   </section>
 
-  <section id="appearance">
+  <section id="appearance" data-category="appearance">
     <h2 data-i18n="settings_appearance"></h2>
 
     <label class="option">
@@ -285,7 +294,7 @@
     </label>
   </section>
 
-  <section id="sounds">
+  <section id="sounds" data-category="appearance">
     <h2 data-i18n="settings_sounds"></h2>
 
     <label class="option">
@@ -351,7 +360,7 @@
     </div>
   </section>
 
-  <section id="mods">
+  <section id="mods" data-category="appearance">
     <h2 data-i18n="settings_mods"></h2>
 
     <div class="option column">
@@ -376,7 +385,7 @@
     </div>
   </section>
 
-  <section id="security">
+  <section id="security" data-category="privacy">
     <h2 data-i18n="settings_security"></h2>
 
     <label class="option">
@@ -388,7 +397,7 @@
     </label>
   </section>
 
-  <section>
+  <section id="newtab" data-category="general">
     <h2 data-i18n="settings_newtab"></h2>
 
     <label class="option">
@@ -417,7 +426,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="privacy" data-category="privacy">
     <h2 data-i18n="settings_privacy"></h2>
 
     <label class="option">
@@ -450,7 +459,7 @@
     </div>
   </section>
 
-  <section id="shopping">
+  <section id="shopping" data-category="web">
     <h2 data-i18n="settings_shopping"></h2>
 
     <label class="option">
@@ -472,7 +481,7 @@
     </label>
   </section>
 
-  <section id="workspaces">
+  <section id="workspaces" data-category="tabs">
     <h2 data-i18n="settings_workspaces"></h2>
 
     <div class="option column">
@@ -487,7 +496,7 @@
     </div>
   </section>
 
-  <section id="sessions">
+  <section id="sessions" data-category="tabs">
     <h2 data-i18n="settings_sessions"></h2>
 
     <div class="option column">
@@ -504,7 +513,7 @@
     </div>
   </section>
 
-  <section id="messengers">
+  <section id="messengers" data-category="tabs">
     <h2 data-i18n="settings_messengers"></h2>
 
     <div class="option column">
@@ -524,7 +533,7 @@
     </label>
   </section>
 
-  <section id="tools">
+  <section id="tools" data-category="web">
     <h2 data-i18n="settings_tools"></h2>
 
     <label class="option">
@@ -552,7 +561,7 @@
     </label>
   </section>
 
-  <section id="other-browser">
+  <section id="other-browser" data-category="web">
     <h2 data-i18n="settings_otherBrowser"></h2>
 
     <label class="option">
@@ -580,7 +589,7 @@
     </label>
   </section>
 
-  <section id="doh">
+  <section id="doh" data-category="privacy">
     <h2 data-i18n="settings_doh"></h2>
 
     <label class="option">
@@ -617,7 +626,7 @@
     </div>
   </section>
 
-  <section id="sensitive">
+  <section id="sensitive" data-category="privacy">
     <h2 data-i18n="settings_sensitive"></h2>
 
     <label class="option">
@@ -663,7 +672,7 @@
     <p class="hint note" data-i18n-html="settings_sensitiveNote"></p>
   </section>
 
-  <section>
+  <section id="extensions" data-category="web">
     <h2 data-i18n="settings_extensions"></h2>
     <div class="option">
       <span>
@@ -674,7 +683,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="updates" data-category="general">
     <h2 data-i18n="settings_updates"></h2>
 
     <div class="option">
@@ -695,7 +704,7 @@
     </label>
   </section>
 
-  <section id="vpn">
+  <section id="vpn" data-category="vpn">
     <h2>VPN</h2>
     <div class="option">
       <span><b>WireGuard VPN</b>
@@ -740,7 +749,7 @@
     </div>
   </section>
 
-  <section id="sync">
+  <section id="sync" data-category="general">
     <h2 data-i18n="settings_sync"></h2>
     <label class="option">
       <span>
@@ -751,9 +760,13 @@
     </label>
   </section>
 
+  </main>
+  </div>
+
   <script src="../i18n.js"></script>
   <script src="../version.js"></script>
   <script src="settings.js"></script>
   <script src="mods.js"></script>
+  <script src="nav.js"></script>
 </body>
 </html>

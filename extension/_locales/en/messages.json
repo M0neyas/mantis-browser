@@ -505,5 +505,15 @@
   "settings_ytHideShortsHint": {"message": "Hides Shorts shelves and links on the home page, in search, next to videos and in the left menu."},
   "settings_ytSponsorBlockHint": {"message": "An extension that skips sponsored segments, subscribe reminders and the like in videos (segments are marked by viewers). Open source, a Mozilla Recommended extension; sends video IDs to the SponsorBlock server."},
   "welcome_addon_sponsorBlock_name": {"message": "SponsorBlock"},
-  "welcome_addon_sponsorBlock_text": {"message": "Skips sponsored segments, subscribe reminders and the like in YouTube videos – segments are marked by viewers. Sends the IDs of watched videos to the SponsorBlock server."}
+  "welcome_addon_sponsorBlock_text": {"message": "Skips sponsored segments, subscribe reminders and the like in YouTube videos – segments are marked by viewers. Sends the IDs of watched videos to the SponsorBlock server."},
+  "settings_navLabel": {"message": "Settings categories"},
+  "settings_searchPlaceholder": {"message": "Search settings"},
+  "settings_searchEmpty": {"message": "Nothing found. Try another word."},
+  "settings_cat_general": {"message": "General"},
+  "settings_cat_appearance": {"message": "Appearance and sounds"},
+  "settings_cat_tabs": {"message": "Tabs and sidebar"},
+  "settings_cat_performance": {"message": "Performance"},
+  "settings_cat_privacy": {"message": "Privacy and security"},
+  "settings_cat_vpn": {"message": "VPN"},
+  "settings_cat_web": {"message": "Websites and tools"}
 }
