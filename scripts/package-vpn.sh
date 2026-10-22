@@ -12,12 +12,14 @@ rm -rf "$vpn_out"
 mkdir -p "$vpn_out"
 
 info "VPN: kompiluji pomocníka mantis-vpn.exe ($GO_IMAGE)"
-docker run --rm \
+# --pull always: vždy nejnovější Go 1.x – opravy bezpečnostních chyb ve standardní knihovně Go
+# se do pomocníka dostanou jen novým překladem (bez toho by Docker použil starý uložený obraz)
+docker run --rm --pull always \
   -v "$REPO_DIR/vpn/host":/src:ro -v "$vpn_out":/out -w /src \
   -e GOOS=windows -e GOARCH=amd64 -e CGO_ENABLED=0 -e GOFLAGS=-trimpath \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   "$GO_IMAGE" \
-  sh -c 'go build -ldflags "-s -w -H windowsgui" -o /out/mantis-vpn.exe . && chown "$HOST_UID:$HOST_GID" /out/mantis-vpn.exe'
+  sh -c 'go version && go build -ldflags "-s -w -H windowsgui" -o /out/mantis-vpn.exe . && chown "$HOST_UID:$HOST_GID" /out/mantis-vpn.exe'
 
 info "VPN: stahuji wireproxy $WIREPROXY_VERSION"
 dl="$WORK_DIR/download"
