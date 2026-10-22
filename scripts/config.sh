@@ -2,7 +2,7 @@
 
 # Verze LibreWolfu, nad kterou stavíme (= Firefox 157.0, LibreWolf release 1).
 # Při přechodu na novou verzi změnit tady a ověřit, že prepare-source.sh projde.
-LW_VERSION="158.0.1-1"
+LW_VERSION="158.0.1-2"
 # Pořadí sestavení Mantisu nad touto verzí LibreWolfu. Zvýšit při každém zveřejnění
 # buildu se stejnou LW_VERSION (jinak ho nainstalované prohlížeče nepoznají jako nový),
 # při změně LW_VERSION vrátit na 1. (1 = první build 2026-09-23, bez kontroly moneyas.cz)
@@ -12,7 +12,7 @@ LW_SOURCE_URL="$LW_FORGE/api/packages/librewolf/generic/librewolf-source/$LW_VER
 # SHA-256 zdrojového balíku, zapsaný v repozitáři (check-update.sh --apply ho aktualizuje).
 # Balík se ověřuje proti této hodnotě, ne jen proti souboru .sha256sum ze stejného
 # serveru – podvržený server by musel podvrhnout i commit v tomto repozitáři.
-LW_SOURCE_SHA256="4609119dd67afd5c9786c17d987c85d5648678c120bc8b63b602f6917a1f0090"
+LW_SOURCE_SHA256="dd1e782faf8e8da53267997c79f6b5c330ca0ca1cf1818c6d6faaeb08642f7db"
 # Hlavní klíč „LibreWolf Maintainers <gpg@librewolf.net>“ (keys.openpgp.org, ověřený e-mail),
 # jehož podklíč podepisuje zdrojové balíky (.sig). check-update.sh --apply podpis ověří dřív,
 # než zapíše nový LW_SOURCE_SHA256 – .sha256sum ze stejného serveru by podvržený balík neodhalil.
