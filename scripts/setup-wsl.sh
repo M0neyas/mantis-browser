@@ -12,7 +12,7 @@ esac
 
 info "Instaluji balíčky (Docker, git, jq, převod SVG → PNG/ICO)…"
 sudo apt-get update
-sudo apt-get install -y docker.io git curl jq perl patch pigz xz-utils zip unzip \
+sudo apt-get install -y docker.io git curl jq gnupg perl patch pigz xz-utils zip unzip \
   librsvg2-bin imagemagick osslsigncode
 
 info "Spouštím Docker…"

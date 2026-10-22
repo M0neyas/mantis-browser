@@ -48,6 +48,22 @@ new_sha=$(sha256sum "$tarball" | awk '{print $1}')
 [[ "$new_sha" =~ ^[0-9a-f]{64}$ ]] && [ "$published" = "$new_sha" ] \
   || die "SHA-256 staženého balíku ($new_sha) nesedí se zveřejněným ($published) – smažte $tarball a zkuste znovu"
 
+# Podpis GPG od LibreWolfu: klíč z keys.openpgp.org, ale přijme se jen podpis klíčem, jehož hlavní
+# otisk je LW_SIGNING_KEY_FPR (VALIDSIG končí otiskem hlavního klíče). Dočasná klíčenka, nic se
+# neukládá do uživatelovy.
+command -v gpg >/dev/null || die "chybí gpg (spusťte scripts/setup-wsl.sh)"
+curl -fsSL --retry 3 -o "$tarball.sig" "$url.sig" || die "nepodařilo se stáhnout podpis $url.sig"
+gnupg=$(mktemp -d)
+trap 'rm -rf "$gnupg"' EXIT
+curl -fsSL --retry 3 "https://keys.openpgp.org/vks/v1/by-fingerprint/$LW_SIGNING_KEY_FPR" \
+  | gpg --homedir "$gnupg" --batch --quiet --import 2>/dev/null \
+  || die "nepodařilo se načíst klíč LibreWolfu $LW_SIGNING_KEY_FPR z keys.openpgp.org"
+status=$(gpg --homedir "$gnupg" --batch --status-fd 1 --verify "$tarball.sig" "$tarball" 2>/dev/null) \
+  || die "podpis zdrojového balíku $latest NEPLATÍ – nepokračujte a zkontrolujte librewolf.dev"
+grep -qE "^\[GNUPG:\] VALIDSIG .* $LW_SIGNING_KEY_FPR\$" <<<"$status" \
+  || die "balík $latest nepodepsal klíč LibreWolfu $LW_SIGNING_KEY_FPR – nepokračujte"
+info "Podpis LibreWolfu ověřen (klíč $LW_SIGNING_KEY_FPR)."
+
 sed -i -e "s/^LW_VERSION=\"[^\"]*\"/LW_VERSION=\"$latest\"/" \
   -e "s/^LW_SOURCE_SHA256=\"[^\"]*\"/LW_SOURCE_SHA256=\"$new_sha\"/" \
   -e "s/^MANTIS_RELEASE=[0-9]*/MANTIS_RELEASE=1/" "$REPO_DIR/scripts/config.sh"

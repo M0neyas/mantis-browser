@@ -13,6 +13,10 @@ LW_SOURCE_URL="$LW_FORGE/api/packages/librewolf/generic/librewolf-source/$LW_VER
 # Balík se ověřuje proti této hodnotě, ne jen proti souboru .sha256sum ze stejného
 # serveru – podvržený server by musel podvrhnout i commit v tomto repozitáři.
 LW_SOURCE_SHA256="4609119dd67afd5c9786c17d987c85d5648678c120bc8b63b602f6917a1f0090"
+# Hlavní klíč „LibreWolf Maintainers <gpg@librewolf.net>“ (keys.openpgp.org, ověřený e-mail),
+# jehož podklíč podepisuje zdrojové balíky (.sig). check-update.sh --apply podpis ověří dřív,
+# než zapíše nový LW_SOURCE_SHA256 – .sha256sum ze stejného serveru by podvržený balík neodhalil.
+LW_SIGNING_KEY_FPR="662E3CDD6FE329002D0CA5BB40339DD82B12EF16"
 
 # Veřejný klíč Ed25519 pro podpis vydání (latest.json), base64 z scripts/release-key.sh.
 # Prohlížeč s tímto klíčem nabídne instalaci jedním kliknutím jen u podepsaného vydání.
