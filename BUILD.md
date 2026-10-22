@@ -100,16 +100,6 @@ Na konci v PowerShellu `wsl --shutdown` a Ubuntu znovu otevřít.
 Pro posílání změn na GitHub se v Ubuntu přihlaste (`sudo apt install -y gh`,
 `gh auth login`, `gh auth setup-git`) a nastavte `git config user.name` / `user.email`.
 
-### Krok 6 (volitelně): Claude Code v Ubuntu
-
-Aby Claude mohl sám spouštět skripty a opravovat chyby buildu, nainstalujte
-Claude Code přímo do Ubuntu a spouštějte ho ve složce repozitáře:
-```bash
-curl -fsSL https://claude.ai/install.sh | bash
-cd ~/mantis-browser
-claude
-```
-
 ## 2. Build
 
 ```bash
