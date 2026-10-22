@@ -155,6 +155,8 @@
   "settings_security": {"message": "Zabezpečení"},
   "settings_webgl": {"message": "WebGL (3D grafika)"},
   "settings_webglHint": {"message": "Potřebují ho mapy, 3D weby a některé hry. Vypnutím se zmenší plocha pro útoky přes grafický ovladač a weby hůř rozpoznají váš počítač podle grafické karty. Projeví se na nově otevřených stránkách."},
+  "settings_webgpu": {"message": "WebGPU (moderní grafika a výpočty)"},
+  "settings_webgpuHint": {"message": "Potřebují ho některé nové hry, 3D a AI weby. Dává webům přímější přístup ke grafické kartě než WebGL – větší plocha pro útoky a snazší rozpoznání počítače, proto je jako v LibreWolfu vypnutý. Zapněte jen, když ho web vyžaduje. Projeví se na nově otevřených stránkách."},
   "settings_newtab": {"message": "Nová karta"},
   "settings_clock": {"message": "Hodiny a datum"},
   "settings_background": {"message": "Zelené pozadí"},

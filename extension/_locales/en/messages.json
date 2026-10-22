@@ -155,6 +155,8 @@
   "settings_security": {"message": "Security"},
   "settings_webgl": {"message": "WebGL (3D graphics)"},
   "settings_webglHint": {"message": "Needed by maps, 3D sites and some games. Turning it off reduces the attack surface through the graphics driver and makes it harder for sites to recognize your computer by its graphics card. Applies to newly opened pages."},
+  "settings_webgpu": {"message": "WebGPU (modern graphics and compute)"},
+  "settings_webgpuHint": {"message": "Needed by some new games, 3D and AI sites. It gives sites more direct access to the graphics card than WebGL – a larger attack surface and easier recognition of your computer – so it is off, as in LibreWolf. Turn it on only when a site requires it. Applies to newly opened pages."},
   "settings_newtab": {"message": "New tab"},
   "settings_clock": {"message": "Clock and date"},
   "settings_background": {"message": "Green background"},

@@ -38,7 +38,7 @@ const SYNC_KEYS = [
   "soundTyping",
   "soundTabs",
   "soundVolume",
-  "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL)
+  "browserPrefs", // přepínače nastavení prohlížeče (obraz v obraze, autoplay, rolování, WebGL, WebGPU)
   "otherBrowserSites", // weby s tlačítkem „Otevřít v jiném prohlížeči“ (volba prohlížeče je místní)
 ];
 
