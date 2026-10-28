@@ -1221,8 +1221,11 @@ function wsUpdateButton(node) {
   if (!current) {
     return;
   }
-  node.setAttribute("label", `${current.icon || ""} ${current.name}`.trim());
-  node.setAttribute("tooltiptext", ws.texts.tooltip || current.name);
+  // Na liště jen ikona (bez ikony první písmeno názvu), název v bublině
+  const icon = (current.icon || "").trim() || [...(current.name || "?").trim()][0] || "?";
+  node.setAttribute("label", icon);
+  node.setAttribute("tooltiptext", ws.texts.tooltip ? `${current.name} – ${ws.texts.tooltip}` : current.name);
+  node.setAttribute("aria-label", current.name);
   node.setAttribute("image", wsDot(current.color));
   node.style.setProperty("--mb-ws-color", /^#[0-9a-f]{6}$/i.test(current.color || "") ? current.color : "");
 }

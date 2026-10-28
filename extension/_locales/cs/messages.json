@@ -339,7 +339,7 @@
   "ws_defaultName": {"message": "Domov"},
   "ws_newName": {"message": "Prostor $1"},
   "ws_label": {"message": "Pracovní prostory"},
-  "ws_tooltip": {"message": "Pracovní prostor – kliknutím přepnete (Ctrl+Alt+PageDown / PageUp)"},
+  "ws_tooltip": {"message": "kliknutím přepnete prostor (Ctrl+Alt+PageDown / PageUp)"},
   "ws_add": {"message": "Nový prostor"},
   "ws_edit": {"message": "Upravit prostory…"},
   "ws_moveTab": {"message": "Přesunout do prostoru"},

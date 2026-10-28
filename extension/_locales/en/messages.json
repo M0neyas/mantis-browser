@@ -339,7 +339,7 @@
   "ws_defaultName": {"message": "Home"},
   "ws_newName": {"message": "Space $1"},
   "ws_label": {"message": "Workspaces"},
-  "ws_tooltip": {"message": "Workspace – click to switch (Ctrl+Alt+PageDown / PageUp)"},
+  "ws_tooltip": {"message": "click to switch workspace (Ctrl+Alt+PageDown / PageUp)"},
   "ws_add": {"message": "New workspace"},
   "ws_edit": {"message": "Edit workspaces…"},
   "ws_moveTab": {"message": "Move to workspace"},
