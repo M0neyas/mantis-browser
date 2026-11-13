@@ -133,6 +133,19 @@ tlačítko VPN (štít) ve spodní liště a vložit profil WireGuard. Podrobnos
 **Microsoft Store:** `./scripts/build.sh --msix` vyrobí navíc balíček MSIX –
 vyzkoušení i odeslání do Storu popisuje [STORE.md](STORE.md).
 
+### Rychlý build (jen změny Mantisu)
+
+Když se od posledního buildu změnilo jen vestavěné rozšíření (`extension/`), nastavení
+(`settings/`) nebo vzhled (`theme/`) – třeba nové sestavení se stejným LibreWolfem –
+stačí místo plné přípravy rychlá:
+```bash
+./scripts/prepare-source.sh --quick   # nerozbaluje znovu zdrojáky, jen nasadí naši vrstvu
+./scripts/build.sh                    # přeloží jen změněné soubory (minuty místo ~40 min)
+```
+`--quick` jde jen nad stromem z plné přípravy s hotovým buildem. Když se mezitím změnila
+verze LibreWolfu, `patches/`, `branding/` nebo skripty přípravy, skončí s hláškou a je
+potřeba plná příprava (`prepare-source.sh` bez parametru).
+
 ## Aktualizace na novou verzi LibreWolfu
 
 Firefox vydává bezpečnostní opravy zhruba každé 4 týdny a LibreWolf krátce po něm.
@@ -200,7 +213,7 @@ profil a data zůstávají v `%APPDATA%\mantis`.
 |---|---|
 | `scripts/config.sh` | verze LibreWolfu, názvy, cesty |
 | `scripts/setup-wsl.sh` | nainstaluje Docker a nástroje, stáhne build image |
-| `scripts/prepare-source.sh` | stáhne a ověří zdrojáky LibreWolfu, přejmenuje aplikaci, nasadí `branding/`, `settings/`, `theme/`, `extension/`, `patches/`, připnutá rozšíření přesměruje do 2. řádku, sestaví mozconfig pro Windows |
+| `scripts/prepare-source.sh` | stáhne a ověří zdrojáky LibreWolfu, přejmenuje aplikaci, nasadí `branding/`, `settings/`, `theme/`, `extension/`, `patches/`, připnutá rozšíření přesměruje do 2. řádku, sestaví mozconfig pro Windows; s `--quick` jen znovu nasadí `extension/`, `settings/` a `theme/` do připraveného stromu |
 | `scripts/prepare-installer.sh` | úpravy instalátoru Firefoxu (NSIS): názvy a klíče v registru, bez pingů Mozille, registrace VPN – volá ho `prepare-source.sh` |
 | `scripts/make-icons.sh` | z `branding/logo.svg` vyrobí PNG/ICO ikony a z `branding/installer-*.svg` obrázky instalátoru |
 | `scripts/build.sh` | `mach build` + `mach package-multi-locale` + přibalení VPN + instalátor, vše v Dockeru; s `--msix` i balíček pro Microsoft Store |
@@ -211,8 +224,9 @@ profil a data zůstávají v `%APPDATA%\mantis`.
 | `scripts/release-key.sh` | vytvoří klíč Ed25519 pro podpis vydání a vypíše veřejný klíč |
 | `scripts/publish-installer.sh` | podepíše a nahraje instalátor a `latest.json` na vlastní web (server v `config.local.sh`) |
 
-`prepare-source.sh` začíná vždy od čistých zdrojáků, takže každý build
-je zatím celý (bez inkrementálního překladu).
+`prepare-source.sh` začíná od čistých zdrojáků, takže build po něm je celý.
+S `--quick` (jen změny v `extension/`, `settings/`, `theme/`) zůstane strom i předchozí
+build a `build.sh` přeloží jen to, co se změnilo.
 
 ## Když něco selže
 

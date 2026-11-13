@@ -8,12 +8,129 @@
 # Každé spuštění začíná od čistých zdrojáků (smaže $SRC_DIR).
 # Když se nějaká úprava nedá aplikovat (LibreWolf změnil strukturu),
 # skript skončí chybou s popisem – nic se tiše nepřeskočí.
+#
+# --quick: zdrojáky nerozbaluje, v připraveném stromu jen znovu nasadí lehkou vrstvu
+#          (extension/, settings/, theme/, číslo sestavení) – build.sh pak přeloží jen
+#          změněné soubory (minuty místo ~40 min). Jde jen nad stromem z plné přípravy se
+#          stejnými vstupy (verze LibreWolfu, patches/, branding/, skripty přípravy);
+#          když se některý změnil, skript skončí a chce plnou přípravu.
 set -euo pipefail
 source "$(dirname "$0")/config.sh"
+
+quick=false
+for arg in "$@"; do
+  case "$arg" in
+    --quick) quick=true ;;
+    *) die "neznámý parametr $arg (umím jen --quick)" ;;
+  esac
+done
 
 for cmd in curl jq perl patch sha256sum tar; do
   command -v "$cmd" >/dev/null || die "chybí $cmd (spusťte scripts/setup-wsl.sh)"
 done
+
+# Otisk všeho, co mění strom jinak než lehká vrstva. MANTIS_RELEASE do otisku nepatří –
+# číslo sestavení dosazuje lehká vrstva (extension/version.js).
+full_stamp() {
+  {
+    echo "$LW_VERSION $LW_SOURCE_SHA256"
+    grep -v '^MANTIS_RELEASE=' "$REPO_DIR/scripts/config.sh"
+    (cd "$REPO_DIR" && find patches branding scripts/prepare-source.sh scripts/prepare-installer.sh \
+      scripts/make-icons.sh -type f -print0 | sort -z | xargs -0 sha256sum)
+  } | sha256sum | awk '{print $1}'
+}
+stamp_file="$SRC_DIR/.mantis-prepared"
+tarball="$WORK_DIR/download/librewolf-$LW_VERSION.source.tar.gz"
+# Soubory LibreWolfu, ke kterým lehká vrstva připojuje. --quick je vrací do původní podoby
+# ze zdrojového balíku (mimo strom, aby je build nebalil), jinak by se vrstva připojila dvakrát.
+LW_APPENDED=(lw/librewolf.cfg lw/policies.json browser/themes/shared/browser-shared.css)
+orig_dir="$WORK_DIR/src/.lw-orig"
+
+lw_original() {
+  local rel=$1
+  [ -f "$SRC_DIR/$rel" ] || die "chybí $rel"
+  if $quick; then
+    cp "$orig_dir/$rel" "$SRC_DIR/$rel"
+  fi
+}
+
+# --- Lehká vrstva (plná příprava i --quick) ---------------------------------
+layer_settings() {
+  local cfg="$SRC_DIR/lw/librewolf.cfg" pol="$SRC_DIR/lw/policies.json"
+  lw_original lw/librewolf.cfg
+  {
+    printf '\n\n/** ---------- Mantis Browser (settings/mantis.cfg) ---------- */\n'
+    cat "$REPO_DIR/settings/mantis.cfg"
+  } >> "$cfg"
+
+  lw_original lw/policies.json
+  # hluboké sloučení objektů (naše položky se přidají k LibreWolfím)
+  jq -s '.[0] * .[1]' "$pol" "$REPO_DIR/settings/policies.json" > "$pol.new"
+  mv "$pol.new" "$pol"
+  jq -e '.policies.ExtensionSettings["uBlock0@raymondhill.net"]' "$pol" >/dev/null \
+    || die "po sloučení policies zmizel uBlock Origin"
+}
+
+layer_theme() {
+  local rel=browser/themes/shared/browser-shared.css
+  [ -f "$SRC_DIR/$rel" ] || die "chybí $rel (změnila se struktura Firefoxu?)"
+  lw_original "$rel"
+  {
+    printf '\n/* ---------- Mantis Browser (theme/userChrome.css) ---------- */\n'
+    cat "$REPO_DIR/theme/userChrome.css"
+  } >> "$SRC_DIR/$rel"
+}
+
+# Vestavěné rozšíření Mantis (nová karta, kontrola verzí) – Firefox ho najde
+# v builtin-addons/ a nainstaluje sám (generuje built_in_addons.json)
+layer_extension() {
+  local ext="$SRC_DIR/browser/extensions/$APP_NAME"
+  mkdir -p "$ext"
+  rm -rf "$ext/extension"
+  cp -a "$REPO_DIR/extension" "$ext/extension"
+  [ -z "$MANTIS_RELEASE_PUBKEY" ] || [[ "$MANTIS_RELEASE_PUBKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] \
+    || die "MANTIS_RELEASE_PUBKEY v config.sh není veřejný klíč Ed25519 v base64 (scripts/release-key.sh)"
+  [ -n "$MANTIS_RELEASE_PUBKEY" ] \
+    || warn "MANTIS_RELEASE_PUBKEY je prázdný – build nebude ověřovat podpis vydání (bez instalace jedním kliknutím)"
+  LW="$LW_VERSION" REL="$MANTIS_RELEASE" KEY="$MANTIS_RELEASE_PUBKEY" perl -pi -e \
+    's/\@LW_VERSION\@/$ENV{LW}/g; s/\@MANTIS_RELEASE\@/$ENV{REL}/g; s/\@RELEASE_PUBKEY\@/$ENV{KEY}/g' \
+    "$ext/extension/version.js"
+  grep -q "\"$LW_VERSION\"" "$ext/extension/version.js" && grep -q "\"$MANTIS_RELEASE\"" "$ext/extension/version.js" \
+    && ! grep -q "@RELEASE_PUBKEY@" "$ext/extension/version.js" \
+    || die "nepodařilo se dosadit verzi do extension/version.js"
+}
+
+if $quick; then
+  info "Rychlá příprava (--quick): extension/, settings/, theme/ a sestavení $MANTIS_RELEASE"
+  obj="$SRC_DIR/obj-x86_64-pc-windows-msvc"
+  [ -f "$stamp_file" ] && [ -d "$obj" ] \
+    || die "v $SRC_DIR není strom z plné přípravy s hotovým buildem – spusťte scripts/prepare-source.sh bez --quick"
+  [ "$(cat "$stamp_file")" = "$(full_stamp)" ] \
+    || die "od plné přípravy se změnila verze LibreWolfu, patches/, branding/ nebo skripty přípravy – spusťte scripts/prepare-source.sh bez --quick"
+  for rel in "${LW_APPENDED[@]}"; do
+    ! grep -qF "+++ b/$rel" "$REPO_DIR"/patches/*.patch 2>/dev/null \
+      || die "patch mění $rel – --quick by ho vrátil do původní podoby; spusťte plnou přípravu"
+  done
+  [ -f "$tarball" ] && [ "$(sha256sum "$tarball" | awk '{print $1}')" = "$LW_SOURCE_SHA256" ] \
+    || die "chybí ověřený zdrojový balík $tarball – spusťte plnou přípravu (bez --quick)"
+  if [ ! -w "$SRC_DIR/browser/extensions" ] || [ ! -w "$obj" ]; then
+    sudo chown -R "$(id -u):$(id -g)" "$SRC_DIR"   # po buildu v Dockeru mohou soubory patřit rootovi
+  fi
+  rm -rf "$orig_dir"
+  mkdir -p "$orig_dir"
+  tar xf "$tarball" -C "$orig_dir" --strip-components=1 \
+    "${LW_APPENDED[@]/#/librewolf-$LW_VERSION/}" \
+    || die "v $tarball chybí některý z ${LW_APPENDED[*]}"
+  layer_settings
+  layer_theme
+  layer_extension
+  # Smazané soubory rozšíření by v sestavené kopii zůstaly – zahodit ji, ať ji build vytvoří znovu
+  rm -rf "$obj/dist/bin/browser/chrome/browser/builtin-addons/$APP_NAME"
+  touch "$SRC_DIR/browser/extensions/$APP_NAME/jar.mn"
+  info "Zdrojáky připravené (rychle): $SRC_DIR"
+  echo "Další krok: scripts/build.sh"
+  exit 0
+fi
 
 # ---------------------------------------------------------------------------
 info "1/7 Zdrojový balík LibreWolfu $LW_VERSION"
@@ -185,29 +302,11 @@ replace browser/base/content/browser-addons.js \
 
 # ---------------------------------------------------------------------------
 info "5/7 Nastavení a policies"
-cfg="$SRC_DIR/lw/librewolf.cfg"
-[ -f "$cfg" ] || die "chybí lw/librewolf.cfg"
-{
-  printf '\n\n/** ---------- Mantis Browser (settings/mantis.cfg) ---------- */\n'
-  cat "$REPO_DIR/settings/mantis.cfg"
-} >> "$cfg"
-
-pol="$SRC_DIR/lw/policies.json"
-[ -f "$pol" ] || die "chybí lw/policies.json"
-# hluboké sloučení objektů (naše položky se přidají k LibreWolfím)
-jq -s '.[0] * .[1]' "$pol" "$REPO_DIR/settings/policies.json" > "$pol.new"
-mv "$pol.new" "$pol"
-jq -e '.policies.ExtensionSettings["uBlock0@raymondhill.net"]' "$pol" >/dev/null \
-  || die "po sloučení policies zmizel uBlock Origin"
+layer_settings
 
 # ---------------------------------------------------------------------------
 info "6/7 Vzhled a vlastní patche"
-theme_target="$SRC_DIR/browser/themes/shared/browser-shared.css"
-[ -f "$theme_target" ] || die "chybí browser/themes/shared/browser-shared.css (změnila se struktura Firefoxu?)"
-{
-  printf '\n/* ---------- Mantis Browser (theme/userChrome.css) ---------- */\n'
-  cat "$REPO_DIR/theme/userChrome.css"
-} >> "$theme_target"
+layer_theme
 
 # Připnutá rozšíření do 2. řádku (lišta záložek) místo horní lišty:
 # tlačítko „Připnout na lištu“, zaškrtávátko po instalaci i default_area "navbar"
@@ -219,21 +318,8 @@ replace browser/base/content/browser-addons.js \
 replace browser/components/extensions/parent/ext-browserAction.js \
   "navbar: CustomizableUI.AREA_NAVBAR," "navbar: CustomizableUI.AREA_BOOKMARKS,"
 
-# Vestavěné rozšíření Mantis (nová karta, kontrola verzí) – Firefox ho najde
-# v builtin-addons/ a nainstaluje sám (generuje built_in_addons.json)
+layer_extension
 ext="$SRC_DIR/browser/extensions/$APP_NAME"
-mkdir -p "$ext"
-cp -a "$REPO_DIR/extension" "$ext/extension"
-[ -z "$MANTIS_RELEASE_PUBKEY" ] || [[ "$MANTIS_RELEASE_PUBKEY" =~ ^[A-Za-z0-9+/]{43}=$ ]] \
-  || die "MANTIS_RELEASE_PUBKEY v config.sh není veřejný klíč Ed25519 v base64 (scripts/release-key.sh)"
-[ -n "$MANTIS_RELEASE_PUBKEY" ] \
-  || warn "MANTIS_RELEASE_PUBKEY je prázdný – build nebude ověřovat podpis vydání (bez instalace jedním kliknutím)"
-LW="$LW_VERSION" REL="$MANTIS_RELEASE" KEY="$MANTIS_RELEASE_PUBKEY" perl -pi -e \
-  's/\@LW_VERSION\@/$ENV{LW}/g; s/\@MANTIS_RELEASE\@/$ENV{REL}/g; s/\@RELEASE_PUBKEY\@/$ENV{KEY}/g' \
-  "$ext/extension/version.js"
-grep -q "\"$LW_VERSION\"" "$ext/extension/version.js" && grep -q "\"$MANTIS_RELEASE\"" "$ext/extension/version.js" \
-  && ! grep -q "@RELEASE_PUBKEY@" "$ext/extension/version.js" \
-  || die "nepodařilo se dosadit verzi do extension/version.js"
 cat > "$ext/moz.build" <<'EOF'
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -321,5 +407,6 @@ done
   cat "$winmoz"
 } >> "$SRC_DIR/mozconfig"
 
+full_stamp > "$stamp_file"
 info "Zdrojáky připravené: $SRC_DIR"
-echo "Další krok: scripts/build.sh"
+echo "Další krok: scripts/build.sh (příště, když se změní jen extension/, settings/ nebo theme/: prepare-source.sh --quick)"
