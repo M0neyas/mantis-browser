@@ -46,7 +46,7 @@ function paletteCommands() {
     { id: "sleepBackground", icon: "💤", title: t("palette_sleepBackground"), words: "sleep discard pamet",
       run: async () => {
         const tabs = (await browser.tabs.query({ active: false, discarded: false, pinned: false, audible: false }))
-          .filter(tab => /^(https?|file):/.test(tab.url || "") && !tab.mutedInfo?.muted);
+          .filter(tab => /^(https?|file):/.test(tab.url || "") && !tab.mutedInfo?.muted && tab.autoDiscardable !== false);
         if (tabs.length) {
           await browser.tabs.discard(tabs.map(tab => tab.id));
         }

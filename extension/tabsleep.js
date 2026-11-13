@@ -1,7 +1,7 @@
 // Uspávání karet (Nastavení Mantis → Prohlížení): karty, na které uživatel X minut nesáhl,
 // se uspí (tabs.discard – uvolní paměť, stránka se po kliknutí znovu načte, formuláře obnoví
 // obnova relace). Neuspávají se: aktivní karty, připnuté (pošta, chat…), přehrávající zvuk,
-// právě načítané a weby z výjimek. Firefox navíc sám uspává karty, když dochází paměť.
+// právě načítané, weby z výjimek a karty s „Neuspávat panel“ (nosleep.js). Firefox navíc sám uspává karty, když dochází paměť.
 // V úsporném režimu (performance.js) se uspává nejpozději po 15 minutách.
 // storage.local: tabSleep (výchozí zapnuto), tabSleepMinutes (60), tabSleepExceptions [].
 
@@ -31,6 +31,7 @@ async function sleepIdleTabs() {
   const tabs = await browser.tabs.query({ discarded: false, active: false, pinned: false, audible: false, status: "complete" });
   const idle = tabs.filter(tab =>
     tab.lastAccessed < limit &&
+    tab.autoDiscardable !== false && // Neuspávat panel (nosleep.js)
     /^(https?|file):/.test(tab.url || "") &&
     !tab.mutedInfo?.muted && // ztlumená karta nejspíš něco přehrává
     !tabSleepExcepted(tab.url, config.tabSleepExceptions)

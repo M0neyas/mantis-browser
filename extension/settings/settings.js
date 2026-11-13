@@ -123,7 +123,7 @@ function hotTabRow({ group, tabs }) {
     : t("settings_hotTabLoad", formatMemory(group.memoryMB),
       group.cpuPercent.toLocaleString(uiLocale(), { maximumFractionDigits: 1 }));
 
-  const background = tabs.filter(tab => !tab.active);
+  const background = tabs.filter(tab => !tab.active && tab.autoDiscardable !== false); // Neuspávat panel
   const sleep = document.createElement("button");
   sleep.type = "button";
   sleep.className = "secondary";
@@ -175,7 +175,7 @@ setInterval(() => {
 
 document.getElementById("sleep-background").addEventListener("click", async () => {
   const tabs = (await browser.tabs.query({ active: false, discarded: false, pinned: false, audible: false }))
-    .filter(tab => WEB_URL.test(tab.url || "") && !tab.mutedInfo?.muted);
+    .filter(tab => WEB_URL.test(tab.url || "") && !tab.mutedInfo?.muted && tab.autoDiscardable !== false);
   if (tabs.length) {
     await browser.tabs.discard(tabs.map(tab => tab.id));
   }

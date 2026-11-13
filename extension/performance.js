@@ -48,6 +48,7 @@ async function perfRamCheck() {
     .filter(tab =>
       /^(https?|file):/.test(tab.url || "") &&
       !tab.mutedInfo?.muted &&
+      tab.autoDiscardable !== false && // Neuspávat panel (nosleep.js)
       !tabSleepExcepted(tab.url, config.tabSleepExceptions)) // tabsleep.js
     .sort((a, b) => a.lastAccessed - b.lastAccessed);
   // Paměť se po uspání uvolní se zpožděním – uspat jen pár karet a znovu změřit příště

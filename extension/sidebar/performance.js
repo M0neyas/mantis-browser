@@ -136,7 +136,7 @@ function createPerformanceView() {
   hot.append(hotHead, hotList, hotEmpty);
   sleepAll.addEventListener("click", async () => {
     const tabs = (await browser.tabs.query({ active: false, discarded: false, pinned: false, audible: false }))
-      .filter(tab => PERF_WEB_URL.test(tab.url || "") && !tab.mutedInfo?.muted);
+      .filter(tab => PERF_WEB_URL.test(tab.url || "") && !tab.mutedInfo?.muted && tab.autoDiscardable !== false);
     if (tabs.length) {
       await browser.tabs.discard(tabs.map(tab => tab.id));
     }
@@ -195,7 +195,7 @@ function createPerformanceView() {
         : t("settings_hotTabLoad", perfMemory(group.memoryMB),
           group.cpuPercent.toLocaleString(uiLocale(), { maximumFractionDigits: 1 }));
       text.append(title, perfEl("span", "perf-hint", tabs.length > 1 ? `${load} · ${tabs.length}×` : load));
-      const background = tabs.filter(tab => !tab.active);
+      const background = tabs.filter(tab => !tab.active && tab.autoDiscardable !== false); // Neuspávat panel
       const sleep = perfEl("button", "notes-button", t("settings_hotTabSleep"));
       sleep.type = "button";
       sleep.disabled = !background.length;
