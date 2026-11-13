@@ -1,5 +1,5 @@
 # Rizikové e-shopy podle České obchodní inspekce – Mantis na nich ukáže varování.
-# Vygenerováno scripts/update-eshop-list.sh (2026-11-04), 1324 položek.
+# Vygenerováno scripts/update-eshop-list.sh (2026-11-13), 1352 položek.
 # Zdroj: https://coi.gov.cz/pro-spotrebitele/rizikove-e-shopy/
 # Informace zveřejněná orgánem státní správy (Česká obchodní inspekce).
 # Formát: doména[/cesta]<TAB>datum zařazení ČOI
@@ -53,6 +53,7 @@ altracz.com	2024-12-06
 altrarunnerscz.com	2022-02-18
 altrarunningcz.cz	2024-12-06
 ameliapraha.com	2026-08-03
+ameliapraha.cz	2026-10-30
 amilara.com	2024-02-09
 anekkecz.eu	2024-12-09
 anekkeczshop.top	2026-09-30
@@ -99,6 +100,7 @@ baselie.com	2025-06-11
 bathstr.shop	2025-02-20
 bdric34.world	2025-08-18
 be-terralis.com	2026-07-06
+beanhub.shop	2026-10-30
 bedernioperkacz.com	2021-12-14
 beistravel.cz	2025-04-25
 bellcasual.com	2025-03-14
@@ -188,6 +190,7 @@ chovatelpro.com	2026-10-26
 chytrynaramek-cz.com	2021-10-06
 cicibansale.club	2025-10-23
 cisteucho.cz	2024-02-13
+cisticisvet.com	2026-10-30
 citymall.club	2025-12-09
 clara-praha.cz	2025-12-24
 clarella.cz	2025-11-03
@@ -216,6 +219,7 @@ crypsome.click/ffmyv1	2023-03-25
 cryptoeddu.com	2020-10-25
 crystalli.cz	2026-05-28
 currentbody-cz.cz	2026-07-23
+cyklodily.com	2026-11-03
 cyklovela.com	2026-09-23
 cyleva.com	2026-06-08
 cyun.sanni.store	2023-12-04
@@ -281,6 +285,7 @@ czech-republic-invest.com	2022-11-02
 czech.e-energy-official.com	2023-02-16
 czech.hondrocream.shop	2024-04-09
 czech.shoppingnexa.com	2025-11-28
+czechautodily.com	2026-11-04
 czechchildren.eu	2026-04-20
 czechfafatop.shop	2026-08-25
 czechsecond-handmall.shop	2026-08-10
@@ -397,6 +402,7 @@ fabulous-sale.com	2026-05-12
 fafasecond-hand888.shop	2026-02-05
 fantar.shop	2026-06-22
 fashionfashion.cz	2022-08-17
+fashoes.top	2026-11-09
 faunio.cz	2026-09-16
 faymoon.com	2025-07-25
 fcoklskodd.top	2025-12-03
@@ -533,6 +539,7 @@ janvera.cz	2026-07-07
 jareys.com	2024-01-26
 jblczech.cz	2026-09-04
 jeesku.com	2024-02-26
+jezdeckepotreby.com	2026-10-30
 jirinapavel.cz	2026-06-06
 jk.axayy.club	2024-01-28
 jk.nfurom.shop	2026-08-14
@@ -712,6 +719,7 @@ martinaveronika.cz	2025-09-09
 masazekouzlodotekupraha.cz	2025-08-28
 matchuji.cz	2026-04-08
 matejovsky.shop	2026-10-27
+matejovskystore.shop	2026-11-03
 matstavba.com	2026-09-16
 mazlickof.cz	2026-06-02
 mc-go.ml	2021-07-14
@@ -722,6 +730,8 @@ megaobchod.com	2026-05-11
 megaslevy.com	2025-11-03
 meindlcz.cz	2023-12-28
 meiougo.com	2026-05-07
+mellowzen.net	2026-11-04
+mencore.cz	2026-11-10
 mercatoincasa.com/fast-mower-isla-cze	2025-08-06
 merrelleshop.cz	2021-06-02
 meyitow.com	2025-08-28
@@ -738,6 +748,7 @@ miourve.com	2025-12-16
 mira-butik.com	2025-06-30
 mistrkutil.com/cs-cz	2026-09-30
 mixmoa.com	2026-02-26
+mkluzkomarkets.shop	2026-11-06
 mkluzkovinybed.homes	2026-10-22
 mktoutlet.store	2026-07-01
 mktoutletcz.store	2026-06-30
@@ -756,9 +767,11 @@ monika-praha.cz	2026-06-08
 montvexa.com	2026-08-28
 moravecbrno.com	2026-01-27
 motordia.com	2026-09-07
+motorovedilypraha.com	2026-11-06
 motorwarenhuis.de	2021-03-03
 mraky-kostek.cz	2021-10-22
 mriiry.shop	2025-08-21
+mrkaj.me	2026-10-30
 muama-enence.net/enence/cz/001d1w/index.html	2019-11-15
 mujbajer.cz	2026-04-07
 murelia.sk	2026-08-27
@@ -821,6 +834,7 @@ novaprahalabel.cz	2026-02-11
 novazakazka.eu	2024-01-22
 nsabiu.myshoplaza.com	2024-01-30
 nsonmalper.com	2025-09-02
+ntcefl.shop	2026-11-06
 nuanzunk.shop	2025-07-24
 nuio.store	2025-01-06
 nutrisuper.cz	2025-10-30
@@ -868,6 +882,7 @@ ospreys.cz	2026-09-03
 otranquilityw.lol	2025-01-06
 outlet-cz.shop	2025-02-21
 outlet-prag.com	2025-12-13
+ovocnazahrada.com	2026-11-03
 owalacz.com	2025-10-02
 owalacz.cz	2024-12-06
 paketstorch.cz	2023-03-19
@@ -910,6 +925,7 @@ poliklinikakolbenova.cz/lekarna	2026-01-21
 polosralphlauren.cz	2025-02-07
 pompocz.club	2025-12-06
 pompoczsale.club	2025-12-11
+pop-mart.cz	2026-11-10
 poplatky-zpet.cz	2021-12-03
 posledniplan.cz	2026-09-16
 potah-zidle.cz	2025-02-24
@@ -930,6 +946,7 @@ prestigeacy.com	2026-09-03
 primarkpraha.com	2025-01-07
 primechnnls.com	2021-05-20
 primediscount24.com	2024-12-02
+prislusenstviatu.com	2026-11-03
 procuratte.com	2026-07-13
 prodejnabytek.com	2026-08-28
 profit-farma.com	2022-09-29
@@ -999,6 +1016,7 @@ rutrostore.com	2026-05-14
 rwblvtfc.com	2021-12-17
 rybarskadilna.com	2026-08-12
 sageeshop.cz	2026-07-09
+saguaros.cz	2026-11-10
 sale-big.live	2024-11-29
 sale.dopesnower.com	2025-02-12
 sale.montece.com	2025-02-18
@@ -1075,6 +1093,7 @@ solar-group.cz	2021-11-30
 solarniledlampa-cz.com	2023-05-20
 solovaircz.top	2025-03-11
 sorelpraha.net	2025-02-10
+sorrelcorner.com	2026-11-09
 sotiti.com	2025-06-13
 soundcores.cz	2025-12-26
 soveracz.com	2025-11-26
@@ -1083,14 +1102,17 @@ speedcrossnettbutikk.com	2022-11-28
 sperkyvalentova.com	2026-04-10
 spinix.cz	2026-03-04
 sqnlin07.shop	2024-11-07
+squishme.cz	2026-11-09
 sroilb.monster	2026-07-23
 stabiflex.pl	2026-09-01
 stainiro.com	2026-10-22
 stanleycup.cz	2024-12-09
 starsneakers.eu	2025-03-04
 stavexpro.com	2026-06-18
+stavmart.com	2026-11-03
 store.providerp.eu	2025-06-23
 storecze.com	2024-11-21
+strojdily.com	2026-11-03
 stronginfo24.com/420/formelan-med-m/gps	2020-09-22
 studuju.com	2026-05-02
 studuju.online	2026-06-08
@@ -1132,6 +1154,7 @@ tek-drevo.cz	2026-09-08
 tempotime.cz	2019-06-21
 teniskyhokaoneone.sk	2021-07-04
 tereza-praha.cz	2025-04-08
+terezablazkova.com	2026-11-02
 tevabratislava.com	2021-08-29
 teveoeshop.cz	2024-03-14
 teveostore.cz	2025-02-05
@@ -1205,6 +1228,7 @@ urunbahcesi.com	2025-04-04
 uspesnirodice.com/store	2026-01-28
 uterezy.cz	2026-01-03
 utopiadigitalstore.com	2024-11-14
+uzi.la	2026-10-30
 vacanez.com	2025-04-25
 valeroil.shop	2023-03-11
 valitoshop.com	2023-03-09
@@ -1219,6 +1243,7 @@ vcmmsai.com	2024-01-10
 vejaeshop.cz	2022-10-21
 velaromoda.cz	2026-07-06
 velorapraha.cz	2025-11-18
+velvetvogue.cz	2026-11-10
 ventisvision.com	2023-12-25
 venumcz.cz	2025-01-28
 venusstore.shop	2026-05-06
@@ -1263,6 +1288,7 @@ welivo.cz	2025-06-18
 wellensteynbundy.cc	2025-02-18
 wellness-sprchovahlavice-cz.com	2021-07-01
 welovedoxies.com	2023-12-18
+wengroso.cz	2026-11-04
 wentcedatenv.club	2026-04-28
 westri.top	2026-02-02
 wfasdiuo.shop	2025-12-05
@@ -1303,6 +1329,7 @@ zareefashion.com	2026-03-11
 zaria-brno.com	2025-03-31
 zarusova.com	2026-07-31
 zasilkonos.cz	2021-12-27
+zdravikrasashop.com	2026-11-09
 zdraviodslovanu.online	2021-07-05
 zelezshop.com	2026-10-29
 zibdo.top	2025-06-17
@@ -1323,6 +1350,7 @@ zudanes.com	2024-12-12
 zulaia.cz	2026-05-21
 zuzutv.cz	2021-04-17
 zv-go.tk	2021-07-07
+zvedavehlavicky.shop	2026-10-30
 zvetsovaci-bryle-cz.com	2021-07-21
 zvirecinadeje.com	2025-08-29
 zvuknastroj.com	2026-07-31
