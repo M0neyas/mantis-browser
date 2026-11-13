@@ -302,6 +302,21 @@ async function showMessengers() {
     label.append(box, ` ${service.name}`);
     return label;
   }));
+  // Neuspávat: jen zapnuté služby (../messengers.js, ../sidebar/sidebar.js)
+  const { sidebarKeepAwake } = await browser.storage.local.get({ sidebarKeepAwake: [] });
+  document.getElementById("messenger-keep").replaceChildren(...services.filter(s => enabled.includes(s.id)).map(service => {
+    const label = document.createElement("label");
+    const box = document.createElement("input");
+    box.type = "checkbox";
+    box.checked = sidebarKeepAwake.includes(service.id);
+    box.addEventListener("change", async () => {
+      const current = (await browser.storage.local.get({ sidebarKeepAwake: [] })).sidebarKeepAwake;
+      const next = box.checked ? [...new Set([...current, service.id])] : current.filter(id => id !== service.id);
+      await browser.storage.local.set({ sidebarKeepAwake: next });
+    });
+    label.append(box, ` ${service.name}`);
+    return label;
+  }));
 }
 
 showMessengers();
@@ -769,7 +784,7 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (changes.workspaces) {
     showWorkspaces();
   }
-  if (changes.sidebarServices) {
+  if (changes.sidebarServices || changes.sidebarKeepAwake) {
     showMessengers();
   }
   if (changes.savedSessions) {

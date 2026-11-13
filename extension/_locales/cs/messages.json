@@ -387,6 +387,8 @@
   "settings_messengersList": {"message": "Aplikace v panelu"},
   "settings_sidebarRail": {"message": "Lišta u levého okraje"},
   "settings_sidebarRailHint": {"message": "Najetím myší k levému okraji stránky se ukážou ikony služeb přes stránku; teprve kliknutí otevře panel, který stránku zúží."},
+  "settings_sidebarKeepAwake": {"message": "Neuspávat po zavření panelu"},
+  "settings_sidebarKeepAwakeHint": {"message": "Zaškrtnuté aplikace běží i se zavřeným panelem – Spotify hraje dál, zprávy a upozornění chodí hned. Ostatní se zavřou jako dosud (šetří paměť). Každá zaškrtnutá aplikace zabírá paměť i se zavřeným panelem."},
   "settings_messengersHint": {"message": "Panel otevře <b>Alt+Shift+M</b>, paleta příkazů nebo Zobrazit → Postranní lišta. Aplikace běží jako jejich webové verze; přihlášení v panelu je oddělené od přihlášení v kartách. Jen pro tyto weby a jen v panelu Mantis vypíná zákaz zobrazení v rámci."},
   "notes_title": {"message": "Poznámky"},
   "notes_new": {"message": "Nová poznámka"},

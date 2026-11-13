@@ -387,6 +387,8 @@
   "settings_messengersList": {"message": "Apps in the sidebar"},
   "settings_sidebarRail": {"message": "Bar at the left edge"},
   "settings_sidebarRailHint": {"message": "Move the mouse to the left edge of the page to show the service icons over the page; only clicking one opens the sidebar, which narrows the page."},
+  "settings_sidebarKeepAwake": {"message": "Keep running when the sidebar is closed"},
+  "settings_sidebarKeepAwakeHint": {"message": "Checked apps keep running with the sidebar closed – Spotify keeps playing, messages and notifications arrive right away. The others close as before (saves memory). Each checked app uses memory even with the sidebar closed."},
   "settings_messengersHint": {"message": "Open the sidebar with <b>Alt+Shift+M</b>, the command palette or View → Sidebar. The apps run as their web versions; signing in to the sidebar is separate from your tabs. Only for these sites and only inside the Mantis sidebar, the ban on being shown in a frame is lifted."},
   "notes_title": {"message": "Notes"},
   "notes_new": {"message": "New note"},

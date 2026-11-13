@@ -31,6 +31,7 @@ const SYNC_KEYS = [
   "themeGlow", // neonová záře
   "themeGlowColors",
   "sidebarRail",
+  "sidebarKeepAwake", // služby panelu, které po zavření panelu běží dál
   "newtabStats", // statistiky ochrany na nové kartě (počty samotné jsou jen místní)
   "sidebarServices", // služby v bočním panelu (prostory jsou jen místní – karty se liší)
   "themeCustom", // vlastní motiv (5 barev); vlastní zvuky (soundCustom) jen místně – velké

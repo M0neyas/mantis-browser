@@ -7,7 +7,8 @@
 // překrývá stránku, nic neodsune); kliknutí na službu teprve otevře panel, který stránku zúží.
 // Panel otevře i zkratka Alt+Shift+M (manifest „_execute_sidebar_action“), paleta příkazů nebo
 // Zobrazit → Postranní lišta. storage.local (sync): sidebarServices = ID zapnutých služeb,
-// sidebarRail = lišta u okraje (výchozí zapnuto); jen místně sidebarLast = poslední služba.
+// sidebarRail = lišta u okraje (výchozí zapnuto), sidebarKeepAwake = ID služeb, které po zavření
+// panelu běží dál („Neuspávat“, výchozí žádná); jen místně sidebarLast = poslední služba.
 
 const SIDEBAR_PAGE = browser.runtime.getURL("sidebar/sidebar.html");
 
@@ -128,6 +129,13 @@ async function messengerRailPush() {
   await browser.mantisPrefs.setSidebarRail(services, { title: t("sidebar_title"), settings: t("sidebar_settings") });
 }
 
+// „Neuspávat“: aspoň jedna zapnutá služba s volbou → panel se při zavření jen schová
+// (ostatní služby v něm zavře stránka panelu, sidebar/sidebar.js)
+async function messengerKeepPush() {
+  const { sidebarServices, sidebarKeepAwake } = await browser.storage.local.get({ sidebarServices: MESSENGER_DEFAULTS, sidebarKeepAwake: [] });
+  await browser.mantisPrefs.setSidebarKeepLoaded(sidebarKeepAwake.some(id => sidebarServices.includes(id)));
+}
+
 browser.mantisPrefs.onSidebarRailChoose.addListener(async (id, windowId) => {
   if (id === "settings") {
     await browser.tabs.create({ windowId, url: browser.runtime.getURL("settings/settings.html#messengers") });
@@ -144,9 +152,13 @@ browser.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.sidebarServices) {
     notesMenuUpdate().catch(() => {});
   }
+  if (area === "local" && (changes.sidebarServices || changes.sidebarKeepAwake)) {
+    messengerKeepPush().catch(e => console.error("Mantis – neuspávat panel:", e));
+  }
 });
 browser.windows.onCreated.addListener(() => messengerRailPush().catch(() => {}));
 messengerRailPush().catch(e => console.error("Mantis – lišta messengerů:", e));
+messengerKeepPush().catch(e => console.error("Mantis – neuspávat panel:", e));
 
 // Označený text → nová poznámka s odkazem na stránku, panel se otevře na poznámkách
 const NOTES_MENU = "mantis-add-note";

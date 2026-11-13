@@ -286,6 +286,13 @@
           { "name": "services", "type": "array", "items": { "type": "object", "additionalProperties": { "type": "any" } } },
           { "name": "texts", "type": "object", "additionalProperties": { "type": "string" } }
         ]
+      },
+      {
+        "name": "setSidebarKeepLoaded",
+        "type": "function",
+        "async": true,
+        "description": "Panel s aplikacemi se při zavření jen schová a zůstane načtený (některá aplikace má „Neuspávat“).",
+        "parameters": [{ "name": "on", "type": "boolean" }]
       }
     ],
     "events": [
@@ -294,6 +301,12 @@
         "type": "function",
         "description": "Kliknutí na službu v liště u okraje: (id služby nebo \"settings\", windowId).",
         "parameters": [{ "name": "id", "type": "string" }, { "name": "windowId", "type": "integer" }]
+      },
+      {
+        "name": "onSidebarToggle",
+        "type": "function",
+        "description": "Panel s aplikacemi se ukázal / schoval a zůstal načtený: (open, windowId).",
+        "parameters": [{ "name": "open", "type": "boolean" }, { "name": "windowId", "type": "integer" }]
       },
       {
         "name": "onPaletteInput",

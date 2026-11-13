@@ -1,0 +1,58 @@
+--- a/browser/components/sidebar/browser-sidebar.js
++++ b/browser/components/sidebar/browser-sidebar.js
+@@ -1241,6 +1241,10 @@
+     this.browser.contentWindow.dispatchEvent(event);
+   },
+ 
++  // Mantis: panely (commandID), které se při zavření jen schovají a zůstanou načtené –
++  // aplikace v bočním panelu Mantisu s volbou „Neuspávat“ (nastavuje rozšíření Mantis)
++  mantisKeepLoaded: new Set(),
++
+   /**
+    * True if the sidebar is currently open.
+    */
+@@ -2325,7 +2329,14 @@
+         this.observeTitleChanges(sourceL10nEl);
+       }
+ 
+-      this.browser.setAttribute("src", url); // kick off async load
++      // Mantis: panel, který zůstal po zavření načtený, se jen znovu ukáže
++      // (nastavení src by ho načetlo znovu a aplikace v něm by začaly od začátku)
++      if (
++        !this.mantisKeepLoaded.has(commandID) ||
++        this.browser.contentDocument?.location.href != url
++      ) {
++        this.browser.setAttribute("src", url); // kick off async load
++      }
+ 
+       if (this.browser.contentDocument.location.href != url) {
+         // make sure to clear the timeout if the load is aborted
+@@ -2391,6 +2402,7 @@
+     if (willHideEvent.defaultPrevented) {
+       return;
+     }
++    const mantisKeepLoaded = this.mantisKeepLoaded.has(this.currentID);
+ 
+     this.hideSwitcherPanel();
+     this._recordPanelToggle(this.currentID, false);
+@@ -2426,13 +2438,18 @@
+     // create a new content viewer because the old one doesn't get destroyed
+     // until about:blank has loaded (which does not happen as long as the
+     // element is hidden).
+-    this.browser.setAttribute("src", "about:blank");
+-    this.browser.docShell?.createAboutBlankDocumentViewer(null, null);
++    if (!mantisKeepLoaded) {
++      this.browser.setAttribute("src", "about:blank");
++      this.browser.docShell?.createAboutBlankDocumentViewer(null, null);
++    }
+ 
+     this._box.removeAttribute("checked");
+     this._box.removeAttribute("context");
+     this._box.hidden = this._splitter.hidden = true;
+     this._splitterAriaUpdateTask.arm();
++    if (mantisKeepLoaded) {
++      window.dispatchEvent(new CustomEvent("MantisSidebarKeptHidden"));
++    }
+ 
+     let selBrowser = gBrowser.selectedBrowser;
+     selBrowser.focus();

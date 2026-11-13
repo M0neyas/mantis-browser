@@ -1029,7 +1029,7 @@ function removeVolumePanels() {
 // události mantisPrefs.onPaletteInput / onPaletteChoose / onWorkspaceAction.
 
 var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
-const mantisListeners = { paletteInput: new Set(), paletteChoose: new Set(), workspaceAction: new Set(), sidebarRailChoose: new Set() };
+const mantisListeners = { paletteInput: new Set(), paletteChoose: new Set(), workspaceAction: new Set(), sidebarRailChoose: new Set(), sidebarToggle: new Set() };
 
 function mantisEmit(name, ...args) {
   for (const listener of mantisListeners[name]) {
@@ -1355,6 +1355,81 @@ async function showExtensionSidebar(win, extensionId) {
   }
 }
 
+// ---------- Neuspávat aplikace v panelu ----------
+// Firefox při zavření bočního panelu načte do něj about:blank – všechny aplikace v panelu
+// skončí. S aplikací označenou „Neuspávat“ se panel Mantisu jen schová a zůstane načtený
+// (patch sidebar-keep-loaded: SidebarController.mantisKeepLoaded). Stránka panelu pak
+// zavře ostatní aplikace sama (událost onSidebarToggle), takže běží jen ty označené.
+
+const keepLoaded = { on: false, extensionId: "", windowIdOf: null, listening: false };
+
+function keepLoadedEmit(win, open) {
+  const controller = win.SidebarController;
+  const id = extensionSidebarId(keepLoaded.extensionId);
+  if (open && controller?.currentID !== id) {
+    return;
+  }
+  const windowId = keepLoaded.windowIdOf?.(win);
+  if (windowId !== undefined && windowId !== null) {
+    mantisEmit("sidebarToggle", open, windowId);
+  }
+}
+
+function keepLoadedApply(win) {
+  const controller = win.SidebarController;
+  if (!controller?.mantisKeepLoaded) {
+    if (win.document.readyState !== "complete") {
+      win.addEventListener("load", () => keepLoadedApply(win), { once: true });
+    }
+    return;
+  }
+  const id = extensionSidebarId(keepLoaded.extensionId);
+  if (!win._mantisKeepHandlers) {
+    win._mantisKeepHandlers = { hidden: () => keepLoadedEmit(win, false), shown: () => keepLoadedEmit(win, true) };
+    win.addEventListener("MantisSidebarKeptHidden", win._mantisKeepHandlers.hidden);
+    win.addEventListener("SidebarShown", win._mantisKeepHandlers.shown);
+  }
+  if (keepLoaded.on) {
+    controller.mantisKeepLoaded.add(id);
+    return;
+  }
+  controller.mantisKeepLoaded.delete(id);
+  win.removeEventListener("MantisSidebarKeptHidden", win._mantisKeepHandlers.hidden);
+  win.removeEventListener("SidebarShown", win._mantisKeepHandlers.shown);
+  delete win._mantisKeepHandlers;
+  // schovaný, ale načtený panel uvolnit hned (jako při běžném zavření)
+  if (!controller.isOpen && controller.browser?.currentURI?.spec !== "about:blank") {
+    controller.browser.setAttribute("src", "about:blank");
+    controller.browser.docShell?.createAboutBlankDocumentViewer(null, null);
+  }
+}
+
+const keepLoadedWindowObserver = {
+  observe(subject, topic) {
+    if (topic === "domwindowopened") {
+      subject.addEventListener("load", () => {
+        if (subject.document.documentElement.getAttribute("windowtype") === "navigator:browser") {
+          keepLoadedApply(subject);
+        }
+      }, { once: true });
+    }
+  },
+};
+
+function setSidebarKeepLoaded(on) {
+  keepLoaded.on = !!on;
+  for (const win of Services.wm.getEnumerator("navigator:browser")) {
+    keepLoadedApply(win);
+  }
+  if (keepLoaded.on && !keepLoaded.listening) {
+    Services.ww.registerNotification(keepLoadedWindowObserver);
+    keepLoaded.listening = true;
+  } else if (!keepLoaded.on && keepLoaded.listening) {
+    Services.ww.unregisterNotification(keepLoadedWindowObserver);
+    keepLoaded.listening = false;
+  }
+}
+
 // ---------- Lišta messengerů u levého okraje (překryv) ----------
 // Najetím myší k levému okraji stránky vyjede plovoucí lišta s ikonami služeb – PŘES stránku,
 // nic neodsune. Teprve kliknutí na službu otevře boční panel (sidebar_action), který stránku
@@ -1596,6 +1671,7 @@ this.mantisPrefs = class extends ExtensionAPI {
     try { wsRemoveWidget(); } catch (e) {}
     try { wsKeepWindow(false); } catch (e) {}
     try { removeRails(); } catch (e) {}
+    try { setSidebarKeepLoaded(false); } catch (e) {}
   }
 
   getAPI(context) {
@@ -1947,6 +2023,20 @@ this.mantisPrefs = class extends ExtensionAPI {
         },
 
         onSidebarRailChoose: mantisEvent(context, "onSidebarRailChoose"),
+        onSidebarToggle: mantisEvent(context, "onSidebarToggle"),
+
+        // Panel s aplikacemi se při zavření jen schová (některá aplikace má „Neuspávat“)
+        async setSidebarKeepLoaded(on) {
+          keepLoaded.extensionId = context.extension.id;
+          keepLoaded.windowIdOf = win => {
+            try {
+              return context.extension.windowManager.wrapWindow(win).id;
+            } catch (e) {
+              return null;
+            }
+          };
+          setSidebarKeepLoaded(on);
+        },
 
         // Plovoucí lišta u levého okraje: služby [{id, name, icon (moz-extension URL loga), color}], prázdné = vypnuto
         async setSidebarRail(services, texts) {

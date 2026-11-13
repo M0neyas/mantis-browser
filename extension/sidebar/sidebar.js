@@ -2,6 +2,9 @@
 // Vlevo lišta s ikonami, vpravo služba v rámci. Rámec se vytvoří při prvním otevření
 // služby a pak zůstává (přepnutí neztratí rozepsanou zprávu ani přehrávání Spotify).
 // Rámce jsou sandbox bez allow-top-navigation: web nemůže přesměrovat stránku panelu.
+// Zavřením panelu Firefox stránku panelu zahodí („uspí“ všechny služby). Služby s volbou
+// „Neuspávat“ (sidebarKeepAwake) běží dál: panel se jen schová (../messengers.js) a ostatní
+// služby tady zavřeme sami; po znovuotevření se ukáže poslední služba.
 /* global t, applyI18n, createNotesView, createPerformanceView */
 
 applyI18n();
@@ -10,6 +13,10 @@ const rail = document.getElementById("rail");
 const frames = document.getElementById("frames");
 const frameOf = new Map();
 let current = null;
+// Vlastní zápisy sidebarLast: storage.onChanged je hlásí zpátky (Firefox i beze změny hodnoty,
+// po pořadí). Bez odlišení by ozvěna staršího zápisu při dvou rychlých kliknutích přepnula
+// zpět a služby by se přepínaly dokola.
+const ownLastWrites = [];
 
 function serviceButton(service) {
   const button = document.createElement("button");
@@ -57,6 +64,7 @@ function open(service) {
     button.toggleAttribute("aria-current", button.dataset.id === service.id);
   }
   current = service.id;
+  ownLastWrites.push(service.id);
   browser.storage.local.set({ sidebarLast: service.id });
 }
 
@@ -92,12 +100,37 @@ async function render() {
 
 render();
 
+// Panel se schoval, ale zůstal načtený (některá služba má „Neuspávat“) / znovu se ukázal
+const windowIdPromise = browser.windows.getCurrent().then(win => win.id);
+
+browser.mantisPrefs.onSidebarToggle.addListener(async (shown, windowId) => {
+  if (windowId !== await windowIdPromise) {
+    return;
+  }
+  if (shown) {
+    const button = rail.querySelector(`.service[data-id="${CSS.escape(current || "")}"]`) || rail.querySelector(".service");
+    if (button && !frameOf.has(button.dataset.id)) {
+      button.click();
+    }
+    return;
+  }
+  const { sidebarKeepAwake } = await browser.storage.local.get({ sidebarKeepAwake: [] });
+  for (const [id, frame] of frameOf) {
+    if (!sidebarKeepAwake.includes(id)) {
+      frame.remove();
+      frameOf.delete(id);
+    }
+  }
+});
+
 browser.storage.onChanged.addListener((changes, area) => {
   if (area === "local" && changes.sidebarServices) {
     render();
   }
   // kliknutí na službu v liště u okraje okna (../messengers.js)
-  if (area === "local" && changes.sidebarLast?.newValue && changes.sidebarLast.newValue !== current) {
+  if (area === "local" && changes.sidebarLast && ownLastWrites[0] === changes.sidebarLast.newValue) {
+    ownLastWrites.shift(); // ozvěna vlastního zápisu
+  } else if (area === "local" && changes.sidebarLast?.newValue && changes.sidebarLast.newValue !== current) {
     const button = rail.querySelector(`.service[data-id="${CSS.escape(changes.sidebarLast.newValue)}"]`);
     button?.click();
   }
