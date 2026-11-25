@@ -306,6 +306,8 @@
   "settings_appearance": {"message": "Vzhled"},
   "settings_compactUrlbar": {"message": "Adresní řádek jako ikona lupy"},
   "settings_compactUrlbarHint": {"message": "Karty mají víc místa. Adresní řádek se rozbalí přes karty, když na lupu najedete myší, kliknete na ni nebo stisknete Ctrl+L. Adresu stránky pak uvidíte až po najetí myší – u citlivých webů (banka) si ji zkontrolujte. Jen v širokém okně."},
+  "settings_titlebar": {"message": "Klasická lišta okna nad kartami"},
+  "settings_titlebarHint": {"message": "Nad kartami bude pruh s názvem stránky a tlačítky okna, za který jde okno pohodlně přetáhnout. Ubere trochu výšky stránce."},
   "settings_performance": {"message": "Výkon"},
   "settings_perfUsage": {"message": "Využití"},
   "settings_perfMeasuring": {"message": "Měřím…"},

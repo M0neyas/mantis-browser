@@ -20,6 +20,8 @@ const ALLOWED_PREFS = {
   "webgl.disabled": "bool",
   "dom.webgpu.enabled": "bool",
   "mantis.urlbar.compact": "bool", // sbalený adresní řádek (theme/userChrome.css)
+  // Lišta okna nad kartami: 0 = klasický titulek Windows, 2 = výchozí (karty v titulku okna)
+  "browser.tabs.inTitlebar": "int",
   // Žádosti webů o upozornění a polohu: 0 = ptát se, 2 = blokovat
   "permissions.default.desktop-notification": "int",
   "permissions.default.geo": "int",

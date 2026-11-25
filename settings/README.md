@@ -30,6 +30,7 @@
 | DRM | zapnuté, včetně stažení modulu Widevine; policy `EncryptedMediaExtensions` i prefy (jinak policy LibreWolfu DRM vypne). Netflix na Windows nejde – licenční server vyžaduje Widevine VMP (podpisy `*.sig`, které má jen Mozilla), PlayReady si Netflix pro Firefox nevybere |
 | WebGL | zapnuté bez dotazu (`librewolf.webgl.prompt` = false – LibreWolf ho jinak potichu blokuje na všech webech) |
 | WebGPU | vypnuté jako v LibreWolfu (`dom.webgpu.enabled` = false), zapnout jde v Nastavení Mantis → Zabezpečení |
+| Lišta okna | karty v titulku okna jako ve Firefoxu (`browser.tabs.inTitlebar` = 2); klasickou lištu okna nad kartami (= 0, systémový titulek Windows – snadné přetahování okna) zapne Nastavení Mantis → Vzhled |
 | Kontejnery | zapnuté už v LibreWolfu, správu přidává Multi-Account Containers |
 
 ## Vyzkoušení v obyčejném LibreWolfu (bez buildu)

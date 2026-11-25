@@ -306,6 +306,8 @@
   "settings_appearance": {"message": "Appearance"},
   "settings_compactUrlbar": {"message": "Address bar as a magnifier icon"},
   "settings_compactUrlbarHint": {"message": "Tabs get more room. The address bar expands over the tabs when you hover or click the magnifier, or press Ctrl+L. You then see the page address only after hovering – check it on sensitive sites (banking). Wide windows only."},
+  "settings_titlebar": {"message": "Classic window title bar above tabs"},
+  "settings_titlebarHint": {"message": "Shows a bar with the page title and window buttons above the tabs, so the window is easy to drag. Takes a little height from the page."},
   "settings_performance": {"message": "Performance"},
   "settings_perfUsage": {"message": "Usage"},
   "settings_perfMeasuring": {"message": "Measuring…"},
