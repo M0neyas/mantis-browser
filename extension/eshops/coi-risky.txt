@@ -1,5 +1,5 @@
 # Rizikové e-shopy podle České obchodní inspekce – Mantis na nich ukáže varování.
-# Vygenerováno scripts/update-eshop-list.sh (2026-11-19), 1352 položek.
+# Vygenerováno scripts/update-eshop-list.sh (2026-11-26), 1377 položek.
 # Zdroj: https://coi.gov.cz/pro-spotrebitele/rizikove-e-shopy/
 # Informace zveřejněná orgánem státní správy (Česká obchodní inspekce).
 # Formát: doména[/cesta]<TAB>datum zařazení ČOI
@@ -18,6 +18,7 @@ a-cz-bright-skin.natural-sales.com	2020-07-12
 aanhydrousx.lol	2025-01-31
 abathingapebape.cz	2024-04-05
 abcici.shop	2025-05-05
+aboderife.com	2026-11-19
 abshuzhi.com	2022-01-06
 abyte.online	2022-11-20
 achaet.com	2024-10-11
@@ -77,12 +78,16 @@ auchansupermarket.shop	2025-12-05
 aura-prague.cz	2026-07-10
 aurelia-praha.cz	2025-07-30
 aurellisviktorie.cz	2026-09-25
+auren-hair.cz	2026-11-17
 auroraklenoty.cz	2026-05-06
 autodilyczech.com	2026-05-19
+autodilyexpert.com	2026-11-13
 autodilyexpres.com	2026-04-30
+autodilymarket.com	2026-11-12
 autokoutek.com	2026-06-03
 autolux-czh.com	2026-06-15
 autolux-rohoz.com	2026-07-29
+autoservispotreby.com	2026-11-18
 autozona360.com	2026-07-10
 avelinpraha.com	2026-09-24
 aventraclothes.com	2025-08-27
@@ -203,6 +208,7 @@ cloudcheats.cc	2020-07-25
 coachcz.cz	2024-03-04
 comme-des-garcons.cz	2025-01-15
 communityoffersdaily.com/420/nttwbv2	2021-06-20
+compovex.com	2026-11-12
 coreczecho.com	2026-05-22
 cos-czechrepublic.cz	2025-01-22
 coseshopcz.cz	2025-01-07
@@ -276,6 +282,7 @@ cz3.landntrv.com	2021-04-07
 cz3130.herhmpa.shop	2026-06-18
 cz4.ketodietnd.com	2020-05-03
 cz4home.club	2026-09-08
+cz4home.homes	2026-11-12
 czalpinepro.shop	2025-02-26
 czautodily.com	2026-05-28
 cze.dwczd.top	2024-01-27
@@ -307,6 +314,7 @@ damecbd.eu	2022-01-16
 damevyzvu.cz	2026-05-29
 dana-praha.cz	2025-12-01
 danielmazl.cz	2026-08-28
+dankers-zimy.cz	2026-11-12
 darinapraha.cz	2026-05-26
 dashingsoul.com	2024-08-31
 datalistshop.com	2021-03-08
@@ -500,6 +508,7 @@ homecz.shop	2026-09-11
 homefyrt.com	2025-05-23
 homegaden.com	2020-01-30
 hoodrichcz.cz	2024-12-27
+horse-feath.shop	2026-11-24
 hot-shopping-review.com/420/prolesanpure-med-m/gps	2019-12-23
 hover-cz.com	2026-04-21
 hranatost.cz	2023-11-27
@@ -537,6 +546,7 @@ janaplzen.cz	2026-05-27
 janattwell.com	2021-06-06
 janvera.cz	2026-07-07
 jareys.com	2024-01-26
+jaroslavapraha.com	2026-11-19
 jblczech.cz	2026-09-04
 jeesku.com	2024-02-26
 jezdeckepotreby.com	2026-10-30
@@ -657,6 +667,7 @@ liviastyl.cz	2025-11-13
 lnceglae.monster	2026-03-27
 lnkuefeo.newherbalfito.com	2022-09-22
 lnvxnxso.sourcesphyto.com	2022-08-09
+loapmarkets.shop	2026-11-20
 lodni-dily.com	2026-08-07
 loftyteam.com/normalife_cr	2020-10-05
 longchampczeshop.cz	2024-12-23
@@ -759,6 +770,7 @@ moda-opava.com	2024-09-17
 moda-ostrava.com	2025-10-02
 modamilacek.cz	2024-11-28
 modaopava.cz	2024-05-30
+modelspart.com	2026-11-18
 modni-ostrava.cz	2025-06-13
 modnidumpraha.cz	2024-12-18
 modovaprague.com	2025-11-15
@@ -766,6 +778,7 @@ momohdesign.com	2025-12-13
 monika-praha.cz	2026-06-08
 montvexa.com	2026-08-28
 moravecbrno.com	2026-01-27
+morskavybava.com	2026-11-19
 motordia.com	2026-09-07
 motorovedilypraha.com	2026-11-06
 motorwarenhuis.de	2021-03-03
@@ -785,6 +798,7 @@ nabytekcz.com	2025-12-09
 nagimi.com	2024-04-19
 naleapraha.com	2026-01-28
 naradidily.com	2026-05-12
+naradimontaz.com	2026-11-13
 naradipro.com	2026-08-06
 naradpro.com	2026-09-07
 narodnidenik.com	2026-06-09
@@ -903,7 +917,9 @@ pclvg.shop	2025-09-15
 pdrevo-mrackova.com	2026-06-02
 pelety-a-drevo.com	2026-07-02
 pelety-brikety.eu	2026-04-09
+pelety-slany.com	2026-11-18
 peletyplus.com	2026-08-25
+peletyx.com	2026-11-24
 pepejeanseshopcz.cz	2024-12-27
 perla-brno.cz	2025-11-07
 perlapraha.com	2025-12-11
@@ -994,6 +1010,7 @@ rfesj.ltd	2025-02-28
 rgdse.shop	2025-09-22
 rhasnog.com	2025-04-09
 rickerfriends.org/kingstown-zaluje-vitkovu-cpi-kvuli-udajnym-pomluvam-v-mediich	2020-07-08
+ridegearcz.com	2026-11-17
 riekercz.com	2024-11-18
 riekerobuveshop.sk	2022-07-30
 ritualsbeat.shop	2026-09-18
@@ -1004,6 +1021,7 @@ roborocks.cz	2026-09-07
 rodinnepoklady.com	2025-09-08
 roikonggaodian.com	2026-05-01
 rondlysecj.club/96dezs	2025-09-22
+rooren.com	2026-11-13
 rosella-fashion.com	2025-06-26
 rotovaurvananoha.com	2025-06-09
 rotto-garage.com	2025-10-28
@@ -1065,6 +1083,7 @@ siksilkcz.com	2026-02-11
 sikstylpraha.cz	2025-11-03
 silkiee.cz	2026-10-21
 simaginaryoir.shop	2025-03-20
+simastar.co	2026-11-18
 simek-praha.com	2026-03-31
 simonaostrava.com	2026-09-16
 simonapraha.cz	2026-02-18
@@ -1083,6 +1102,7 @@ slevakupon.cz	2021-04-30
 smoce.shop	2026-06-08
 sneakersonmars.eu	2024-03-08
 sneakroll.cz	2026-04-29
+snowclava.store	2026-11-19
 snowmorph.com	2026-10-22
 snudge.lol	2025-06-02
 sofiaplzen.cz	2025-12-01
@@ -1101,6 +1121,7 @@ spagetlink.com/ttej/l	2023-03-07
 speedcrossnettbutikk.com	2022-11-28
 sperkyvalentova.com	2026-04-10
 spinix.cz	2026-03-04
+sportcyklovybava.com	2026-11-12
 sqnlin07.shop	2024-11-07
 squishme.cz	2026-11-09
 sroilb.monster	2026-07-23
@@ -1108,6 +1129,7 @@ stabiflex.pl	2026-09-01
 stainiro.com	2026-10-22
 stanleycup.cz	2024-12-09
 starsneakers.eu	2025-03-04
+stavebnimaterialy.com	2026-11-12
 stavexpro.com	2026-06-18
 stavmart.com	2026-11-03
 store.providerp.eu	2025-06-23
@@ -1228,6 +1250,8 @@ urunbahcesi.com	2025-04-04
 uspesnirodice.com/store	2026-01-28
 uterezy.cz	2026-01-03
 utopiadigitalstore.com	2024-11-14
+utulnocz.com	2026-11-11
+uyyukityrty.shop	2026-11-12
 uzi.la	2026-10-30
 vacanez.com	2025-04-25
 valeroil.shop	2023-03-11
@@ -1348,6 +1372,7 @@ ztrackc.lol	2025-02-26
 zubni-kartacek.cz	2021-10-18
 zudanes.com	2024-12-12
 zulaia.cz	2026-05-21
+zupanko.com	2026-11-17
 zuzutv.cz	2021-04-17
 zv-go.tk	2021-07-07
 zvedavehlavicky.shop	2026-10-30
